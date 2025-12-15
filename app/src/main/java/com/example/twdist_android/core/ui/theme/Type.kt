@@ -1,4 +1,4 @@
-package com.example.twdist_android.ui.theme
+package com.example.twdist_android.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

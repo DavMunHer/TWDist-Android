@@ -1,6 +1,5 @@
-package com.example.twdist_android.ui.theme
+package com.example.twdist_android.core.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
