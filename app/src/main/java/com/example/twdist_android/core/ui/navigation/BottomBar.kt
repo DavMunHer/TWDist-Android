@@ -10,17 +10,18 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation3.runtime.NavKey
 
 @Composable
 fun BottomBar(
     items: List<BottomBarItem>,
-    onNavigationClick: (route: String) -> Unit
+    onNavigationClick: (key: NavKey) -> Unit
 ) {
     NavigationBar {
         items.forEach { item ->
             NavigationBarItem(
                 selected = false,
-                onClick = { onNavigationClick(item.route) },
+                onClick = { onNavigationClick(item.key) },
                 icon = { Icon(item.icon, contentDescription = null) },
                 label = { Text(item.label) }
             )
@@ -32,10 +33,10 @@ fun BottomBar(
 @Composable
 fun BottomBarPreview() {
     val items = listOf<BottomBarItem>(
-        BottomBarItem("today", "Today", Icons.Default.DateRange),
-        BottomBarItem("upcoming", "Upcoming", Icons.Default.DateRange),
-        BottomBarItem("favorites", "Favorites", Icons.Default.Star),
-        BottomBarItem("more", "More options", Icons.Default.Menu)
+        BottomBarItem(TodayScreenKey, "Today", Icons.Default.DateRange),
+        BottomBarItem(UpcomingScreenKey, "Upcoming", Icons.Default.DateRange),
+        BottomBarItem(FavoriteScreenKey, "Favorites", Icons.Default.Star),
+        BottomBarItem(MoreScreenKey, "More options", Icons.Default.Menu)
     )
 
     BottomBar(items, onNavigationClick = {})

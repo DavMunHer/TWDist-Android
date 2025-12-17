@@ -20,27 +20,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TWDistAndroidTheme {
-                AppScaffold {
+                AppScaffold(onNavItemClick = {println(it)}) {
                     // This should be replaced by the AppNav composable
                     Text("Route changing UI")
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TWDistAndroidTheme {
-        Greeting("Android")
     }
 }
