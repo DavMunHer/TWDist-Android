@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.twdist_android.core.ui.components.AppScaffold
 import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,11 +20,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TWDistAndroidTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                AppScaffold {
+                    // This should be replaced by the AppNav composable
+                    Text("Route changing UI")
                 }
             }
         }
