@@ -11,41 +11,44 @@ import com.example.twdist_android.core.ui.components.AppScaffold
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object TodayScreenKey : NavKey
+sealed interface AppScreen : NavKey
 
 @Serializable
-data object UpcomingScreenKey : NavKey
+data object TodayScreenKey : AppScreen
 
 @Serializable
-data object FavoriteScreenKey : NavKey
+data object UpcomingScreenKey : AppScreen
 
 @Serializable
-data object MoreScreenKey : NavKey
+data object FavoriteScreenKey : AppScreen
+
+@Serializable
+data object MoreScreenKey : AppScreen
 
 @Composable
 fun NavigationRoot() {
     val backStack = rememberNavBackStack(TodayScreenKey)
 
     NavDisplay(
-        backStack,
+        backStack = backStack,
         entryProvider = entryProvider {
             entry<TodayScreenKey> {
-                AppScaffold(onNavItemClick = { backStack.add(it) }) {
+                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
                     Text("This should be replaced by the TodayScreen feature")
                 }
             }
             entry<UpcomingScreenKey> {
-                AppScaffold(onNavItemClick = { backStack.add(it) }) {
+                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
                     Text("This should be replaced by the Upcoming Screen feature")
                 }
             }
             entry<FavoriteScreenKey> {
-                AppScaffold(onNavItemClick = { backStack.add(it) }) {
+                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
                     Text("This should be replaced by the Favorite Screen feature")
                 }
             }
             entry<MoreScreenKey> {
-                AppScaffold(onNavItemClick = { backStack.add(it) }) {
+                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
                     Text("This should be replaced by the More Screen feature")
                 }
             }
@@ -56,6 +59,5 @@ fun NavigationRoot() {
 @Preview
 @Composable
 fun NavigationRootPreview() {
-    //FIXME: This isn't working just yet
     NavigationRoot()
 }
