@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.twdist_android.core.ui.components.AppScaffold
+import com.example.twdist_android.features.upcoming.presentation.screens.UpcomingScreenPreview
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -39,7 +40,7 @@ fun NavigationRoot() {
             }
             entry<UpcomingScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    Text("This should be replaced by the Upcoming Screen feature")
+                    UpcomingScreenPreview()
                 }
             }
             entry<FavoriteScreenKey> {
