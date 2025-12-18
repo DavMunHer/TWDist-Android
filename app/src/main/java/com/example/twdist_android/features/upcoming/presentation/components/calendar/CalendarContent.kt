@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.upcoming.presentation.components
+package com.example.twdist_android.features.upcoming.presentation.components.calendar
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

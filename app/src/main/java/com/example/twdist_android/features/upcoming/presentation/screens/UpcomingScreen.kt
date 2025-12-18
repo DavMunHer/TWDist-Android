@@ -1,21 +1,15 @@
 package com.example.twdist_android.features.upcoming.presentation.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.twdist_android.features.upcoming.presentation.components.Calendar
+import com.example.twdist_android.features.upcoming.presentation.components.calendar.Calendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import java.time.DayOfWeek
 import java.time.YearMonth
