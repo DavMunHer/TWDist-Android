@@ -40,7 +40,7 @@ fun TodayScreen(modifier: Modifier = Modifier, tasks: List<TaskState>) {
 
 @Preview(showBackground = true)
 @Composable
-private fun TodayScreenPreview() {
+fun TodayScreenPreview() {
     val tasks = listOf(
         TaskState(
             id = 1,
