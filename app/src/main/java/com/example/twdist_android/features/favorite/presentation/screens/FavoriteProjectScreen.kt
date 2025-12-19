@@ -32,7 +32,7 @@ fun FavoriteProjectScreen(
 fun FavoriteProjectScreenPreview() {
     val sampleProjects = listOf(
         FavoriteProjectState("Web App Development", 5),
-        FavoriteProjectState("Movile App Development", 2),
+        FavoriteProjectState("Mobile App Development", 2),
         FavoriteProjectState("Final Course Project", 8)
     )
     FavoriteProjectScreen(favoriteProjects = sampleProjects)

@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.twdist_android.core.ui.components.AppScaffold
+import com.example.twdist_android.features.favorite.presentation.screens.FavoriteProjectScreenPreview
 import com.example.twdist_android.features.today.presentation.screens.TodayEmptyScreenPreview
 import com.example.twdist_android.features.today.presentation.screens.TodayScreenPreview
 import com.example.twdist_android.features.upcoming.presentation.screens.UpcomingScreenPreview
@@ -47,7 +48,7 @@ fun NavigationRoot() {
             }
             entry<FavoriteScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    Text("This should be replaced by the Favorite Screen feature")
+                    FavoriteProjectScreenPreview()
                 }
             }
             entry<MoreScreenKey> {
