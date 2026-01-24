@@ -17,4 +17,10 @@ class LoginViewModel: ViewModel() {
     fun updatePassword(newPassword: String) {
         _uiState.update { it.copy(password = newPassword) }
     }
+
+    fun onSubmit() {
+        val state = _uiState.value;
+
+        // TODO: Send form state with repo logic
+    }
 }

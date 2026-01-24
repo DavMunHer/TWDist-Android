@@ -4,6 +4,7 @@ import LoginViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -24,7 +25,8 @@ fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier = Modifier) {
     LoginContent(
         uiState = state,
         onEmailChange = { viewModel.updateEmail(it) },
-        onPasswordChange = { viewModel.updatePassword(it) }
+        onPasswordChange = { viewModel.updatePassword(it) },
+        onSubmit = { viewModel.onSubmit() }
     )
 }
 
@@ -33,6 +35,7 @@ fun LoginContent(
     uiState: LoginFormState,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.padding(16.dp)) {
@@ -50,7 +53,9 @@ fun LoginContent(
             modifier = Modifier.fillMaxWidth()
         )
 
-
+        Button(onClick = onSubmit) {
+            Text("Send")
+        }
     }
 }
 
@@ -67,6 +72,7 @@ fun LoginContentPreview() {
         },
         onPasswordChange = { newPassword ->
             state = state.copy(password = newPassword)
-        }
+        },
+        onSubmit = {}
     )
 }
