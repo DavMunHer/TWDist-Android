@@ -22,9 +22,9 @@ fun RegisterScreen(modifier: Modifier = Modifier, viewModel: RegisterViewModel) 
 
     RegisterContent(
         uiState = state,
-        onEmailChange = { viewModel.updateEmail(it)},
-        onUsernameChange = { viewModel.updateUsername(it)},
-        onPasswordChange = { viewModel.updatePassword(it)},
+        onEmailChange = { viewModel.updateEmail(it) },
+        onUsernameChange = { viewModel.updateUsername(it) },
+        onPasswordChange = { viewModel.updatePassword(it) },
         onFormSend = { viewModel.onSubmit() },
         modifier = modifier
     )
@@ -55,10 +55,11 @@ fun RegisterContent(
             label = { Text("Password") },
             onValueChange = onPasswordChange
         )
+        Button(onClick = { onFormSend() }) {
+            Text("Register")
+        }
     }
-    Button(onClick = { onFormSend() }) {
-        Text("Register")
-    }
+
 }
 
 @Composable
