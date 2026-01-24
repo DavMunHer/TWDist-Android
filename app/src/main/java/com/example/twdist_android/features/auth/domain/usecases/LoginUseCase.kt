@@ -6,7 +6,7 @@ import com.example.twdist_android.features.auth.domain.repository.AuthRepository
 class LoginUseCase(
     private val authRepository: AuthRepository
 ) {
-    fun execute(req: LoginRequestDto): Unit {
-        // TODO: Make http request
+    suspend operator fun invoke(req: LoginRequestDto): Unit {
+        return authRepository.sendLogin(req)
     }
 }
