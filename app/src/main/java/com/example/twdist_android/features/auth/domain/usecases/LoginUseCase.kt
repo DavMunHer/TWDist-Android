@@ -7,6 +7,7 @@ class LoginUseCase(
     private val authRepository: AuthRepository
 ) {
     suspend operator fun invoke(req: LoginRequestDto): Unit {
+        // TODO: Make domain validation if needed -> Email & password is valid, etc.
         return authRepository.sendLogin(req)
     }
 }
