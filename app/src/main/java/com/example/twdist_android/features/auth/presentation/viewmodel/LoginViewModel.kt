@@ -1,21 +1,26 @@
-package com.example.twdist_android.features.auth.presentation.viewmodel
+import androidx.lifecycle.ViewModel
+import com.example.twdist_android.features.auth.presentation.model.LoginFormState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
-// These files will handle the logic of the screens (will handle all the on... events using the repository, mappers, etc.)
-// Note that this file only defines the functions needed for handle the logic and it would then be
-// implemeted in the LoginScreenWithViewModel.
+class LoginViewModel: ViewModel() {
+    private val _uiState = MutableStateFlow(LoginFormState())
 
-// Example of content for this file:
+    val uiState: StateFlow<LoginFormState> = _uiState.asStateFlow()
 
-/*
-var formState by mutableStateOf(LoginFormState())
-        private set
-
-    // Would be called when user writes new username
-    fun onUsernameChange(username: String) {
-        formState = formState.copy(username = username)
+    fun updateEmail(newEmail: String) {
+        _uiState.update { it.copy(email = newEmail) }
     }
 
- */
+    fun updatePassword(newPassword: String) {
+        _uiState.update { it.copy(password = newPassword) }
+    }
 
+    fun onSubmit() {
+        val state = _uiState.value;
 
-// Check content of LoginScreenWithViewModel for implementation example
+        // TODO: Send form state with repo logic
+    }
+}

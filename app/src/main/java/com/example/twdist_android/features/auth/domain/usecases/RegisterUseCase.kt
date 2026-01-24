@@ -8,6 +8,7 @@ class RegisterUseCase(
     private val authRepository: AuthRepository
 ) {
     fun execute(req: RegisterRequestDto): UserResponseDto {
-        // TODO: Make http request
+        suspend fun execute(req: RegisterRequestDto): UserResponseDto {
+            return authRepository.register(req)
+        }
     }
-}
