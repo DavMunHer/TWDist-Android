@@ -23,4 +23,8 @@ class RegisterViewModel : ViewModel() {
     fun updatePassword(newPassword: String) {
         _uiState.update { it.copy(email = newPassword) }
     }
+
+    fun onSubmit() {
+        //TODO: here goes the createUser method form the repository
+    }
 }
