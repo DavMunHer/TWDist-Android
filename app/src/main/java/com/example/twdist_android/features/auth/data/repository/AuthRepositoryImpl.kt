@@ -4,4 +4,28 @@ package com.example.twdist_android.features.auth.data.repository
 // This layer is not responsible for changing the logic of the UI, only the persistent data (db located) and requests
 // This implements the AuthRepository interface and applies the logic needed for each method
 
-// This layer will use the DTOs and the UserApi (property of the class that will be used for making the requests)
+import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
+import com.example.twdist_android.features.auth.data.dto.RegisterRequestDto
+import com.example.twdist_android.features.auth.data.mapper.toDomain
+import com.example.twdist_android.features.auth.data.remote.AuthApi
+import com.example.twdist_android.features.auth.domain.model.User
+import com.example.twdist_android.features.auth.domain.repository.AuthRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+class AuthRepositoryImpl(
+    private val api: AuthApi
+) : AuthRepository {
+    override suspend fun register(req: RegisterRequestDto): User {
+        return withContext(Dispatchers.IO) {
+            val dto = api.register(req)
+            dto.body()!!.toDomain()
+        }
+    }
+
+    override suspend fun sendLogin(req: LoginRequestDto): Unit {
+        return withContext(Dispatchers.IO) {
+            api.login(req);
+        }
+    }
+}
