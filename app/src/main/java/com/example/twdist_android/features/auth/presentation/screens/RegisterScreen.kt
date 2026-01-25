@@ -12,12 +12,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.twdist_android.core.ui.model.UiState
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.twdist_android.features.auth.presentation.model.RegisterFormState
 import com.example.twdist_android.features.auth.presentation.viewmodel.RegisterViewModel
 
 @Composable
-fun RegisterScreen(modifier: Modifier = Modifier, viewModel: RegisterViewModel) {
+fun RegisterScreen(
+    modifier: Modifier = Modifier,
+    viewModel: RegisterViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
     RegisterContent(

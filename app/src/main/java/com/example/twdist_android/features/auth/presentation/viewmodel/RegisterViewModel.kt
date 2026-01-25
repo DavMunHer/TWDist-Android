@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.example.twdist_android.features.auth.domain.model.User
 import com.example.twdist_android.features.auth.domain.usecases.RegisterUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class RegisterViewModel(
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegisterFormState())
