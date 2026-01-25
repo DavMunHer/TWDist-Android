@@ -1,7 +1,5 @@
 package com.example.twdist_android.features.auth.data.remote
 
-// This layer will use the DTOs and the UserApi (property of the class that will be used for making the requests)
-
 import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
 import com.example.twdist_android.features.auth.data.dto.RegisterRequestDto
 import com.example.twdist_android.features.auth.data.dto.UserResponseDto

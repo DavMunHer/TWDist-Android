@@ -1,10 +1,14 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    id("org.jetbrains.kotlin.kapt")
+    alias(libs.plugins.dagger.hilt)
 }
 
 android {
@@ -31,6 +35,10 @@ android {
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -45,13 +53,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
     }
-    kotlinOptions {
-        jvmTarget = "11"
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 dependencies {
@@ -70,6 +81,14 @@ dependencies {
     implementation(libs.retrofit.converter.kotlinx.serialization)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    add("kapt", libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // SavedStateHandle support
+    implementation(libs.androidx.lifecycle.viewmodel.savedstate)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
