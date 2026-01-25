@@ -1,6 +1,5 @@
 package com.example.twdist_android.features.auth.presentation.screens
 
-import LoginViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,17 +15,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.twdist_android.features.auth.presentation.model.LoginFormState
+import com.example.twdist_android.features.auth.presentation.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier = Modifier) {
+fun LoginScreen(
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
     LoginContent(
         uiState = state,
         onEmailChange = { viewModel.updateEmail(it) },
         onPasswordChange = { viewModel.updatePassword(it) },
-        onSubmit = { viewModel.onSubmit() }
+        onSubmit = { viewModel.onSubmit() },
+        modifier = modifier
     )
 }
 

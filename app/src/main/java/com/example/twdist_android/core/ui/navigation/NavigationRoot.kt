@@ -8,8 +8,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.twdist_android.core.ui.components.AppScaffold
+import com.example.twdist_android.features.auth.presentation.screens.LoginScreen
 import com.example.twdist_android.features.favorite.presentation.screens.FavoriteProjectScreenPreview
-import com.example.twdist_android.features.today.presentation.screens.TodayEmptyScreenPreview
 import com.example.twdist_android.features.today.presentation.screens.TodayScreenPreview
 import com.example.twdist_android.features.upcoming.presentation.screens.UpcomingScreenPreview
 import kotlinx.serialization.Serializable
@@ -29,9 +29,12 @@ data object FavoriteScreenKey : AppScreen
 @Serializable
 data object MoreScreenKey : AppScreen
 
+@Serializable
+data object LoginScreenKey : AppScreen
+
 @Composable
 fun NavigationRoot() {
-    val backStack = rememberNavBackStack(TodayScreenKey)
+    val backStack = rememberNavBackStack(LoginScreenKey)
 
     NavDisplay(
         backStack = backStack,
@@ -55,6 +58,10 @@ fun NavigationRoot() {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
                     Text("This should be replaced by the More Screen feature")
                 }
+            }
+            entry<LoginScreenKey> {
+                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) { }
+                LoginScreen()
             }
         }
     )
