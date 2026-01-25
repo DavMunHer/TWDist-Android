@@ -38,7 +38,7 @@ data object LoginScreenKey : AppScreen
 
 @Composable
 fun NavigationRoot() {
-    val backStack = rememberNavBackStack(LoginScreenKey)
+    val backStack = rememberNavBackStack(RegisterScreenKey)
 
     NavDisplay(
         backStack = backStack,
@@ -69,8 +69,9 @@ fun NavigationRoot() {
                 }
             }
             entry<LoginScreenKey> {
-                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) { }
-                LoginScreen()
+                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
+                    LoginScreen()
+                }
             }
         }
     )
