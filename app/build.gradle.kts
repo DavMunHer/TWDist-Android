@@ -85,6 +85,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     add("kapt", libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 
     // SavedStateHandle support
     implementation(libs.androidx.lifecycle.viewmodel.savedstate)
