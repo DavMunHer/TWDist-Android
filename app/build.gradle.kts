@@ -1,15 +1,19 @@
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    id("org.jetbrains.kotlin.kapt")
+    alias(libs.plugins.dagger.hilt)
 }
 
 android {
     namespace = "com.example.twdist_android"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.twdist_android"
@@ -19,6 +23,20 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Logic to read .env file
+        val envFile = project.rootProject.file(".env")
+        val properties = Properties()
+        if (envFile.exists()) {
+            envFile.inputStream().use { properties.load(it) }
+        }
+        
+        val baseUrl = properties.getProperty("BASE_URL") ?: "http://10.0.2.2:8080/api/"
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -35,12 +53,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
     }
-    kotlinOptions {
-        jvmTarget = "11"
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
-    buildFeatures {
-        compose = true
-    }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 dependencies {
@@ -53,6 +75,21 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.kotlinx.serialization.json)
+    
+    // HTTP Dependencies
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.kotlinx.serialization)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    add("kapt", libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // SavedStateHandle support
+    implementation(libs.androidx.lifecycle.viewmodel.savedstate)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
