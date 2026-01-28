@@ -33,7 +33,7 @@ data object MoreScreenKey : AppScreen
 
 @Serializable
 data object RegisterScreenKey : AppScreen
-
+@Serializable
 data object LoginScreenKey : AppScreen
 
 @Composable
