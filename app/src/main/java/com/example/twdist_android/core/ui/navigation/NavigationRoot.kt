@@ -39,7 +39,7 @@ data object ExplorerScreenKey : AppScreen
 
 @Composable
 fun NavigationRoot() {
-    val backStack = rememberNavBackStack(RegisterScreenKey)
+    val backStack = rememberNavBackStack(LoginScreenKey)
 
     NavDisplay(
         backStack = backStack,

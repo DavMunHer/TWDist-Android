@@ -18,15 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class ProjectItem(
-    val name: String,
-    val pendingTasks: Int
-)
+import com.example.twdist_android.features.explore.domain.model.Project
 
 @Composable
 fun ProjectCard(
-    project: ProjectItem,
+    project: Project,
     onStarClick: () -> Unit,
     onProjectClick: () -> Unit,
     modifier: Modifier = Modifier

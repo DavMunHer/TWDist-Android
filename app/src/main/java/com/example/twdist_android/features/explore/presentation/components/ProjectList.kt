@@ -5,12 +5,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.twdist_android.features.explore.domain.model.Project
 
 @Composable
 fun ProjectList(
-    projects: List<ProjectItem>,
-    onProjectClick: (ProjectItem) -> Unit,
-    onStarClick: (ProjectItem) -> Unit,
+    projects: List<Project>, // Antes era List<ProjectItem>
+    onProjectClick: (Project) -> Unit,
+    onStarClick: (Project) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
