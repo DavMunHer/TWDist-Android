@@ -25,15 +25,14 @@ class ExploreRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createProject(project: Project): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val request = CreateProjectRequestDto(name = project.name)
-                api.createProject(request)
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+    override suspend fun createProject(name: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            // Create here the request DTO, the viewmodel doesn't know that this exists
+            val request = CreateProjectRequestDto(name = name)
+            val response = api.createProject(request)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }
