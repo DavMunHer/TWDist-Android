@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 // To get data about a project
-data class ProjectDto(
+data class ProjectResponseDto(
     val id: Long,
     val name: String
 )
