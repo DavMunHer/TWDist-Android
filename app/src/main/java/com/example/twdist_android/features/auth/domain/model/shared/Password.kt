@@ -17,6 +17,7 @@ value class Password private constructor(val value: String) {
             else
                 Result.success(Password(raw))
     }
+    fun asPlainText(): String = value
 }
 
 class PasswordException(val error: PasswordError) : IllegalArgumentException()

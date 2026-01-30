@@ -20,6 +20,7 @@ value class Email private constructor(val value: String) {
                     Result.success(Email(raw))
             }
     }
+    fun asString(): String = value
 }
 
 class EmailException(val error: EmailError) : IllegalArgumentException()
