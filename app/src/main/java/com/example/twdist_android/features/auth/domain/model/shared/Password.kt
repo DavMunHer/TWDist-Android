@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.auth.domain.model
+package com.example.twdist_android.features.auth.domain.model.shared
 
 @JvmInline
 value class Password private constructor(
