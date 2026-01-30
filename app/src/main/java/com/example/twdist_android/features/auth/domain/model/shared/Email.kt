@@ -1,17 +1,26 @@
 package com.example.twdist_android.features.auth.domain.model.shared
 
-@JvmInline
-value class Email private constructor(
-    val value: String
-) {
-    companion object {
-        private val EMAIL_REGEX =
-            Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+sealed class EmailError {
+    data object Blank : EmailError()
+    data object InvalidFormat : EmailError()
+}
 
-        fun create(raw: String): Email {
-            require(raw.isNotBlank()) { "Email cannot be blank" }
-            require(EMAIL_REGEX.matches(raw)) { "Invalid email format" }
-            return Email(raw)
-        }
+@JvmInline
+value class Email private constructor(val value: String) {
+    companion object {
+        fun create(raw: String): Result<Email> =
+            when {
+                raw.isBlank() ->
+                    Result.failure(EmailException(EmailError.Blank))
+
+                !raw.contains("@") ->
+                    Result.failure(EmailException(EmailError.InvalidFormat))
+
+                else ->
+                    Result.success(Email(raw))
+            }
     }
 }
+
+class EmailException(val error: EmailError) : IllegalArgumentException()
+

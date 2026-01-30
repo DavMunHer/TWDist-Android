@@ -3,6 +3,9 @@ package com.example.twdist_android.features.auth.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
+import com.example.twdist_android.features.auth.domain.model.LoginCredentials
+import com.example.twdist_android.features.auth.domain.model.shared.Email
+import com.example.twdist_android.features.auth.domain.model.shared.Password
 import com.example.twdist_android.features.auth.domain.usecases.LoginUseCase
 import com.example.twdist_android.features.auth.presentation.model.LoginFormState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +37,10 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                val credentials = LoginCredentials(
+                    email = Email.create(state.email),
+                    password = Password.create(state.password)
+                )
                 loginUseCase(LoginRequestDto(
                     state.email,
                     state.password
