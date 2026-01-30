@@ -10,8 +10,8 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.twdist_android.core.ui.components.AppScaffold
 import com.example.twdist_android.features.auth.presentation.screens.LoginScreen
 import com.example.twdist_android.features.auth.presentation.screens.RegisterScreen
+import com.example.twdist_android.features.explore.presentation.screens.ExploreScreenPreview
 import com.example.twdist_android.features.favorite.presentation.screens.FavoriteProjectScreenPreview
-import com.example.twdist_android.features.today.presentation.screens.TodayEmptyScreen
 import com.example.twdist_android.features.today.presentation.screens.TodayScreenPreview
 import com.example.twdist_android.features.upcoming.presentation.screens.UpcomingScreenPreview
 import kotlinx.serialization.Serializable
@@ -29,16 +29,17 @@ data object UpcomingScreenKey : AppScreen
 data object FavoriteScreenKey : AppScreen
 
 @Serializable
-data object MoreScreenKey : AppScreen
-
-@Serializable
 data object RegisterScreenKey : AppScreen
+
 @Serializable
 data object LoginScreenKey : AppScreen
 
+@Serializable
+data object ExplorerScreenKey : AppScreen
+
 @Composable
 fun NavigationRoot() {
-    val backStack = rememberNavBackStack(RegisterScreenKey)
+    val backStack = rememberNavBackStack(LoginScreenKey)
 
     NavDisplay(
         backStack = backStack,
@@ -58,9 +59,9 @@ fun NavigationRoot() {
                     FavoriteProjectScreenPreview()
                 }
             }
-            entry<MoreScreenKey> {
+            entry<ExplorerScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    Text("This should be replaced by the More Screen feature")
+                    ExploreScreenPreview()
                 }
             }
             entry<RegisterScreenKey> {

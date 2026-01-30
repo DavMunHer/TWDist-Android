@@ -36,7 +36,7 @@ fun BottomBarPreview() {
         BottomBarItem(TodayScreenKey, "Today", Icons.Default.DateRange),
         BottomBarItem(UpcomingScreenKey, "Upcoming", Icons.Default.DateRange),
         BottomBarItem(FavoriteScreenKey, "Favorites", Icons.Default.Star),
-        BottomBarItem(MoreScreenKey, "More options", Icons.Default.Menu)
+        BottomBarItem(ExplorerScreenKey, "More options", Icons.Default.Menu)
     )
 
     BottomBar(items, onNavigationClick = {})
