@@ -61,6 +61,7 @@ fun LoginContent(
         Button(onClick = onSubmit) {
             Text("Send")
         }
+        // TODO: Display error messages in the screen
     }
 }
 

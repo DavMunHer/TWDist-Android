@@ -61,6 +61,7 @@ fun RegisterContent(
         Button(onClick = { onFormSend() }) {
             Text("Register")
         }
+        // TODO: Display error messages in the screen
     }
 
 }
