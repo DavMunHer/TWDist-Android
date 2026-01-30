@@ -10,7 +10,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.example.twdist_android.features.auth.domain.model.User
+import com.example.twdist_android.features.auth.domain.model.shared.Email
+import com.example.twdist_android.features.auth.domain.model.shared.Password
+import com.example.twdist_android.features.auth.domain.model.shared.Username
 import com.example.twdist_android.features.auth.domain.usecases.RegisterUseCase
+import com.example.twdist_android.features.auth.presentation.mapper.toUiError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -35,12 +39,22 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun onSubmit() {
-        val current = uiState.value
-        val req = RegisterRequestDto(
-            email = current.email,
-            username = current.username,
-            password = current.password
-        )
+        val state = uiState.value
+
+        val emailResult = Email.create(state.email)
+        val usernameResult = Username.create(state.username)
+        val passwordResult = Password.create(state.password)
+
+        if (emailResult.isFailure || usernameResult.isFailure || passwordResult.isFailure) {
+            _uiState.update {
+                it.copy(
+                    emailError = emailResult.toUiError(),
+                    usernameError = usernameResult.toUiError(),
+                    passwordError = passwordResult.toUiError()
+                )
+            }
+            return
+        }
 
         viewModelScope.launch {
             try {
