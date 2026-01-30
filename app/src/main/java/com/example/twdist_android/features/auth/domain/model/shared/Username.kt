@@ -18,7 +18,7 @@ value class Username private constructor(val value: String) {
             else
                 Result.success(Username(raw))
     }
-    fun asPlainText(): String = value
+    fun asString(): String = value
 }
 
 class UsernameException(val error: UsernameError) : IllegalArgumentException()

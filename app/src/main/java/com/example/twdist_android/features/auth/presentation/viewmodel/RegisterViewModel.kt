@@ -3,6 +3,7 @@ package com.example.twdist_android.features.auth.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.features.auth.data.dto.RegisterRequestDto
+import com.example.twdist_android.features.auth.domain.model.RegisterCredentials
 import com.example.twdist_android.features.auth.presentation.model.RegisterFormState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,15 +57,15 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
+        val credentials = RegisterCredentials(
+            email = emailResult.getOrThrow(), // Should never throw, error checked above
+            username = usernameResult.getOrThrow(),
+            password = passwordResult.getOrThrow()
+        )
+
         viewModelScope.launch {
-            try {
-                val user: User = registerUseCase(req)
-                // TODO: Handle successful registration (e.g., navigate to another screen)
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(password = "Error: ${e.message}")
-                }
-            }
+            registerUseCase(credentials)
+
         }
     }
 }
