@@ -24,12 +24,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.twdist_android.features.auth.presentation.components.AuthTextField
 import com.example.twdist_android.features.auth.presentation.components.PasswordTextField
+import com.example.twdist_android.features.auth.presentation.components.TermsAndPrivacyText
 import com.example.twdist_android.features.auth.presentation.model.RegisterFormState
 import com.example.twdist_android.features.auth.presentation.viewmodel.RegisterViewModel
 
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
+    onTermsClick: () -> Unit,
+    onPrivacyClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
@@ -48,7 +51,9 @@ fun RegisterScreen(
         onUsernameChange = { viewModel.updateUsername(it) },
         onPasswordChange = { viewModel.updatePassword(it) },
         onFormSend = { viewModel.onSubmit() },
-        modifier = modifier
+        modifier = modifier,
+        onTermsClick = onTermsClick,
+        onPrivacyClick = onPrivacyClick
     )
 }
 
@@ -58,6 +63,8 @@ fun RegisterContent(
     onEmailChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onTermsClick: () -> Unit,
+    onPrivacyClick: () -> Unit,
     onFormSend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -128,7 +135,10 @@ fun RegisterContent(
 
         Spacer(Modifier.size(10.dp))
 
-        //TODO: privacy and policies text
+        TermsAndPrivacyText(
+            onTermsClick = onTermsClick,
+            onPrivacyClick = onPrivacyClick
+        )
     }
 }
 
@@ -149,6 +159,8 @@ fun RegisterScreenPreview() {
         onPasswordChange = { newPassword ->
             state = state.copy(password = newPassword)
         },
-        onFormSend = {}
+        onFormSend = {},
+        onTermsClick = {},
+        onPrivacyClick = {}
     )
 }

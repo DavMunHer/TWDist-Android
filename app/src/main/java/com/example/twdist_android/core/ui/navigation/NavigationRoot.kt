@@ -69,11 +69,17 @@ fun NavigationRoot() {
             }
             entry<RegisterScreenKey> {
                 Scaffold { padding ->
-                    Row(modifier = Modifier
-                        .padding(padding)) {
-                        RegisterScreen(onNavigateToLogin = {
-                            backStack.add(LoginScreenKey)
-                        })
+                    Row(
+                        modifier = Modifier
+                            .padding(padding)
+                    ) {
+                        RegisterScreen(
+                            onNavigateToLogin = {
+                                backStack.add(LoginScreenKey)
+                            },
+                            onTermsClick = {},
+                            onPrivacyClick = {}
+                        )
                     }
                 }
             }
