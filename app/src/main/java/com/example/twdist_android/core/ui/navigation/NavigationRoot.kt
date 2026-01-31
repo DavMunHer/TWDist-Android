@@ -77,7 +77,7 @@ fun NavigationRoot() {
                             onNavigateToLogin = {
                                 backStack.add(LoginScreenKey)
                             },
-                            onTermsClick = {},
+                            onTermsClick = {}, //TODO: Add navigation to Terms screen
                             onPrivacyClick = {}
                         )
                     }
@@ -93,8 +93,11 @@ fun NavigationRoot() {
                             onNavigateToRegister = {
                                 backStack.add(RegisterScreenKey)
                             },
-                            onTermsClick = {},
-                            onPrivacyClick = {}
+                            onTermsClick = {}, //TODO: Add navigation to Terms screen
+                            onPrivacyClick = {},
+                            onNavigateToExplore = {
+                                backStack.add(ExplorerScreenKey)
+                            }
                         )
                     }
                 }

@@ -75,6 +75,7 @@ class LoginViewModel @Inject constructor(
             try {
                 loginUseCase(credentials)
                 // Handle success (e.g., navigation)
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: IOException) {
                 _uiState.update { it.copy(errorMessage = "Server is down or unreachable. Please check your connection.") }
             } catch (e: Exception) {
@@ -88,5 +89,9 @@ class LoginViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+    }
+
+    fun onNavigationHandled() {
+        _uiState.update { it.copy(isSuccess = false) }
     }
 }
