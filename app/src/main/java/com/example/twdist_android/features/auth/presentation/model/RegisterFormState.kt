@@ -8,5 +8,6 @@ data class RegisterFormState(
     val passwordError: String? = null,
     val usernameError: String? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isSuccess: Boolean = false
 )

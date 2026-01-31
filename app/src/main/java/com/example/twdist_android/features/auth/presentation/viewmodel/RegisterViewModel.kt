@@ -78,7 +78,7 @@ class RegisterViewModel @Inject constructor(
             }
             try {
                 registerUseCase(credentials)
-                // Handle success (e.g., navigation)
+                _uiState.update { it.copy(isSuccess = true) }
             } catch (e: IOException) {
                 _uiState.update { it.copy(errorMessage = "Server is down or unreachable. Please check your connection.") }
             } catch (e: Exception) {
@@ -87,5 +87,9 @@ class RegisterViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+    }
+    
+    fun onNavigationHandled() {
+        _uiState.update { it.copy(isSuccess = false) }
     }
 }

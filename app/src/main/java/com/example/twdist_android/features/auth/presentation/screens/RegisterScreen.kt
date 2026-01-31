@@ -10,6 +10,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,10 +29,18 @@ import com.example.twdist_android.features.auth.presentation.viewmodel.RegisterV
 
 @Composable
 fun RegisterScreen(
+    onNavigateToLogin: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onNavigateToLogin()
+            viewModel.onNavigationHandled()
+        }
+    }
 
     RegisterContent(
         uiState = state,

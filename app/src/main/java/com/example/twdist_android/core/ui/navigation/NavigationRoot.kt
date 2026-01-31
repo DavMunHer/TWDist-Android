@@ -69,7 +69,9 @@ fun NavigationRoot() {
             }
             entry<RegisterScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    RegisterScreen(modifier = Modifier.padding(horizontal = 20.dp))
+                    RegisterScreen(onNavigateToLogin = {
+                        backStack.add(LoginScreenKey)
+                    })
                 }
             }
             entry<LoginScreenKey> {
