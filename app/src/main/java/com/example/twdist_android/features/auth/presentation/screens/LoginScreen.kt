@@ -120,6 +120,8 @@ fun LoginContent(
             }
         }
 
+        Spacer(Modifier.size(10.dp))
+
         TermsAndPrivacyText(
             onTermsClick = onTermsClick,
             onPrivacyClick = onPrivacyClick
