@@ -125,6 +125,10 @@ fun RegisterContent(
                 Text("Register")
             }
         }
+
+        Spacer(Modifier.size(10.dp))
+
+        //TODO: privacy and policies text
     }
 }
 
