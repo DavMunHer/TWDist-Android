@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,11 +26,11 @@ class LoginViewModel @Inject constructor(
     val uiState: StateFlow<LoginFormState> = _uiState.asStateFlow()
 
     fun updateEmail(newEmail: String) {
-        _uiState.update { it.copy(email = newEmail) }
+        _uiState.update { it.copy(email = newEmail, emailError = null, errorMessage = null) }
     }
 
     fun updatePassword(newPassword: String) {
-        _uiState.update { it.copy(password = newPassword) }
+        _uiState.update { it.copy(password = newPassword, passwordError = null, errorMessage = null) }
     }
 
     fun onSubmit() {
@@ -38,11 +39,14 @@ class LoginViewModel @Inject constructor(
         val emailResult = Email.create(state.email)
         val passwordResult = Password.create(state.password)
 
-        if (emailResult.isFailure || passwordResult.isFailure) {
+        val emailError = emailResult.toUiError()
+        val passwordError = passwordResult.toUiError()
+
+        if (emailError != null || passwordError != null) {
             _uiState.update {
                 it.copy(
-                    emailError = emailResult.toUiError(),
-                    passwordError = passwordResult.toUiError()
+                    emailError = emailError,
+                    passwordError = passwordError
                 )
             }
             return
@@ -54,8 +58,24 @@ class LoginViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            loginUseCase(credentials)
+            _uiState.update { 
+                it.copy(
+                    isLoading = true, 
+                    errorMessage = null,
+                    emailError = null,
+                    passwordError = null
+                ) 
+            }
+            try {
+                loginUseCase(credentials)
+                // Handle success (e.g., navigation)
+            } catch (e: IOException) {
+                _uiState.update { it.copy(errorMessage = "Server is down or unreachable. Please check your connection.") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "An unexpected error occurred: ${e.localizedMessage}") }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
-
 }
