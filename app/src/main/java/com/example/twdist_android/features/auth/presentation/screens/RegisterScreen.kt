@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.twdist_android.features.auth.presentation.components.AuthTextField
+import com.example.twdist_android.features.auth.presentation.components.GoToLoginText
 import com.example.twdist_android.features.auth.presentation.components.PasswordTextField
 import com.example.twdist_android.features.auth.presentation.components.TermsAndPrivacyText
 import com.example.twdist_android.features.auth.presentation.model.RegisterFormState
@@ -53,7 +55,8 @@ fun RegisterScreen(
         onFormSend = { viewModel.onSubmit() },
         modifier = modifier,
         onTermsClick = onTermsClick,
-        onPrivacyClick = onPrivacyClick
+        onPrivacyClick = onPrivacyClick,
+        onNavigateToLogin = onNavigateToLogin
     )
 }
 
@@ -65,6 +68,7 @@ fun RegisterContent(
     onPasswordChange: (String) -> Unit,
     onTermsClick: () -> Unit,
     onPrivacyClick: () -> Unit,
+    onNavigateToLogin: () -> Unit,
     onFormSend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -139,6 +143,14 @@ fun RegisterContent(
             onTermsClick = onTermsClick,
             onPrivacyClick = onPrivacyClick
         )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+
+        GoToLoginText(onLoginClick = onNavigateToLogin)
     }
 }
 
@@ -161,6 +173,7 @@ fun RegisterScreenPreview() {
         },
         onFormSend = {},
         onTermsClick = {},
-        onPrivacyClick = {}
+        onPrivacyClick = {},
+        onNavigateToLogin = {}
     )
 }
