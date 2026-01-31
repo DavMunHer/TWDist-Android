@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.twdist_android.features.auth.presentation.components.AuthTextField
 import com.example.twdist_android.features.auth.presentation.components.PasswordTextField
 import com.example.twdist_android.features.auth.presentation.model.RegisterFormState
 import com.example.twdist_android.features.auth.presentation.viewmodel.RegisterViewModel
@@ -73,19 +74,22 @@ fun RegisterContent(
         Spacer(Modifier.size(15.dp))
 
 
-        TextField(
+        AuthTextField(
             value = uiState.email,
-            label = { Text("Email") },
             onValueChange = onEmailChange,
-            modifier = Modifier.fillMaxWidth()
+            label = "Email",
+            modifier = Modifier.fillMaxWidth(),
+            error = uiState.emailError
         )
+
         Spacer(Modifier.size(10.dp))
 
-        TextField(
+        AuthTextField(
             value = uiState.username,
-            label = { Text("Username") },
             onValueChange = onUsernameChange,
-            modifier = Modifier.fillMaxWidth()
+            label = "Username",
+            modifier = Modifier.fillMaxWidth(),
+            error = uiState.usernameError
         )
         Spacer(Modifier.size(10.dp))
 
@@ -93,7 +97,8 @@ fun RegisterContent(
             value = uiState.password,
             onValueChange = onPasswordChange,
             label = "Password",
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            error = uiState.passwordError
         )
         Spacer(Modifier.size(20.dp))
 

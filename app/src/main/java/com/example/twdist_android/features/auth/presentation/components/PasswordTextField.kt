@@ -24,9 +24,9 @@ fun PasswordTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    error: String? = null,
     label: String = "Password",
     enabled: Boolean = true,
-    isError: Boolean = false
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -36,7 +36,12 @@ fun PasswordTextField(
         modifier = modifier,
         label = { Text(label) },
         enabled = enabled,
-        isError = isError,
+        isError = error != null,
+        supportingText = {
+            error?.let {
+                Text(text = it)
+            }
+        },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password
