@@ -2,7 +2,6 @@ package com.example.twdist_android.features.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.twdist_android.features.auth.data.dto.RegisterRequestDto
 import com.example.twdist_android.features.auth.domain.model.RegisterCredentials
 import com.example.twdist_android.features.auth.presentation.model.RegisterFormState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.example.twdist_android.features.auth.domain.model.User
 import com.example.twdist_android.features.auth.domain.model.shared.Email
 import com.example.twdist_android.features.auth.domain.model.shared.Password
 import com.example.twdist_android.features.auth.domain.model.shared.Username

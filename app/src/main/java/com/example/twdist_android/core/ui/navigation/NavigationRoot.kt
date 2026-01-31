@@ -1,8 +1,11 @@
 package com.example.twdist_android.core.ui.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -39,7 +42,7 @@ data object ExplorerScreenKey : AppScreen
 
 @Composable
 fun NavigationRoot() {
-    val backStack = rememberNavBackStack(LoginScreenKey)
+    val backStack = rememberNavBackStack(RegisterScreenKey)
 
     NavDisplay(
         backStack = backStack,
@@ -66,7 +69,7 @@ fun NavigationRoot() {
             }
             entry<RegisterScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    RegisterScreen()
+                    RegisterScreen(modifier = Modifier.padding(horizontal = 20.dp))
                 }
             }
             entry<LoginScreenKey> {
