@@ -2,8 +2,11 @@ package com.example.twdist_android.features.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
+import com.example.twdist_android.features.auth.domain.model.LoginCredentials
+import com.example.twdist_android.features.auth.domain.model.shared.Email
+import com.example.twdist_android.features.auth.domain.model.shared.Password
 import com.example.twdist_android.features.auth.domain.usecases.LoginUseCase
+import com.example.twdist_android.features.auth.presentation.mapper.toUiError
 import com.example.twdist_android.features.auth.presentation.model.LoginFormState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase
-): ViewModel() {
+) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginFormState())
 
     val uiState: StateFlow<LoginFormState> = _uiState.asStateFlow()
@@ -32,17 +35,27 @@ class LoginViewModel @Inject constructor(
     fun onSubmit() {
         val state = _uiState.value
 
-        viewModelScope.launch {
-            try {
-                loginUseCase(LoginRequestDto(
-                    state.email,
-                    state.password
-                ))
-            } catch (e: Exception) {
-                println("An error occurred")
-                // FIXME: Add error handling to give feedback to user
-                //  (error message in state)
+        val emailResult = Email.create(state.email)
+        val passwordResult = Password.create(state.password)
+
+        if (emailResult.isFailure || passwordResult.isFailure) {
+            _uiState.update {
+                it.copy(
+                    emailError = emailResult.toUiError(),
+                    passwordError = passwordResult.toUiError()
+                )
             }
+            return
+        }
+
+        val credentials = LoginCredentials(
+            email = emailResult.getOrThrow(),
+            password = passwordResult.getOrThrow()
+        )
+
+        viewModelScope.launch {
+            loginUseCase(credentials)
         }
     }
+
 }
