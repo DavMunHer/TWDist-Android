@@ -84,8 +84,19 @@ fun NavigationRoot() {
                 }
             }
             entry<LoginScreenKey> {
-                AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    LoginScreen()
+                Scaffold { padding ->
+                    Row(
+                        modifier = Modifier
+                            .padding(padding)
+                    ) {
+                        LoginScreen(
+                            onNavigateToRegister = {
+                                backStack.add(RegisterScreenKey)
+                            },
+                            onTermsClick = {},
+                            onPrivacyClick = {}
+                        )
+                    }
                 }
             }
         }
