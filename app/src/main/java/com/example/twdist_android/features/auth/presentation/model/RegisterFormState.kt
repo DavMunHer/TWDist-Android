@@ -7,5 +7,6 @@ data class RegisterFormState(
     val emailError: String? = null,
     val passwordError: String? = null,
     val usernameError: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
