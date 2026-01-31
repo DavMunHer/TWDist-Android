@@ -30,7 +30,13 @@ class LoginViewModel @Inject constructor(
     }
 
     fun updatePassword(newPassword: String) {
-        _uiState.update { it.copy(password = newPassword, passwordError = null, errorMessage = null) }
+        _uiState.update {
+            it.copy(
+                password = newPassword,
+                passwordError = null,
+                errorMessage = null
+            )
+        }
     }
 
     fun onSubmit() {
@@ -58,13 +64,13 @@ class LoginViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            _uiState.update { 
+            _uiState.update {
                 it.copy(
-                    isLoading = true, 
+                    isLoading = true,
                     errorMessage = null,
                     emailError = null,
                     passwordError = null
-                ) 
+                )
             }
             try {
                 loginUseCase(credentials)
@@ -72,7 +78,12 @@ class LoginViewModel @Inject constructor(
             } catch (e: IOException) {
                 _uiState.update { it.copy(errorMessage = "Server is down or unreachable. Please check your connection.") }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "An unexpected error occurred: ${e.localizedMessage}") }
+                val message = e.localizedMessage
+                if (message!!.contains("403")) {
+                    _uiState.update { it.copy(errorMessage = "Invalid credentials. Please try again.") }
+                } else {
+                    _uiState.update { it.copy(errorMessage = "An unexpected error occurred: ${e.localizedMessage}") }
+                }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
