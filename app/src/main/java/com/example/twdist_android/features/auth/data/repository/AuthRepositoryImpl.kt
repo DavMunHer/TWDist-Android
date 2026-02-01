@@ -12,10 +12,12 @@ import com.example.twdist_android.features.auth.domain.model.User
 import com.example.twdist_android.features.auth.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 
 class AuthRepositoryImpl(
-    private val api: AuthApi
+    private val api: AuthApi,
+    private val json: Json
 ) : AuthRepository {
     override suspend fun register(credentials: RegisterCredentials): User {
         return withContext(Dispatchers.IO) {
@@ -52,7 +54,7 @@ class AuthRepositoryImpl(
     private fun handleHttpError(response: retrofit2.Response<*>): Exception {
         val errorBody = response.errorBody()?.string()
         return try {
-            val errorResponse = RetrofitClient.json.decodeFromString<ErrorResponse>(errorBody ?: "")
+            val errorResponse = json.decodeFromString<ErrorResponse>(errorBody ?: "")
             Exception(errorResponse.message)
         } catch (e: Exception) {
             HttpException(response)
