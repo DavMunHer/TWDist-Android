@@ -9,6 +9,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
 @Module
@@ -17,8 +18,12 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(authApi: AuthApi): AuthRepository =
-        AuthRepositoryImpl(authApi)
+    fun provideAuthRepository(
+        authApi: AuthApi,
+        json: Json
+    ): AuthRepository {
+        return AuthRepositoryImpl(authApi, json)
+    }
 
     @Provides
     @Singleton

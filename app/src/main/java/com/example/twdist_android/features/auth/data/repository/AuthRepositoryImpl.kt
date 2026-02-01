@@ -1,5 +1,7 @@
 package com.example.twdist_android.features.auth.data.repository
 
+import com.example.twdist_android.core.network.ErrorResponse
+import com.example.twdist_android.core.network.RetrofitClient
 import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
 import com.example.twdist_android.features.auth.data.dto.RegisterRequestDto
 import com.example.twdist_android.features.auth.data.mapper.toDomain
@@ -10,31 +12,52 @@ import com.example.twdist_android.features.auth.domain.model.User
 import com.example.twdist_android.features.auth.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import retrofit2.HttpException
 
 class AuthRepositoryImpl(
-    private val api: AuthApi
+    private val api: AuthApi,
+    private val json: Json
 ) : AuthRepository {
     override suspend fun register(credentials: RegisterCredentials): User {
         return withContext(Dispatchers.IO) {
-            val dto = api.register(
+            val response = api.register(
                 RegisterRequestDto(
                     email = credentials.email.asString(),
                     username = credentials.username.asString(),
                     password = credentials.password.asPlainText()
                 )
             )
-            dto.body()!!.toDomain()
+            
+            if (response.isSuccessful) {
+                response.body()!!.toDomain()
+            } else {
+                throw handleHttpError(response)
+            }
         }
     }
 
     override suspend fun sendLogin(credentials: LoginCredentials): Unit {
         return withContext(Dispatchers.IO) {
-
             val request = LoginRequestDto(
                 email = credentials.email.asString(),
                 password = credentials.password.asPlainText()
             )
-            api.login(request);
+            val response = api.login(request)
+            
+            if (!response.isSuccessful) {
+                throw handleHttpError(response)
+            }
+        }
+    }
+
+    private fun handleHttpError(response: retrofit2.Response<*>): Exception {
+        val errorBody = response.errorBody()?.string()
+        return try {
+            val errorResponse = json.decodeFromString<ErrorResponse>(errorBody ?: "")
+            Exception(errorResponse.message)
+        } catch (e: Exception) {
+            HttpException(response)
         }
     }
 }

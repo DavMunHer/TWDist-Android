@@ -90,6 +90,9 @@ dependencies {
     // SavedStateHandle support
     implementation(libs.androidx.lifecycle.viewmodel.savedstate)
 
+    // For icons
+    implementation("androidx.compose.material:material-icons-extended")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -103,4 +106,5 @@ dependencies {
     implementation("androidx.navigation3:navigation3-ui:1.0.0")
     implementation("com.kizitonwose.calendar:compose:2.5.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
 }
