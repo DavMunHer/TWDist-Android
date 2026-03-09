@@ -98,6 +98,13 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
+    // Unit testing
+    testImplementation(libs.mockk)
+
+    // Coroutine testing (needed since LoginUseCase uses suspend)
+    testImplementation(libs.kotlinx.coroutines.test)
+
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
