@@ -34,11 +34,16 @@ class ExploreViewModel @Inject constructor(
             is ExploreEvent.ToggleExpanded -> toggleExpanded()
             is ExploreEvent.CreateProject -> createProject(event.name)
             is ExploreEvent.LoadProjects -> loadProjects()
+            is ExploreEvent.ClearValidationErrors -> clearValidationErrors()
         }
     }
 
     private fun toggleExpanded() {
         _uiState.update { it.copy(isExpanded = !it.isExpanded) }
+    }
+
+    private fun clearValidationErrors() {
+        _uiState.update { it.copy(projectNameError = null) }
     }
 
     private fun loadProjects() {
@@ -54,26 +59,37 @@ class ExploreViewModel @Inject constructor(
     }
 
     private fun createProject(name: String) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+        // Validate project name immediately (like auth does on submit)
+        val formData = CreateProjectFormData(name)
+        val projectNameError = formData.toProjectName().toUiError()
 
-            // Use presentation mapper to convert form data to domain model
-            val formData = CreateProjectFormData(name)
-            formData.toProjectName()
-                .onSuccess { projectName ->
-                    createProjectUseCase(projectName)
-                        .onSuccess {
-                            loadProjects()
-                        }
-                        .onFailure { e ->
-                            _uiState.update { it.copy(error = e.message, isLoading = false) }
-                        }
+        if (projectNameError != null) {
+            _uiState.update {
+                it.copy(
+                    projectNameError = projectNameError,
+                    isLoading = false
+                )
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
+                    projectNameError = null
+                )
+            }
+
+            // Safe to call getOrThrow() after validation above
+            val projectName = formData.toProjectName().getOrThrow()
+            createProjectUseCase(projectName)
+                .onSuccess {
+                    loadProjects()
                 }
-                .onFailure { _ ->
-                    // Convert validation error to UI-friendly message
-                    val errorMessage = CreateProjectFormData(name).toProjectName().toUiError()
-                        ?: "Invalid project name"
-                    _uiState.update { it.copy(error = errorMessage, isLoading = false) }
+                .onFailure { e ->
+                    _uiState.update { it.copy(error = e.message, isLoading = false) }
                 }
         }
     }

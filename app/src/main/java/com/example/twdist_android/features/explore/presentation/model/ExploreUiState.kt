@@ -6,5 +6,6 @@ data class ExploreUiState(
     val isExpanded: Boolean = true,
     val projects: List<Project> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val projectNameError: String? = null
 )
