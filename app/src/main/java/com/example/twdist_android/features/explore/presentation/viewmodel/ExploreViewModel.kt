@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.features.explore.domain.usecases.CreateProjectUseCase
 import com.example.twdist_android.features.explore.domain.usecases.GetProjectsUseCase
 import com.example.twdist_android.features.explore.presentation.event.ExploreEvent
+import com.example.twdist_android.features.explore.presentation.mapper.CreateProjectFormData
+import com.example.twdist_android.features.explore.presentation.mapper.toProjectName
+import com.example.twdist_android.features.explore.presentation.mapper.toUiError
 import com.example.twdist_android.features.explore.presentation.model.ExploreUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,11 +56,24 @@ class ExploreViewModel @Inject constructor(
     private fun createProject(name: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            createProjectUseCase(name)
-                .onSuccess {
-                    loadProjects()
-                }.onFailure { e ->
-                    _uiState.update { it.copy(error = e.message, isLoading = false) }
+
+            // Use presentation mapper to convert form data to domain model
+            val formData = CreateProjectFormData(name)
+            formData.toProjectName()
+                .onSuccess { projectName ->
+                    createProjectUseCase(projectName)
+                        .onSuccess {
+                            loadProjects()
+                        }
+                        .onFailure { e ->
+                            _uiState.update { it.copy(error = e.message, isLoading = false) }
+                        }
+                }
+                .onFailure { _ ->
+                    // Convert validation error to UI-friendly message
+                    val errorMessage = CreateProjectFormData(name).toProjectName().toUiError()
+                        ?: "Invalid project name"
+                    _uiState.update { it.copy(error = errorMessage, isLoading = false) }
                 }
         }
     }
