@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.features.explore.domain.usecases.CreateProjectUseCase
 import com.example.twdist_android.features.explore.domain.usecases.GetProjectsUseCase
 import com.example.twdist_android.features.explore.presentation.event.ExploreEvent
+import com.example.twdist_android.features.explore.presentation.mapper.CreateProjectFormData
+import com.example.twdist_android.features.explore.presentation.mapper.toProjectName
+import com.example.twdist_android.features.explore.presentation.mapper.toUiError
 import com.example.twdist_android.features.explore.presentation.model.ExploreUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,11 +34,16 @@ class ExploreViewModel @Inject constructor(
             is ExploreEvent.ToggleExpanded -> toggleExpanded()
             is ExploreEvent.CreateProject -> createProject(event.name)
             is ExploreEvent.LoadProjects -> loadProjects()
+            is ExploreEvent.ClearValidationErrors -> clearValidationErrors()
         }
     }
 
     private fun toggleExpanded() {
         _uiState.update { it.copy(isExpanded = !it.isExpanded) }
+    }
+
+    private fun clearValidationErrors() {
+        _uiState.update { it.copy(projectNameError = null) }
     }
 
     private fun loadProjects() {
@@ -51,12 +59,36 @@ class ExploreViewModel @Inject constructor(
     }
 
     private fun createProject(name: String) {
+        // Validate project name immediately (like auth does on submit)
+        val formData = CreateProjectFormData(name)
+        val projectNameError = formData.toProjectName().toUiError()
+
+        if (projectNameError != null) {
+            _uiState.update {
+                it.copy(
+                    projectNameError = projectNameError,
+                    isLoading = false
+                )
+            }
+            return
+        }
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            createProjectUseCase(name)
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
+                    projectNameError = null
+                )
+            }
+
+            // Safe to call getOrThrow() after validation above
+            val projectName = formData.toProjectName().getOrThrow()
+            createProjectUseCase(projectName)
                 .onSuccess {
                     loadProjects()
-                }.onFailure { e ->
+                }
+                .onFailure { e ->
                     _uiState.update { it.copy(error = e.message, isLoading = false) }
                 }
         }

@@ -24,7 +24,14 @@ fun ExploreScreen(
 
     // Dialog states
     var showCreateDialog by remember { mutableStateOf(false) }
-    var newProjectName by remember { mutableStateOf("") }
+
+    // Close dialog when project creation succeeds (projects list changes and no errors)
+    LaunchedEffect(state.projects.size, state.projectNameError, state.isLoading) {
+        if (showCreateDialog && !state.isLoading && state.projectNameError == null && state.error == null) {
+            // If we were showing dialog, not loading, and no errors, assume success
+            showCreateDialog = false
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -58,14 +65,14 @@ fun ExploreScreen(
                 item {
                     ProjectList(
                         projects = state.projects,
-                        onProjectClick = { project -> /* TODO: Redirect to the project */ },
-                        onStarClick = { project -> /* TODO: Logic add favourite */ }
+                        onProjectClick = { _ -> /* TODO: Redirect to the project */ },
+                        onStarClick = { _ -> /* TODO: Logic add favourite */ }
                     )
                 }
             }
         }
 
-        // Show error message if exists
+        // Show error message if exists (for business logic errors, not validation)
         state.error?.let { msg ->
             Text(
                 text = msg,
@@ -78,8 +85,13 @@ fun ExploreScreen(
     // Create Project Dialog
     if (showCreateDialog) {
         CreateProjectDialog(
-            onDismiss = { showCreateDialog = false },
-            onConfirm = { name -> viewModel.handleEvent(ExploreEvent.CreateProject(name)) }
+            onDismiss = {
+                showCreateDialog = false
+                // Clear any validation errors when dismissing
+                viewModel.handleEvent(ExploreEvent.ClearValidationErrors)
+            },
+            onConfirm = { name -> viewModel.handleEvent(ExploreEvent.CreateProject(name)) },
+            error = state.projectNameError
         )
     }
 }
