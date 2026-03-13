@@ -46,7 +46,7 @@ fun ProjectCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = project.name,
+                text = project.name.asString(),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f)

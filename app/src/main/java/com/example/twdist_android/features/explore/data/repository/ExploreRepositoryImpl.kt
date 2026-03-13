@@ -4,6 +4,7 @@ import com.example.twdist_android.features.explore.data.dto.CreateProjectRequest
 import com.example.twdist_android.features.explore.data.mapper.toDomain
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
 import com.example.twdist_android.features.explore.domain.model.Project
+import com.example.twdist_android.features.explore.domain.model.ProjectName
 import com.example.twdist_android.features.explore.domain.repository.ExploreRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -25,11 +26,11 @@ class ExploreRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createProject(name: String): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun createProject(projectName: ProjectName): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             // Create here the request DTO, the viewmodel doesn't know that this exists
-            val request = CreateProjectRequestDto(name = name)
-            val response = api.createProject(request)
+            val request = CreateProjectRequestDto(name = projectName.asString())
+            api.createProject(request)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
