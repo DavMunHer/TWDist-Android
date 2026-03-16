@@ -1,8 +1,8 @@
 package com.example.twdist_android.features.auth.domain.model
 
-data class User(
+data class RegisteredUser(
     val id: Long,
     val username: String,
-    val email: String,
-    val password: String
+    val email: String
 )
+

@@ -2,19 +2,19 @@ package com.example.twdist_android.features.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.twdist_android.features.auth.domain.model.RegisterCredentials
+import com.example.twdist_android.features.auth.domain.model.shared.Email
+import com.example.twdist_android.features.auth.domain.model.shared.Password
+import com.example.twdist_android.features.auth.domain.model.shared.Username
+import com.example.twdist_android.features.auth.domain.usecases.RegisterUseCase
+import com.example.twdist_android.features.auth.presentation.mapper.toCredentials
+import com.example.twdist_android.features.auth.presentation.mapper.toUiError
 import com.example.twdist_android.features.auth.presentation.model.RegisterFormState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.example.twdist_android.features.auth.domain.model.shared.Email
-import com.example.twdist_android.features.auth.domain.model.shared.Password
-import com.example.twdist_android.features.auth.domain.model.shared.Username
-import com.example.twdist_android.features.auth.domain.usecases.RegisterUseCase
-import com.example.twdist_android.features.auth.presentation.mapper.toUiError
-import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.IOException
 import javax.inject.Inject
 
@@ -22,8 +22,8 @@ import javax.inject.Inject
 class RegisterViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(RegisterFormState())
 
+    private val _uiState = MutableStateFlow(RegisterFormState())
     val uiState: StateFlow<RegisterFormState> = _uiState.asStateFlow()
 
     fun updateEmail(newEmail: String) {
@@ -41,13 +41,10 @@ class RegisterViewModel @Inject constructor(
     fun onSubmit() {
         val state = uiState.value
 
-        val emailResult = Email.create(state.email)
-        val usernameResult = Username.create(state.username)
-        val passwordResult = Password.create(state.password)
-
-        val emailError = emailResult.toUiError()
-        val usernameError = usernameResult.toUiError()
-        val passwordError = passwordResult.toUiError()
+        // Validate all fields at once via the presentation mapper
+        val emailError = Email.create(state.email).toUiError()
+        val usernameError = Username.create(state.username).toUiError()
+        val passwordError = Password.create(state.password).toUiError()
 
         if (emailError != null || usernameError != null || passwordError != null) {
             _uiState.update {
@@ -60,36 +57,41 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        val credentials = RegisterCredentials(
-            email = emailResult.getOrThrow(),
-            username = usernameResult.getOrThrow(),
-            password = passwordResult.getOrThrow()
-        )
+        // Map form state → domain credentials (safe after validation above)
+        val credentialsResult = state.toCredentials()
+        if (credentialsResult.isFailure) return
 
         viewModelScope.launch {
-            _uiState.update { 
+            _uiState.update {
                 it.copy(
-                    isLoading = true, 
+                    isLoading = true,
                     errorMessage = null,
                     emailError = null,
                     usernameError = null,
                     passwordError = null
-                ) 
+                )
             }
-            try {
-                registerUseCase(credentials)
-                _uiState.update { it.copy(isSuccess = true) }
-            } catch (e: IOException) {
-                _uiState.update { it.copy(errorMessage = "Server is down or unreachable. Please check your connection.") }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "An unexpected error occurred: ${e.localizedMessage}") }
-            } finally {
-                _uiState.update { it.copy(isLoading = false) }
-            }
+
+            registerUseCase(credentialsResult.getOrThrow())
+                .onSuccess {
+                    _uiState.update { it.copy(isSuccess = true) }
+                }
+                .onFailure { error ->
+                    val message = when (error) {
+                        is IOException -> "Server is down or unreachable. Please check your connection."
+                        else -> error.localizedMessage ?: "An unexpected error occurred."
+                    }
+                    _uiState.update { it.copy(errorMessage = message) }
+                }
+
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
-    
+
     fun onNavigationHandled() {
         _uiState.update { it.copy(isSuccess = false) }
     }
 }
+
+
+
