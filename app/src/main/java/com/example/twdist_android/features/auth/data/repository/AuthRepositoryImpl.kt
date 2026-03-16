@@ -1,5 +1,6 @@
 package com.example.twdist_android.features.auth.data.repository
 
+import com.example.twdist_android.core.coroutines.runSuspendCatching
 import com.example.twdist_android.core.network.ErrorResponse
 import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
 import com.example.twdist_android.features.auth.data.dto.RegisterRequestDto
@@ -20,7 +21,7 @@ class AuthRepositoryImpl(
 ) : AuthRepository {
 
     override suspend fun register(credentials: RegisterCredentials): Result<RegisteredUser> {
-        return runCatching {
+        return runSuspendCatching {
             withContext(Dispatchers.IO) {
                 val response = api.register(
                     RegisterRequestDto(
