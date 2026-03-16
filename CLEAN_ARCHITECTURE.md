@@ -106,11 +106,12 @@ Mappers are the **bridge between layers**. Each layer boundary should have its o
 - Convert DTOs → domain models (response) and domain models → DTOs (request).
 
 ```kotlin
-// DTO → Domain
+// DTO -> Domain (response)
 fun UserResponseDto.toDomain(): RegisteredUser { ... }
 
-// Domain → DTO
-fun User.toRegisterRequestDto(): RegisterRequestDto { ... }
+// Domain -> DTO (request)
+fun RegisterCredentials.toDto(): RegisterRequestDto { ... }
+fun LoginCredentials.toDto(): LoginRequestDto { ... }
 ```
 
 ### Presentation Mappers (Presentation → Domain)
