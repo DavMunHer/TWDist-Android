@@ -102,6 +102,10 @@ dependencies {
     // Unit testing
     testImplementation(libs.mockk)
 
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
     // Coroutine testing (needed since LoginUseCase uses suspend)
     testImplementation(libs.kotlinx.coroutines.test)
 
