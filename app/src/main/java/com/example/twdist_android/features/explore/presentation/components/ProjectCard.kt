@@ -18,11 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.twdist_android.features.explore.domain.model.Project
+import com.example.twdist_android.features.explore.presentation.model.ProjectUi
 
 @Composable
 fun ProjectCard(
-    project: Project,
+    project: ProjectUi,
     onStarClick: () -> Unit,
     onProjectClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -46,7 +46,7 @@ fun ProjectCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = project.name.asString(),
+                text = project.name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f)

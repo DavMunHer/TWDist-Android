@@ -8,6 +8,7 @@ import com.example.twdist_android.features.explore.presentation.event.ExploreEve
 import com.example.twdist_android.features.explore.presentation.mapper.CreateProjectFormData
 import com.example.twdist_android.features.explore.presentation.mapper.toProjectName
 import com.example.twdist_android.features.explore.presentation.mapper.toUiError
+import com.example.twdist_android.features.explore.presentation.mapper.toUi
 import com.example.twdist_android.features.explore.presentation.model.ExploreUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +52,7 @@ class ExploreViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             getProjectsUseCase().onSuccess { list ->
-                _uiState.update { it.copy(projects = list, isLoading = false) }
+                _uiState.update { it.copy(projects = list.map { it.toUi() }, isLoading = false) }
             }.onFailure { e ->
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
             }
