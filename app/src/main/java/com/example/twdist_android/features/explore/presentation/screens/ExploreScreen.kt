@@ -18,6 +18,7 @@ import com.example.twdist_android.features.explore.presentation.viewmodel.Explor
 
 @Composable
 fun ExploreScreen(
+    onNavigateToProjectDetails: (Long) -> Unit = {},
     viewModel: ExploreViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,7 +66,7 @@ fun ExploreScreen(
                 item {
                     ProjectList(
                         projects = state.projects,
-                        onProjectClick = { _ -> /* TODO: Redirect to the project */ },
+                        onProjectClick = { project -> onNavigateToProjectDetails(project.id) },
                         onStarClick = { _ -> /* TODO: Logic add favourite */ }
                     )
                 }
