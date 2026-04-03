@@ -1,8 +1,10 @@
 package com.example.twdist_android.di
 
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
-import com.example.twdist_android.features.explore.data.repository.ExploreRepositoryImpl
-import com.example.twdist_android.features.explore.domain.repository.ExploreRepository
+import com.example.twdist_android.features.explore.data.repository.ProjectRepositoryImpl
+import com.example.twdist_android.features.explore.data.repository.SectionRepositoryImpl
+import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
+import com.example.twdist_android.features.explore.domain.repository.SectionRepository
 import com.example.twdist_android.features.explore.domain.usecases.CreateProjectUseCase
 import com.example.twdist_android.features.explore.domain.usecases.GetProjectsUseCase
 import dagger.Module
@@ -17,16 +19,21 @@ object ExploreModule {
 
     @Provides
     @Singleton
-    fun provideExploreRepository(api: ExploreApi): ExploreRepository =
-        ExploreRepositoryImpl(api)
+    fun provideProjectRepository(api: ExploreApi): ProjectRepository =
+        ProjectRepositoryImpl(api)
 
     @Provides
     @Singleton
-    fun provideGetProjectsUseCase(repository: ExploreRepository): GetProjectsUseCase =
+    fun provideSectionRepository(api: ExploreApi): SectionRepository =
+        SectionRepositoryImpl(api)
+
+    @Provides
+    @Singleton
+    fun provideGetProjectsUseCase(repository: ProjectRepository): GetProjectsUseCase =
         GetProjectsUseCase(repository)
 
     @Provides
     @Singleton
-    fun provideCreateProjectUseCase(repository: ExploreRepository): CreateProjectUseCase =
+    fun provideCreateProjectUseCase(repository: ProjectRepository): CreateProjectUseCase =
         CreateProjectUseCase(repository)
 }
