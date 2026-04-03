@@ -3,7 +3,7 @@ package com.example.twdist_android.features.explore.domain.repository
 import com.example.twdist_android.features.explore.domain.model.Project
 import com.example.twdist_android.features.explore.domain.model.ProjectName
 
-interface ExploreRepository {
+interface ProjectRepository {
     suspend fun getAllProjects(): Result<List<Project>>
-    suspend fun createProject(projectName: ProjectName): Result<Unit>
+    suspend fun createProject(projectName: ProjectName): Result<Project>
 }
