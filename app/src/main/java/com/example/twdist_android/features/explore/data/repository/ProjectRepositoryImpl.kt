@@ -18,7 +18,13 @@ class ProjectRepositoryImpl @Inject constructor(
     override suspend fun getAllProjects(): Result<List<Project>> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                api.getProjects().map { it.toDomain() }
+                val mappedProjects = api.getProjects().map { it.toDomain() }
+                val failure = mappedProjects.firstOrNull { it.isFailure }?.exceptionOrNull()
+                if (failure != null) {
+                    throw failure
+                }
+
+                mappedProjects.map { it.getOrThrow() }
             }
         }
     }
@@ -27,7 +33,7 @@ class ProjectRepositoryImpl @Inject constructor(
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
                 val request = CreateProjectRequestDto(name = projectName.asString())
-                api.createProject(request).toDomain()
+                api.createProject(request).toDomain().getOrThrow()
             }
         }
     }
