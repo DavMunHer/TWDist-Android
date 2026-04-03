@@ -1,7 +1,8 @@
 package com.example.twdist_android.usecase.explore
 
+import com.example.twdist_android.features.explore.domain.model.Project
 import com.example.twdist_android.features.explore.domain.model.ProjectName
-import com.example.twdist_android.features.explore.domain.repository.ExploreRepository
+import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
 import com.example.twdist_android.features.explore.domain.usecases.CreateProjectUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -13,24 +14,25 @@ import org.junit.Test
 class CreateProjectUseCaseTest {
     private lateinit var createProjectUseCase: CreateProjectUseCase
 
-    private val exploreRepository: ExploreRepository = mockk()
+    private val projectRepository: ProjectRepository = mockk()
 
     @Before
     fun setUp() {
-        createProjectUseCase = CreateProjectUseCase(exploreRepository)
+        createProjectUseCase = CreateProjectUseCase(projectRepository)
     }
 
     @Test
     fun `given valid ProjectName repository createProject is called once`() = runTest {
         // Given
         val projectName = ProjectName.create("Valid Project Name").getOrThrow()
-        coEvery { exploreRepository.createProject(projectName) } returns Result.success(Unit)
+        val project = Project.create(id = 1L, name = projectName).getOrThrow()
+        coEvery { projectRepository.createProject(projectName) } returns Result.success(project)
 
         // When
         val result = createProjectUseCase(projectName)
 
         // Then
-        coVerify(exactly = 1) { exploreRepository.createProject(projectName) }
+        coVerify(exactly = 1) { projectRepository.createProject(projectName) }
         assert(result.isSuccess)
     }
 
@@ -39,13 +41,13 @@ class CreateProjectUseCaseTest {
         // Given
         val projectName = ProjectName.create("Valid Project Name").getOrThrow()
         val expectedError = Exception("Network error")
-        coEvery { exploreRepository.createProject(projectName) } returns Result.failure(expectedError)
+        coEvery { projectRepository.createProject(projectName) } returns Result.failure(expectedError)
 
         // When
         val result = createProjectUseCase(projectName)
 
         // Then
-        coVerify(exactly = 1) { exploreRepository.createProject(projectName) }
+        coVerify(exactly = 1) { projectRepository.createProject(projectName) }
         assert(result.isFailure)
         assert(result.exceptionOrNull() == expectedError)
     }
