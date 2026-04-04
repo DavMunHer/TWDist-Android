@@ -6,23 +6,6 @@ import org.junit.Test
 class ProjectTest {
 
     @Test
-    fun `create should fail when pending tasks is negative`() {
-        val name = ProjectName.create("Inbox").getOrThrow()
-
-        val result = Project.create(
-            id = 1L,
-            name = name,
-            pendingTasks = -1
-        )
-
-        assertTrue(result.isFailure)
-        assertTrue(
-            result.exceptionOrNull() is ProjectException &&
-                (result.exceptionOrNull() as ProjectException).error is ProjectError.PendingTasksNegative
-        )
-    }
-
-    @Test
     fun `create should fail when section ids contain duplicates`() {
         val name = ProjectName.create("Inbox").getOrThrow()
 

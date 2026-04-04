@@ -3,6 +3,7 @@ package com.example.twdist_android.usecase.explore
 import com.example.twdist_android.features.explore.domain.model.Project
 import com.example.twdist_android.features.explore.domain.model.ProjectName
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
+import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
 import com.example.twdist_android.features.explore.domain.usecases.CreateProjectUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -15,10 +16,11 @@ class CreateProjectUseCaseTest {
     private lateinit var createProjectUseCase: CreateProjectUseCase
 
     private val projectRepository: ProjectRepository = mockk()
+    private val projectStateStore: ProjectStateStore = mockk(relaxed = true)
 
     @Before
     fun setUp() {
-        createProjectUseCase = CreateProjectUseCase(projectRepository)
+        createProjectUseCase = CreateProjectUseCase(projectRepository, projectStateStore)
     }
 
     @Test
