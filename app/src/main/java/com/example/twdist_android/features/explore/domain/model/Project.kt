@@ -1,7 +1,6 @@
 package com.example.twdist_android.features.explore.domain.model
 
 sealed class ProjectError {
-    data object PendingTasksNegative : ProjectError()
     data object DuplicateSectionIds : ProjectError()
     data class SectionAlreadyLinked(val sectionId: Long) : ProjectError()
     data class SectionNotLinked(val sectionId: Long) : ProjectError()
@@ -12,7 +11,6 @@ data class Project private constructor(
     val id: Long,
     val name: ProjectName,
     val isFavorite: Boolean = false,
-    val pendingTasks: Int = 0,
     val sectionIds: List<Long> = emptyList()
 ) {
     companion object {
@@ -20,12 +18,8 @@ data class Project private constructor(
             id: Long,
             name: ProjectName,
             isFavorite: Boolean = false,
-            pendingTasks: Int = 0,
             sectionIds: List<Long> = emptyList()
         ): Result<Project> {
-            if (pendingTasks < 0) {
-                return Result.failure(ProjectException(ProjectError.PendingTasksNegative))
-            }
             if (sectionIds.size != sectionIds.distinct().size) {
                 return Result.failure(ProjectException(ProjectError.DuplicateSectionIds))
             }
@@ -35,7 +29,6 @@ data class Project private constructor(
                     id = id,
                     name = name,
                     isFavorite = isFavorite,
-                    pendingTasks = pendingTasks,
                     sectionIds = sectionIds
                 )
             )
