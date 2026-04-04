@@ -9,6 +9,9 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.longOrNull
 
 object FlexibleStringIdSerializer : KSerializer<String> {
     override val descriptor: SerialDescriptor =
@@ -24,11 +27,16 @@ object FlexibleStringIdSerializer : KSerializer<String> {
             val primitive = element as? JsonPrimitive
                 ?: throw SerializationException("Expected primitive JSON value for ID")
 
-            if (primitive.isString) {
-                primitive.content
-            } else {
-                primitive.content
+            // Accept IDs as JSON string ("1") or number (1), but reject booleans/null.
+            val content = primitive.contentOrNull
+                ?: throw SerializationException("ID cannot be null")
+
+            val isValid = primitive.isString || primitive.longOrNull != null || primitive.doubleOrNull != null
+            if (!isValid) {
+                throw SerializationException("Expected ID as string or number, got: $content")
             }
+
+            content
         } else {
             decoder.decodeString()
         }
