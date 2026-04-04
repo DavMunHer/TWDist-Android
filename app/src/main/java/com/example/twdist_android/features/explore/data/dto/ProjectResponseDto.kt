@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ProjectResponseDto(
+    @Serializable(with = FlexibleStringIdSerializer::class)
     val id: String,
     val name: String,
     val favorite: Boolean,
