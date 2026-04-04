@@ -10,23 +10,27 @@ class InMemorySectionStore @Inject constructor() : SectionStateStore {
     private val sectionsById = linkedMapOf<Long, Section>()
     private val sectionIdsByProjectId = linkedMapOf<Long, MutableSet<Long>>()
 
+    // Private, no lock. Call only from code paths that already hold the monitor.
+    private fun upsertInternal(section: Section) {
+        val existing = sectionsById[section.id]
+        if (existing != null && existing.projectId != section.projectId) {
+            sectionIdsByProjectId[existing.projectId]?.remove(existing.id)
+        }
+
+        sectionsById[section.id] = section
+        val projectSet = sectionIdsByProjectId.getOrPut(section.projectId) { linkedSetOf() }
+        projectSet.add(section.id)
+    }
+
     override fun upsert(section: Section) {
         synchronized(this) {
-            val existing = sectionsById[section.id]
-            if (existing != null && existing.projectId != section.projectId) {
-                sectionIdsByProjectId[existing.projectId]?.remove(existing.id)
-            }
-
-            sectionsById[section.id] = section
-            val projectSet = sectionIdsByProjectId.getOrPut(section.projectId) { linkedSetOf() }
-            projectSet.add(section.id)
-
+            upsertInternal(section)
         }
     }
 
     override fun upsertAll(sections: List<Section>) {
         synchronized(this) {
-            sections.forEach { section -> upsert(section) }
+            sections.forEach { section -> upsertInternal(section) }
         }
     }
 
