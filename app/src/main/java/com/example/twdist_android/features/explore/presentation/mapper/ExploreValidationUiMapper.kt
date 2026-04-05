@@ -1,8 +1,8 @@
 package com.example.twdist_android.features.explore.presentation.mapper
 
-import com.example.twdist_android.features.explore.domain.model.ProjectName
-import com.example.twdist_android.features.explore.domain.model.ProjectNameError
-import com.example.twdist_android.features.explore.domain.model.ProjectNameException
+import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
+import com.example.twdist_android.features.projectdetails.domain.model.ProjectNameError
+import com.example.twdist_android.features.projectdetails.domain.model.ProjectNameException
 
 fun Result<ProjectName>.toUiError(): String? =
     exceptionOrNull()

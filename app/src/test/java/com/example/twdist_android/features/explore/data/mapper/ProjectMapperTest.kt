@@ -1,9 +1,8 @@
 package com.example.twdist_android.features.explore.data.mapper
 
-import com.example.twdist_android.features.explore.data.dto.ProjectDetailResponseDto
 import com.example.twdist_android.features.explore.data.dto.ProjectResponseDto
 import com.example.twdist_android.features.explore.data.dto.ProjectSummaryDto
-import com.example.twdist_android.features.explore.data.dto.SectionResponseDto
+import com.example.twdist_android.features.explore.data.dto.SimpleSectionDto
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -36,8 +35,7 @@ class ProjectMapperTest {
             name = "Study",
             favorite = false,
             sections = listOf(
-                SectionResponseDto(id = "1", name = "Backlog"),
-                SectionResponseDto(id = "bad", name = "Ignored")
+                SimpleSectionDto(id = "1")
             )
         )
 
@@ -49,27 +47,5 @@ class ProjectMapperTest {
         assertEquals("Study", project.name.asString())
         assertEquals(false, project.isFavorite)
         assertEquals(listOf(1L), project.sectionIds)
-    }
-
-    @Test
-    fun `detail response should map to aggregate project and sections`() {
-        val dto = ProjectDetailResponseDto(
-            id = "3",
-            name = "Work",
-            favorite = true,
-            sections = listOf(
-                SectionResponseDto(id = "40", name = "Todo", taskIds = listOf("t-1"))
-            )
-        )
-
-        val result = dto.toDomainAggregate()
-
-        assertTrue(result.isSuccess)
-        val aggregate = result.getOrThrow()
-        assertEquals(3L, aggregate.project.id)
-        assertEquals(listOf(40L), aggregate.project.sectionIds)
-        assertEquals(1, aggregate.sections.size)
-        assertEquals(40L, aggregate.sections.first().id)
-        assertEquals(3L, aggregate.sections.first().projectId)
     }
 }

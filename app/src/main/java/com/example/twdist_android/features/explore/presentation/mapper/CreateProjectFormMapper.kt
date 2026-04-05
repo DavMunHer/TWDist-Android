@@ -1,6 +1,6 @@
 package com.example.twdist_android.features.explore.presentation.mapper
 
-import com.example.twdist_android.features.explore.domain.model.ProjectName
+import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 
 data class CreateProjectFormData(
     val name: String

@@ -1,7 +1,7 @@
 package com.example.twdist_android.features.explore.data.store
 
 import com.example.twdist_android.features.explore.data.store.inmemory.InMemoryProjectStore
-import com.example.twdist_android.features.explore.domain.model.ProjectName
+import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import com.example.twdist_android.features.explore.domain.model.ProjectSummary
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
