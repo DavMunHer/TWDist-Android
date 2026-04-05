@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -29,7 +30,7 @@ class CookieJarImpl(context: Context) : CookieJar {
             }
         }
         
-        val cookieStrings = hostCookies.values.map { it.toString() }.toSet()
+        val cookieStrings = hostCookies.values.map { it.toJson() }.toSet()
         prefs.edit().putStringSet(host, cookieStrings).apply()
     }
 
@@ -48,7 +49,7 @@ class CookieJarImpl(context: Context) : CookieJar {
                     hostCookies.remove(cookie.name)
                 }
             }
-            val cookieStrings = hostCookies.values.map { it.toString() }.toSet()
+            val cookieStrings = hostCookies.values.map { it.toJson() }.toSet()
             prefs.edit().putStringSet(host, cookieStrings).apply()
         }
         
@@ -58,6 +59,37 @@ class CookieJarImpl(context: Context) : CookieJar {
     private fun loadFromPrefs(url: HttpUrl): List<Cookie> {
         val host = url.host
         val cookieStrings = prefs.getStringSet(host, emptySet()) ?: emptySet()
-        return cookieStrings.mapNotNull { Cookie.parse(url, it) }
+        return cookieStrings.mapNotNull { cookieFromJson(it) }
+    }
+
+    private fun Cookie.toJson(): String {
+        return JSONObject().apply {
+            put("name", name)
+            put("value", value)
+            put("domain", domain)
+            put("path", path)
+            put("expiresAt", expiresAt)
+            put("httpOnly", httpOnly)
+            put("secure", secure)
+        }.toString()
+    }
+
+    private fun cookieFromJson(json: String): Cookie? {
+        return try {
+            val obj = JSONObject(json)
+            Cookie.Builder()
+                .name(obj.getString("name"))
+                .value(obj.getString("value"))
+                .domain(obj.getString("domain"))
+                .path(obj.getString("path"))
+                .expiresAt(obj.getLong("expiresAt"))
+                .apply {
+                    if (obj.getBoolean("httpOnly")) httpOnly()
+                    if (obj.getBoolean("secure")) secure()
+                }
+                .build()
+        } catch (e: Exception) {
+            null
+        }
     }
 }
