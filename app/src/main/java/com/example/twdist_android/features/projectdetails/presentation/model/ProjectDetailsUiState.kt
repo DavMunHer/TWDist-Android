@@ -10,5 +10,10 @@ data class ProjectDetailsUi(
     val id: Long,
     val name: String,
     val isFavorite: Boolean,
-    val sections: List<String>
+    val sections: List<SectionUi>
+)
+
+data class SectionUi(
+    val name: String,
+    val tasks: List<String>
 )

@@ -8,6 +8,11 @@ fun ProjectAggregate.toDetailsUi(): ProjectDetailsUi {
         id = project.id,
         name = project.name.asString(),
         isFavorite = project.isFavorite,
-        sections = sections.map { it.name.asString() }
+        sections = sections.map { section ->
+            com.example.twdist_android.features.projectdetails.presentation.model.SectionUi(
+                name = section.name.asString(),
+                tasks = section.taskIds
+            )
+        }
     )
 }
