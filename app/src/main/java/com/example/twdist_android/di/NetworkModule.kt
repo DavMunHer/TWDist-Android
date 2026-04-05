@@ -31,8 +31,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .cookieJar(CookieJarImpl())
+    fun provideCookieJar(@dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context): okhttp3.CookieJar {
+        return CookieJarImpl(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(cookieJar: okhttp3.CookieJar): OkHttpClient = OkHttpClient.Builder()
+        .cookieJar(cookieJar)
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
