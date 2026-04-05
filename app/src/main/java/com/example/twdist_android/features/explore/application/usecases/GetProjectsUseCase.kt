@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.explore.domain.usecases
+package com.example.twdist_android.features.explore.application.usecases
 
 import com.example.twdist_android.features.explore.domain.model.ProjectSummary
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository

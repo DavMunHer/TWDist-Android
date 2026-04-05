@@ -2,8 +2,8 @@ package com.example.twdist_android.features.explore.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.twdist_android.features.explore.domain.usecases.CreateProjectUseCase
-import com.example.twdist_android.features.explore.domain.usecases.GetProjectsUseCase
+import com.example.twdist_android.features.explore.application.usecases.CreateProjectUseCase
+import com.example.twdist_android.features.explore.application.usecases.GetProjectsUseCase
 import com.example.twdist_android.features.explore.presentation.event.ExploreEvent
 import com.example.twdist_android.features.explore.presentation.mapper.CreateProjectFormData
 import com.example.twdist_android.features.explore.presentation.mapper.toProjectName

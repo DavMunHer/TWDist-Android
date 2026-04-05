@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.upcoming.domain.usecase
+package com.example.twdist_android.features.upcoming.application.usecases
 //
 //class GetUpcomingTasksUseCase(
 //    private val repository: TasksRepository
