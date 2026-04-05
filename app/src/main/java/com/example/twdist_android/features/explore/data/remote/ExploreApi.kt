@@ -14,7 +14,7 @@ interface ExploreApi {
     @GET("projects/get")
     suspend fun getProjects(): List<ProjectSummaryDto>
 
-    @GET("projects/{projectId}/get")
+    @GET("projects/{projectId}")
     suspend fun getProjectById(
         @Path("projectId") projectId: Long
     ): ProjectDetailResponseDto
