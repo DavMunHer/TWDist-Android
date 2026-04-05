@@ -1,6 +1,6 @@
 package com.example.twdist_android.di
 
-import com.example.twdist_android.features.explore.data.remote.ExploreApi
+import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.explore.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.data.repository.ProjectDetailsRepositoryImpl
@@ -18,7 +18,7 @@ object ProjectDetailsModule {
     @Provides
     @Singleton
     fun provideProjectDetailsRepository(
-        api: ExploreApi
+        api: ProjectDetailsApi
     ): ProjectDetailsRepository =
         ProjectDetailsRepositoryImpl(api)
 

@@ -4,6 +4,7 @@ import com.example.twdist_android.BuildConfig
 import com.example.twdist_android.core.network.CookieJarImpl
 import com.example.twdist_android.features.auth.data.remote.AuthApi
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
+import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -64,4 +65,9 @@ object NetworkModule {
     @Singleton
     fun provideExploreApi(retrofit: Retrofit): ExploreApi =
         retrofit.create(ExploreApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideProjectDetailsApi(retrofit: Retrofit): ProjectDetailsApi =
+        retrofit.create(ProjectDetailsApi::class.java)
 }

@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.explore.data.dto
+package com.example.twdist_android.core.network
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
@@ -27,7 +27,6 @@ object FlexibleStringIdSerializer : KSerializer<String> {
             val primitive = element as? JsonPrimitive
                 ?: throw SerializationException("Expected primitive JSON value for ID")
 
-            // Accept IDs as JSON string ("1") or number (1), but reject booleans/null.
             val content = primitive.contentOrNull
                 ?: throw SerializationException("ID cannot be null")
 

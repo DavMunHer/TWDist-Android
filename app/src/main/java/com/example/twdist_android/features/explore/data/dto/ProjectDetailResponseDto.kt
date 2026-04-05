@@ -1,5 +1,6 @@
 package com.example.twdist_android.features.explore.data.dto
 
+import com.example.twdist_android.core.network.FlexibleStringIdSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable
