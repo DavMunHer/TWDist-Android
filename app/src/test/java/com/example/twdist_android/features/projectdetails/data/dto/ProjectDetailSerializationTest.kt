@@ -1,10 +1,12 @@
-package com.example.twdist_android.features.explore.data.dto
+package com.example.twdist_android.features.projectdetails.data.dto
 
+import com.example.twdist_android.features.explore.data.dto.ProjectSummaryDto
+import com.example.twdist_android.features.projectdetails.data.dto.ProjectDetailResponseDto
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class ProjectDtoSerializationTest {
+class ProjectDetailSerializationTest {
 
     @Test
     fun `project summary dto should deserialize numeric id`() {

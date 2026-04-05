@@ -1,8 +1,8 @@
-package com.example.twdist_android.features.explore.data.store
+package com.example.twdist_android.features.projectdetails.data.store
 
-import com.example.twdist_android.features.explore.data.store.inmemory.InMemorySectionStore
-import com.example.twdist_android.features.explore.domain.model.Section
-import com.example.twdist_android.features.explore.domain.model.SectionName
+import com.example.twdist_android.features.projectdetails.data.store.inmemory.InMemorySectionStore
+import com.example.twdist_android.features.projectdetails.domain.model.Section
+import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

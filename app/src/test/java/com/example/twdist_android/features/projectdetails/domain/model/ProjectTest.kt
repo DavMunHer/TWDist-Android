@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.explore.domain.model
+package com.example.twdist_android.features.projectdetails.domain.model
 
 import org.junit.Assert.assertTrue
 import org.junit.Test
