@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.explore.domain.model
+package com.example.twdist_android.features.projectdetails.domain.model
 
 data class ProjectAggregate(
     val project: Project,

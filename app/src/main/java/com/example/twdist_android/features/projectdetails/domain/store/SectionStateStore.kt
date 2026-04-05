@@ -1,6 +1,6 @@
-package com.example.twdist_android.features.explore.domain.store
+package com.example.twdist_android.features.projectdetails.domain.store
 
-import com.example.twdist_android.features.explore.domain.model.Section
+import com.example.twdist_android.features.projectdetails.domain.model.Section
 
 interface SectionStateStore {
     fun upsert(section: Section)

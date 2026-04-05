@@ -1,7 +1,7 @@
-package com.example.twdist_android.features.explore.data.store.inmemory
+package com.example.twdist_android.features.projectdetails.data.store.inmemory
 
-import com.example.twdist_android.features.explore.domain.model.Section
-import com.example.twdist_android.features.explore.domain.store.SectionStateStore
+import com.example.twdist_android.features.projectdetails.domain.model.Section
+import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import javax.inject.Inject
 import javax.inject.Singleton
 

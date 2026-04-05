@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.explore.domain.model
+package com.example.twdist_android.features.projectdetails.domain.model
 
 sealed class SectionNameError {
 	data object TooShort : SectionNameError()
@@ -28,4 +28,3 @@ value class SectionName private constructor(val value: String) {
 }
 
 class SectionNameException(val error: SectionNameError) : IllegalArgumentException()
-

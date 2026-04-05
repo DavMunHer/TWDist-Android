@@ -1,8 +1,8 @@
-package com.example.twdist_android.features.explore.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases
 
-import com.example.twdist_android.features.explore.domain.model.Section
-import com.example.twdist_android.features.explore.domain.repository.SectionRepository
-import com.example.twdist_android.features.explore.domain.store.SectionStateStore
+import com.example.twdist_android.features.projectdetails.domain.model.Section
+import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
+import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import javax.inject.Inject
 
 class GetSectionsByProjectIdUseCase @Inject constructor(
