@@ -1,9 +1,7 @@
 package com.example.twdist_android.features.explore.data.mapper
 
-import com.example.twdist_android.features.explore.data.dto.ProjectDetailResponseDto
 import com.example.twdist_android.features.explore.data.dto.ProjectResponseDto
 import com.example.twdist_android.features.explore.data.dto.ProjectSummaryDto
-import com.example.twdist_android.features.explore.data.dto.SectionResponseDto
 import com.example.twdist_android.features.projectdetails.domain.model.Project
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import com.example.twdist_android.features.explore.domain.model.ProjectSummary
@@ -36,7 +34,7 @@ fun ProjectResponseDto.toDomainResponse(): Result<Project> {
         return Result.failure(nameResult.exceptionOrNull()!!)
     }
 
-    val sectionIds = sections.orEmpty().mapNotNull { section -> section.id.toLongOrNull() }
+    val sectionIds = sections.orEmpty().mapNotNull { it.id.toLongOrNull() }
 
     return Project.create(
         id = projectId,
