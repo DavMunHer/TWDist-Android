@@ -7,7 +7,7 @@ import com.example.twdist_android.features.explore.domain.model.Section
 import com.example.twdist_android.features.explore.domain.model.SectionName
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
 import com.example.twdist_android.features.explore.domain.store.SectionStateStore
-import com.example.twdist_android.features.explore.domain.usecases.GetProjectByIdUseCase
+import com.example.twdist_android.features.explore.application.usecases.GetProjectByIdUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

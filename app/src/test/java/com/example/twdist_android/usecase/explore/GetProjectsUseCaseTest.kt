@@ -4,7 +4,7 @@ import com.example.twdist_android.features.explore.domain.model.ProjectName
 import com.example.twdist_android.features.explore.domain.model.ProjectSummary
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
 import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
-import com.example.twdist_android.features.explore.domain.usecases.GetProjectsUseCase
+import com.example.twdist_android.features.explore.application.usecases.GetProjectsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

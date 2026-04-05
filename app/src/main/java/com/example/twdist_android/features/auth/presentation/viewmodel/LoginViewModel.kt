@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.features.auth.domain.model.LoginCredentials
 import com.example.twdist_android.features.auth.domain.model.shared.Email
 import com.example.twdist_android.features.auth.domain.model.shared.Password
-import com.example.twdist_android.features.auth.domain.usecases.LoginUseCase
+import com.example.twdist_android.features.auth.application.usecases.LoginUseCase
 import com.example.twdist_android.features.auth.presentation.mapper.toUiError
 import com.example.twdist_android.features.auth.presentation.model.LoginFormState
 import dagger.hilt.android.lifecycle.HiltViewModel

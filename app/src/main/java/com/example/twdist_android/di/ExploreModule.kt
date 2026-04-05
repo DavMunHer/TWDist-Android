@@ -9,8 +9,8 @@ import com.example.twdist_android.features.explore.domain.repository.ProjectRepo
 import com.example.twdist_android.features.explore.domain.repository.SectionRepository
 import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
 import com.example.twdist_android.features.explore.domain.store.SectionStateStore
-import com.example.twdist_android.features.explore.domain.usecases.CreateProjectUseCase
-import com.example.twdist_android.features.explore.domain.usecases.GetProjectsUseCase
+import com.example.twdist_android.features.explore.application.usecases.CreateProjectUseCase
+import com.example.twdist_android.features.explore.application.usecases.GetProjectsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

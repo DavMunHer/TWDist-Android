@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.auth.domain.usecases
+package com.example.twdist_android.features.auth.application.usecases
 
 import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
 import com.example.twdist_android.features.auth.domain.model.LoginCredentials

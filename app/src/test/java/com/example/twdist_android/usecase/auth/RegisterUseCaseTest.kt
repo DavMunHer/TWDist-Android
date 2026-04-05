@@ -6,7 +6,7 @@ import com.example.twdist_android.features.auth.domain.model.shared.Email
 import com.example.twdist_android.features.auth.domain.model.shared.Password
 import com.example.twdist_android.features.auth.domain.model.shared.Username
 import com.example.twdist_android.features.auth.domain.repository.AuthRepository
-import com.example.twdist_android.features.auth.domain.usecases.RegisterUseCase
+import com.example.twdist_android.features.auth.application.usecases.RegisterUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

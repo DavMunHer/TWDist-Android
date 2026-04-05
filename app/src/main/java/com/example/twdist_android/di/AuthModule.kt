@@ -3,8 +3,8 @@ package com.example.twdist_android.di
 import com.example.twdist_android.features.auth.data.remote.AuthApi
 import com.example.twdist_android.features.auth.data.repository.AuthRepositoryImpl
 import com.example.twdist_android.features.auth.domain.repository.AuthRepository
-import com.example.twdist_android.features.auth.domain.usecases.LoginUseCase
-import com.example.twdist_android.features.auth.domain.usecases.RegisterUseCase
+import com.example.twdist_android.features.auth.application.usecases.LoginUseCase
+import com.example.twdist_android.features.auth.application.usecases.RegisterUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
