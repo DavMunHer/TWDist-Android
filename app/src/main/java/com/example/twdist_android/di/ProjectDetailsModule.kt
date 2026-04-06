@@ -3,6 +3,7 @@ package com.example.twdist_android.di
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.data.store.inmemory.InMemorySectionStore
+import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.data.repository.ProjectDetailsRepositoryImpl
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
@@ -26,9 +27,10 @@ object ProjectDetailsModule {
     @Provides
     @Singleton
     fun provideProjectDetailsRepository(
-        api: ProjectDetailsApi
+        api: ProjectDetailsApi,
+        projectStateStore: ProjectStateStore
     ): ProjectDetailsRepository =
-        ProjectDetailsRepositoryImpl(api)
+        ProjectDetailsRepositoryImpl(api, projectStateStore)
 
     @Provides
     @Singleton
@@ -45,6 +47,18 @@ object ProjectDetailsModule {
         sectionStateStore: SectionStateStore
     ): GetProjectByIdUseCase =
         GetProjectByIdUseCase(repository, sectionStateStore)
+
+    @Provides
+    @Singleton
+    fun provideUpdateProjectNameUseCase(
+        repository: ProjectDetailsRepository
+    ): UpdateProjectNameUseCase = UpdateProjectNameUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideDeleteProjectUseCase(
+        repository: ProjectDetailsRepository
+    ): DeleteProjectUseCase = DeleteProjectUseCase(repository)
 
     @Provides
     @Singleton
