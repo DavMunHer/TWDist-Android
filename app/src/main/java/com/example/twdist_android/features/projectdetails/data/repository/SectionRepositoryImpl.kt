@@ -1,6 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
+import com.example.twdist_android.features.projectdetails.data.mapper.toDomain
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
 import com.example.twdist_android.features.projectdetails.data.dto.UpdateSectionRequestDto
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
@@ -40,21 +41,14 @@ class SectionRepositoryImpl @Inject constructor(
                 val currentSection = sectionStateStore.getById(sectionId)
                     ?: error("Section not found")
 
-                api.updateSection(
+                val dto = api.updateSection(
                     projectId = currentSection.projectId,
                     sectionId = sectionId,
                     request = UpdateSectionRequestDto(name = sectionName.asString())
                 )
-
-                val refreshedSection = api.getProjectById(currentSection.projectId)
-                    .toDomainAggregate()
-                    .getOrThrow()
-                    .sections
-                    .firstOrNull { it.id == sectionId }
-                    ?: error("Section not found after update")
-
-                sectionStateStore.upsert(refreshedSection)
-                refreshedSection
+                val updatedSection = dto.toDomain(currentSection.projectId).getOrThrow()
+                sectionStateStore.upsert(updatedSection)
+                updatedSection
             }
         }
     }
