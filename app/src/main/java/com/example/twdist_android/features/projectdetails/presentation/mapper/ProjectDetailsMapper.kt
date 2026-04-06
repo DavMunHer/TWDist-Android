@@ -11,6 +11,7 @@ fun ProjectAggregate.toDetailsUi(): ProjectDetailsUi {
         isFavorite = project.isFavorite,
         sections = sections.map { section ->
             SectionUi(
+                id = section.id,
                 name = section.name.asString(),
                 tasks = section.taskIds
             )

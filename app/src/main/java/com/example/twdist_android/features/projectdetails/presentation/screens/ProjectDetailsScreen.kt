@@ -23,13 +23,19 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,7 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUi
+import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import com.example.twdist_android.features.projectdetails.presentation.viewmodel.ProjectDetailsViewModel
 
 @Composable
@@ -58,7 +64,18 @@ fun ProjectDetailsScreen(
             message = uiState.error!!,
             onRetry = viewModel::retry
         )
-        uiState.project != null -> ProjectDetailsContent(project = uiState.project!!)
+        uiState.project != null -> ProjectDetailsContent(
+            uiState = uiState,
+            onSectionOptionsClick = viewModel::onSectionOptionsClick,
+            onSectionOptionsDismiss = viewModel::onSectionOptionsDismiss,
+            onEditSectionClick = viewModel::onEditSectionClick,
+            onDeleteSectionClick = viewModel::onDeleteSectionClick,
+            onEditSectionDismiss = viewModel::onEditSectionDismiss,
+            onEditSectionNameChange = viewModel::onEditSectionNameChange,
+            onSaveSectionEdit = viewModel::onSaveSectionEdit,
+            onDeleteSectionDismiss = viewModel::onDeleteSectionDismiss,
+            onDeleteSectionConfirm = viewModel::onDeleteSectionConfirm
+        )
         else -> MissingProjectDetails()
     }
 }
@@ -100,7 +117,19 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun ProjectDetailsContent(project: ProjectDetailsUi) {
+private fun ProjectDetailsContent(
+    uiState: ProjectDetailsUiState,
+    onSectionOptionsClick: (Long) -> Unit,
+    onSectionOptionsDismiss: () -> Unit,
+    onEditSectionClick: (Long) -> Unit,
+    onDeleteSectionClick: (Long) -> Unit,
+    onEditSectionDismiss: () -> Unit,
+    onEditSectionNameChange: (String) -> Unit,
+    onSaveSectionEdit: () -> Unit,
+    onDeleteSectionDismiss: () -> Unit,
+    onDeleteSectionConfirm: () -> Unit
+) {
+    val project = uiState.project ?: return
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -129,6 +158,14 @@ private fun ProjectDetailsContent(project: ProjectDetailsUi) {
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
             thickness = 1.dp
         )
+        if (uiState.sectionActionError != null) {
+            Text(
+                text = uiState.sectionActionError,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
 
         LazyRow(
             modifier = Modifier
@@ -153,18 +190,35 @@ private fun ProjectDetailsContent(project: ProjectDetailsUi) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                                .padding(horizontal = 2.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = section.name,
                                 modifier = Modifier.align(Alignment.Center),
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
-                            Icon(
-                                imageVector = Icons.Default.MoreHoriz,
-                                contentDescription = "Section Options",
-                                modifier = Modifier.align(Alignment.CenterEnd).size(20.dp)
-                            )
+                            Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                                IconButton(onClick = { onSectionOptionsClick(section.id) }) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreHoriz,
+                                        contentDescription = "Section Options",
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = uiState.openSectionMenuForId == section.id,
+                                    onDismissRequest = onSectionOptionsDismiss
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(text = "Edit") },
+                                        onClick = { onEditSectionClick(section.id) }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(text = "Delete") },
+                                        onClick = { onDeleteSectionClick(section.id) }
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -233,6 +287,53 @@ private fun ProjectDetailsContent(project: ProjectDetailsUi) {
                     }
                 }
             }
+        }
+
+        if (uiState.editingSectionId != null) {
+            AlertDialog(
+                onDismissRequest = onEditSectionDismiss,
+                title = { Text("Edit Section") },
+                text = {
+                    TextField(
+                        value = uiState.editingSectionName,
+                        onValueChange = onEditSectionNameChange,
+                        placeholder = { Text("Section name") },
+                        singleLine = true,
+                        isError = uiState.sectionActionError != null,
+                        supportingText = uiState.sectionActionError?.let {
+                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
+                        }
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = onSaveSectionEdit) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onEditSectionDismiss) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (uiState.deleteConfirmSectionId != null) {
+            AlertDialog(
+                onDismissRequest = onDeleteSectionDismiss,
+                title = { Text("Delete Section") },
+                text = { Text("Are you sure you want to delete this section?") },
+                confirmButton = {
+                    Button(onClick = onDeleteSectionConfirm) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onDeleteSectionDismiss) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
