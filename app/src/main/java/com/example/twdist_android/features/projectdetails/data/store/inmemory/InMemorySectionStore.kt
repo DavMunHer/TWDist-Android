@@ -1,6 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.store.inmemory
 
 import com.example.twdist_android.features.projectdetails.domain.model.Section
+import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,6 +49,20 @@ class InMemorySectionStore @Inject constructor() : SectionStateStore {
     override fun getSectionIdsByProjectId(projectId: Long): List<Long> {
         return synchronized(this) {
             sectionIdsByProjectId[projectId].orEmpty().toList()
+        }
+    }
+
+    override fun updateName(sectionId: Long, sectionName: SectionName): Section? {
+        return synchronized(this) {
+            val current = sectionsById[sectionId] ?: return@synchronized null
+            val updated = Section.create(
+                id = current.id,
+                projectId = current.projectId,
+                name = sectionName,
+                taskIds = current.taskIds
+            ).getOrNull() ?: return@synchronized null
+            upsertInternal(updated)
+            updated
         }
     }
 
