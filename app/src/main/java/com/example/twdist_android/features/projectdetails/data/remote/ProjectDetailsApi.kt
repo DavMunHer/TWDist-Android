@@ -1,7 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.remote
 
+import com.example.twdist_android.features.projectdetails.data.dto.SectionUpdateResponseDto
 import com.example.twdist_android.features.projectdetails.data.dto.UpdateSectionRequestDto
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -21,7 +21,7 @@ interface ProjectDetailsApi {
         @Path("projectId") projectId: Long,
         @Path("sectionId") sectionId: Long,
         @Body request: UpdateSectionRequestDto
-    ): ResponseBody
+    ): SectionUpdateResponseDto
 
     @DELETE("projects/{projectId}/section/{sectionId}/delete")
     suspend fun deleteSection(
