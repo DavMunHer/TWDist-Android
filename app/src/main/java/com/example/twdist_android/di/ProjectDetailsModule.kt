@@ -33,9 +33,10 @@ object ProjectDetailsModule {
     @Provides
     @Singleton
     fun provideSectionRepository(
-        api: ProjectDetailsApi
+        api: ProjectDetailsApi,
+        sectionStateStore: SectionStateStore
     ): SectionRepository =
-        SectionRepositoryImpl(api)
+        SectionRepositoryImpl(api, sectionStateStore)
 
     @Provides
     @Singleton
@@ -75,4 +76,16 @@ object ProjectDetailsModule {
     fun provideRemoveTaskIdFromSectionUseCase(
         repository: SectionRepository
     ): RemoveTaskIdFromSectionUseCase = RemoveTaskIdFromSectionUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideUpdateSectionNameUseCase(
+        repository: SectionRepository
+    ): UpdateSectionNameUseCase = UpdateSectionNameUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideDeleteSectionUseCase(
+        repository: SectionRepository
+    ): DeleteSectionUseCase = DeleteSectionUseCase(repository)
 }
