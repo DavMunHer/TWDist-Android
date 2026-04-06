@@ -11,6 +11,7 @@ import com.example.twdist_android.features.projectdetails.domain.model.SectionNa
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
+import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -63,7 +64,7 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEditSectionClick(10L)
+        viewModel.onEvent(SectionEvent.EditClicked(10L))
 
         val state = viewModel.uiState.value
         assertEquals(10L, state.editingSectionId)
@@ -77,9 +78,9 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEditSectionClick(10L)
-        viewModel.onEditSectionNameChange("a")
-        viewModel.onSaveSectionEdit()
+        viewModel.onEvent(SectionEvent.EditClicked(10L))
+        viewModel.onEvent(SectionEvent.NameChanged("a"))
+        viewModel.onEvent(SectionEvent.EditConfirmed)
 
         val state = viewModel.uiState.value
         assertEquals(10L, state.editingSectionId)
@@ -100,9 +101,9 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEditSectionClick(10L)
-        viewModel.onEditSectionNameChange("Updated")
-        viewModel.onSaveSectionEdit()
+        viewModel.onEvent(SectionEvent.EditClicked(10L))
+        viewModel.onEvent(SectionEvent.NameChanged("Updated"))
+        viewModel.onEvent(SectionEvent.EditConfirmed)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -122,8 +123,8 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onDeleteSectionClick(10L)
-        viewModel.onDeleteSectionConfirm()
+        viewModel.onEvent(SectionEvent.DeleteClicked(10L))
+        viewModel.onEvent(SectionEvent.DeleteConfirmed)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
