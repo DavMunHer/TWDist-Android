@@ -77,7 +77,15 @@ fun NavigationRoot() {
             }
             entry<ProjectDetailsScreenKey> { key ->
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    ProjectDetailsScreen(projectId = key.projectId)
+                    ProjectDetailsScreen(
+                        projectId = key.projectId,
+                        onProjectDeleted = {
+                            val stack = backStack as MutableList<NavKey>
+                            if (stack.isNotEmpty()) {
+                                stack.removeAt(stack.lastIndex)
+                            }
+                        }
+                    )
                 }
             }
             entry<RegisterScreenKey> {
