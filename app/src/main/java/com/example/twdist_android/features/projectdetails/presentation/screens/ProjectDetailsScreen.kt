@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import com.example.twdist_android.features.projectdetails.presentation.viewmodel.ProjectDetailsViewModel
 
@@ -66,15 +67,7 @@ fun ProjectDetailsScreen(
         )
         uiState.project != null -> ProjectDetailsContent(
             uiState = uiState,
-            onSectionOptionsClick = viewModel::onSectionOptionsClick,
-            onSectionOptionsDismiss = viewModel::onSectionOptionsDismiss,
-            onEditSectionClick = viewModel::onEditSectionClick,
-            onDeleteSectionClick = viewModel::onDeleteSectionClick,
-            onEditSectionDismiss = viewModel::onEditSectionDismiss,
-            onEditSectionNameChange = viewModel::onEditSectionNameChange,
-            onSaveSectionEdit = viewModel::onSaveSectionEdit,
-            onDeleteSectionDismiss = viewModel::onDeleteSectionDismiss,
-            onDeleteSectionConfirm = viewModel::onDeleteSectionConfirm
+            onEvent = viewModel::onEvent
         )
         else -> MissingProjectDetails()
     }
@@ -119,15 +112,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
 @Composable
 private fun ProjectDetailsContent(
     uiState: ProjectDetailsUiState,
-    onSectionOptionsClick: (Long) -> Unit,
-    onSectionOptionsDismiss: () -> Unit,
-    onEditSectionClick: (Long) -> Unit,
-    onDeleteSectionClick: (Long) -> Unit,
-    onEditSectionDismiss: () -> Unit,
-    onEditSectionNameChange: (String) -> Unit,
-    onSaveSectionEdit: () -> Unit,
-    onDeleteSectionDismiss: () -> Unit,
-    onDeleteSectionConfirm: () -> Unit
+    onEvent: (SectionEvent) -> Unit
 ) {
     val project = uiState.project ?: return
     Column(
@@ -198,7 +183,7 @@ private fun ProjectDetailsContent(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Box(modifier = Modifier.align(Alignment.CenterEnd)) {
-                                IconButton(onClick = { onSectionOptionsClick(section.id) }) {
+                                IconButton(onClick = { onEvent(SectionEvent.MenuOpened(section.id)) }) {
                                     Icon(
                                         imageVector = Icons.Default.MoreHoriz,
                                         contentDescription = "Section Options",
@@ -207,15 +192,15 @@ private fun ProjectDetailsContent(
                                 }
                                 DropdownMenu(
                                     expanded = uiState.openSectionMenuForId == section.id,
-                                    onDismissRequest = onSectionOptionsDismiss
+                                    onDismissRequest = { onEvent(SectionEvent.MenuDismissed) }
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text(text = "Edit") },
-                                        onClick = { onEditSectionClick(section.id) }
+                                        onClick = { onEvent(SectionEvent.EditClicked(section.id)) }
                                     )
                                     DropdownMenuItem(
                                         text = { Text(text = "Delete") },
-                                        onClick = { onDeleteSectionClick(section.id) }
+                                        onClick = { onEvent(SectionEvent.DeleteClicked(section.id)) }
                                     )
                                 }
                             }
@@ -291,12 +276,12 @@ private fun ProjectDetailsContent(
 
         if (uiState.editingSectionId != null) {
             AlertDialog(
-                onDismissRequest = onEditSectionDismiss,
+                onDismissRequest = { onEvent(SectionEvent.EditDismissed) },
                 title = { Text("Edit Section") },
                 text = {
                     TextField(
                         value = uiState.editingSectionName,
-                        onValueChange = onEditSectionNameChange,
+                        onValueChange = { onEvent(SectionEvent.NameChanged(it)) },
                         placeholder = { Text("Section name") },
                         singleLine = true,
                         isError = uiState.sectionActionError != null,
@@ -306,12 +291,12 @@ private fun ProjectDetailsContent(
                     )
                 },
                 confirmButton = {
-                    Button(onClick = onSaveSectionEdit) {
+                    Button(onClick = { onEvent(SectionEvent.EditConfirmed) }) {
                         Text("Save")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = onEditSectionDismiss) {
+                    TextButton(onClick = { onEvent(SectionEvent.EditDismissed) }) {
                         Text("Cancel")
                     }
                 }
@@ -320,16 +305,16 @@ private fun ProjectDetailsContent(
 
         if (uiState.deleteConfirmSectionId != null) {
             AlertDialog(
-                onDismissRequest = onDeleteSectionDismiss,
+                onDismissRequest = { onEvent(SectionEvent.DeleteDismissed) },
                 title = { Text("Delete Section") },
                 text = { Text("Are you sure you want to delete this section?") },
                 confirmButton = {
-                    Button(onClick = onDeleteSectionConfirm) {
+                    Button(onClick = { onEvent(SectionEvent.DeleteConfirmed) }) {
                         Text("Delete")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = onDeleteSectionDismiss) {
+                    TextButton(onClick = { onEvent(SectionEvent.DeleteDismissed) }) {
                         Text("Cancel")
                     }
                 }

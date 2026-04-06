@@ -8,6 +8,9 @@ import com.example.twdist_android.features.projectdetails.application.usecases.U
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 import com.example.twdist_android.features.projectdetails.domain.model.SectionNameError
 import com.example.twdist_android.features.projectdetails.domain.model.SectionNameException
+import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.mapper.removingSection
+import com.example.twdist_android.features.projectdetails.presentation.mapper.renamingSection
 import com.example.twdist_android.features.projectdetails.presentation.mapper.toDetailsUi
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,7 +60,21 @@ class ProjectDetailsViewModel @Inject constructor(
         loadProjectDetails(projectId)
     }
 
-    fun onSectionOptionsClick(sectionId: Long) {
+    fun onEvent(event: SectionEvent) {
+        when (event) {
+            is SectionEvent.MenuOpened -> onSectionOptionsClick(event.sectionId)
+            SectionEvent.MenuDismissed -> onSectionOptionsDismiss()
+            is SectionEvent.EditClicked -> onEditSectionClick(event.sectionId)
+            is SectionEvent.NameChanged -> onEditSectionNameChange(event.name)
+            SectionEvent.EditConfirmed -> onSaveSectionEdit()
+            SectionEvent.EditDismissed -> onEditSectionDismiss()
+            is SectionEvent.DeleteClicked -> onDeleteSectionClick(event.sectionId)
+            SectionEvent.DeleteConfirmed -> onDeleteSectionConfirm()
+            SectionEvent.DeleteDismissed -> onDeleteSectionDismiss()
+        }
+    }
+
+    private fun onSectionOptionsClick(sectionId: Long) {
         _uiState.update {
             it.copy(
                 openSectionMenuForId = sectionId,
@@ -66,11 +83,11 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onSectionOptionsDismiss() {
+    private fun onSectionOptionsDismiss() {
         _uiState.update { it.copy(openSectionMenuForId = null) }
     }
 
-    fun onEditSectionClick(sectionId: Long) {
+    private fun onEditSectionClick(sectionId: Long) {
         val section = _uiState.value.project?.sections?.firstOrNull { it.id == sectionId } ?: return
         _uiState.update {
             it.copy(
@@ -82,7 +99,7 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onEditSectionNameChange(value: String) {
+    private fun onEditSectionNameChange(value: String) {
         _uiState.update {
             it.copy(
                 editingSectionName = value,
@@ -91,7 +108,7 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onEditSectionDismiss() {
+    private fun onEditSectionDismiss() {
         _uiState.update {
             it.copy(
                 editingSectionId = null,
@@ -101,7 +118,7 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onSaveSectionEdit() {
+    private fun onSaveSectionEdit() {
         val editingSectionId = _uiState.value.editingSectionId ?: return
         val name = SectionName.create(_uiState.value.editingSectionName)
             .getOrElse { throwable ->
@@ -111,15 +128,7 @@ class ProjectDetailsViewModel @Inject constructor(
         val previousProject = _uiState.value.project
 
         _uiState.update { state ->
-            val updatedProject = state.project?.copy(
-                sections = state.project.sections.map { section ->
-                    if (section.id == editingSectionId) {
-                        section.copy(name = name.asString())
-                    } else {
-                        section
-                    }
-                }
-            )
+            val updatedProject = state.project?.renamingSection(editingSectionId, name.asString())
             state.copy(
                 project = updatedProject,
                 editingSectionId = null,
@@ -131,18 +140,7 @@ class ProjectDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             updateSectionNameUseCase(editingSectionId, name)
                 .onSuccess {
-                    _uiState.update { state ->
-                        val updatedProject = state.project?.copy(
-                            sections = state.project.sections.map { section ->
-                                if (section.id == editingSectionId) {
-                                    section.copy(name = name.asString())
-                                } else {
-                                    section
-                                }
-                            }
-                        )
-                        state.copy(project = updatedProject, sectionActionError = null)
-                    }
+                    _uiState.update { it.copy(sectionActionError = null) }
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -155,7 +153,7 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onDeleteSectionClick(sectionId: Long) {
+    private fun onDeleteSectionClick(sectionId: Long) {
         _uiState.update {
             it.copy(
                 openSectionMenuForId = null,
@@ -165,17 +163,15 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onDeleteSectionDismiss() {
+    private fun onDeleteSectionDismiss() {
         _uiState.update { it.copy(deleteConfirmSectionId = null) }
     }
 
-    fun onDeleteSectionConfirm() {
+    private fun onDeleteSectionConfirm() {
         val sectionId = _uiState.value.deleteConfirmSectionId ?: return
         val previousProject = _uiState.value.project
         _uiState.update { state ->
-            val updatedProject = state.project?.copy(
-                sections = state.project.sections.filterNot { it.id == sectionId }
-            )
+            val updatedProject = state.project?.removingSection(sectionId)
             state.copy(
                 project = updatedProject,
                 deleteConfirmSectionId = null,
