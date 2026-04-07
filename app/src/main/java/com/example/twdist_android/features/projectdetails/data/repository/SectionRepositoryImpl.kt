@@ -9,13 +9,15 @@ import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
+import com.example.twdist_android.features.projectdetails.domain.store.TaskStateStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SectionRepositoryImpl @Inject constructor(
     private val api: ProjectDetailsApi,
-    private val sectionStateStore: SectionStateStore
+    private val sectionStateStore: SectionStateStore,
+    private val taskStateStore: TaskStateStore
 ) : SectionRepository {
 
     override suspend fun getSectionsByProjectId(projectId: Long): Result<List<Section>> {
@@ -66,6 +68,7 @@ class SectionRepositoryImpl @Inject constructor(
                     error("Failed to delete section (HTTP ${response.code()})")
                 }
                 sectionStateStore.remove(sectionId)
+                taskStateStore.removeBySectionId(sectionId)
             }
         }
     }

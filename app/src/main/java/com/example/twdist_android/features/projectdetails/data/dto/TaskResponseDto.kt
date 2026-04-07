@@ -11,6 +11,5 @@ data class TaskResponseDto(
     val endDate: String? = null,
     val completedDate: String? = null,
     val completed: Boolean = false,
-    val subtasks: List<TaskResponseDto> = emptyList(),
-    val sectionId: Long
+    val subtasks: List<TaskResponseDto> = emptyList()
 )

@@ -8,12 +8,14 @@ import com.example.twdist_android.features.projectdetails.data.remote.ProjectDet
 import com.example.twdist_android.features.projectdetails.domain.model.Task
 import com.example.twdist_android.features.projectdetails.domain.model.TaskName
 import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
+import com.example.twdist_android.features.projectdetails.domain.store.TaskStateStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class TaskRepositoryImpl @Inject constructor(
-    private val api: ProjectDetailsApi
+    private val api: ProjectDetailsApi,
+    private val taskStateStore: TaskStateStore
 ) : TaskRepository {
     override suspend fun getTasksBySection(projectId: Long, sectionId: Long): Result<List<Task>> {
         return runSuspendCatching {
@@ -22,7 +24,10 @@ class TaskRepositoryImpl @Inject constructor(
                 if (!response.isSuccessful) {
                     error("Failed to fetch tasks (HTTP ${response.code()})")
                 }
-                response.body()?.map { it.toDomainTask() } ?: emptyList()
+                val tasks = response.body()?.map { it.toDomainTask(sectionId) } ?: emptyList()
+                taskStateStore.removeBySectionId(sectionId)
+                taskStateStore.upsertAll(tasks)
+                tasks
             }
         }
     }
@@ -35,7 +40,7 @@ class TaskRepositoryImpl @Inject constructor(
                     error("Failed to create task (HTTP ${response.code()})")
                 }
                 val dto = response.body() ?: error("Task creation returned empty body")
-                dto.toDomainTask()
+                dto.toDomainTask(sectionId).also(taskStateStore::upsert)
             }
         }
     }
@@ -58,7 +63,7 @@ class TaskRepositoryImpl @Inject constructor(
                     error("Failed to update task (HTTP ${response.code()})")
                 }
                 val dto = response.body() ?: error("Task update returned empty body")
-                dto.toDomainTask()
+                dto.toDomainTask(sectionId).also(taskStateStore::upsert)
             }
         }
     }
@@ -70,6 +75,7 @@ class TaskRepositoryImpl @Inject constructor(
                 if (!response.isSuccessful) {
                     error("Failed to delete task (HTTP ${response.code()})")
                 }
+                taskStateStore.remove(taskId)
             }
         }
     }
