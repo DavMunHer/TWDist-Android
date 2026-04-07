@@ -15,15 +15,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.twdist_android.features.projectdetails.presentation.components.SectionsRow
+import com.example.twdist_android.features.projectdetails.presentation.components.dialogs.ProjectDetailsDialogs
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
@@ -190,183 +188,11 @@ private fun ProjectDetailsContent(
             onSectionEvent = onSectionEvent
         )
 
-        if (uiState.editingSectionId != null) {
-            AlertDialog(
-                onDismissRequest = { onSectionEvent(SectionEvent.EditDismissed) },
-                title = { Text("Edit Section") },
-                text = {
-                    TextField(
-                        value = uiState.editingSectionName,
-                        onValueChange = { onSectionEvent(SectionEvent.NameChanged(it)) },
-                        placeholder = { Text("Section name") },
-                        singleLine = true,
-                        isError = uiState.sectionActionError != null,
-                        supportingText = uiState.sectionActionError?.let {
-                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
-                        }
-                    )
-                },
-                confirmButton = {
-                    Button(onClick = { onSectionEvent(SectionEvent.EditConfirmed) }) {
-                        Text("Save")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onSectionEvent(SectionEvent.EditDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
-        if (uiState.creatingTaskSectionId != null) {
-            AlertDialog(
-                onDismissRequest = { onSectionEvent(SectionEvent.CreateTaskDismissed) },
-                title = { Text("Add Task") },
-                text = {
-                    TextField(
-                        value = uiState.creatingTaskName,
-                        onValueChange = { onSectionEvent(SectionEvent.CreateTaskNameChanged(it)) },
-                        placeholder = { Text("Task name") },
-                        singleLine = true,
-                        isError = uiState.taskActionError != null,
-                        supportingText = uiState.taskActionError?.let {
-                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
-                        }
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = { onSectionEvent(SectionEvent.CreateTaskConfirmed) },
-                        enabled = !uiState.isTaskCreateLoading
-                    ) {
-                        Text("Save")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onSectionEvent(SectionEvent.CreateTaskDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
-        if (uiState.editingTaskId != null) {
-            AlertDialog(
-                onDismissRequest = { onSectionEvent(SectionEvent.EditTaskDismissed) },
-                title = { Text("Edit Task") },
-                text = {
-                    TextField(
-                        value = uiState.editingTaskName,
-                        onValueChange = { onSectionEvent(SectionEvent.EditTaskNameChanged(it)) },
-                        placeholder = { Text("Task name") },
-                        singleLine = true,
-                        isError = uiState.taskActionError != null,
-                        supportingText = uiState.taskActionError?.let {
-                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
-                        }
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = { onSectionEvent(SectionEvent.EditTaskConfirmed) },
-                        enabled = !uiState.isTaskEditLoading
-                    ) {
-                        Text("Save")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onSectionEvent(SectionEvent.EditTaskDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
-        if (uiState.deleteConfirmTaskId != null) {
-            AlertDialog(
-                onDismissRequest = { onSectionEvent(SectionEvent.DeleteTaskDismissed) },
-                title = { Text("Delete Task") },
-                text = { Text("Are you sure you want to delete this task?") },
-                confirmButton = {
-                    Button(
-                        onClick = { onSectionEvent(SectionEvent.DeleteTaskConfirmed) },
-                        enabled = !uiState.isTaskDeleteLoading
-                    ) {
-                        Text("Delete")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onSectionEvent(SectionEvent.DeleteTaskDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
-        if (uiState.deleteConfirmSectionId != null) {
-            AlertDialog(
-                onDismissRequest = { onSectionEvent(SectionEvent.DeleteDismissed) },
-                title = { Text("Delete Section") },
-                text = { Text("Are you sure you want to delete this section?") },
-                confirmButton = {
-                    Button(onClick = { onSectionEvent(SectionEvent.DeleteConfirmed) }) {
-                        Text("Delete")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onSectionEvent(SectionEvent.DeleteDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-        if (uiState.isEditingProject) {
-            AlertDialog(
-                onDismissRequest = { onProjectEvent(ProjectEvent.EditDismissed) },
-                title = { Text("Edit Project") },
-                text = {
-                    TextField(
-                        value = uiState.editingProjectName,
-                        onValueChange = { onProjectEvent(ProjectEvent.NameChanged(it)) },
-                        placeholder = { Text("Project name") },
-                        singleLine = true,
-                        isError = uiState.projectActionError != null,
-                        supportingText = uiState.projectActionError?.let {
-                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
-                        }
-                    )
-                },
-                confirmButton = {
-                    Button(onClick = { onProjectEvent(ProjectEvent.EditConfirmed) }) {
-                        Text("Save")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onProjectEvent(ProjectEvent.EditDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
-        if (uiState.deleteConfirmProject) {
-            AlertDialog(
-                onDismissRequest = { onProjectEvent(ProjectEvent.DeleteDismissed) },
-                title = { Text("Delete Project") },
-                text = { Text("Are you sure you want to delete this project?") },
-                confirmButton = {
-                    Button(onClick = { onProjectEvent(ProjectEvent.DeleteConfirmed) }) {
-                        Text("Delete")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onProjectEvent(ProjectEvent.DeleteDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
+        ProjectDetailsDialogs(
+            uiState = uiState,
+            onSectionEvent = onSectionEvent,
+            onProjectEvent = onProjectEvent
+        )
     }
 }
 
