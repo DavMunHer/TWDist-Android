@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import com.example.twdist_android.features.projectdetails.presentation.viewmodel.ProjectDetailsViewModel
@@ -51,12 +52,20 @@ import com.example.twdist_android.features.projectdetails.presentation.viewmodel
 @Composable
 fun ProjectDetailsScreen(
     projectId: Long,
+    onProjectDeleted: () -> Unit = {},
     viewModel: ProjectDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(projectId) {
         viewModel.loadProjectDetails(projectId)
+    }
+
+    LaunchedEffect(uiState.projectDeleted) {
+        if (uiState.projectDeleted) {
+            onProjectDeleted()
+            viewModel.onProjectEvent(ProjectEvent.DeletedHandled)
+        }
     }
 
     when {
@@ -67,7 +76,8 @@ fun ProjectDetailsScreen(
         )
         uiState.project != null -> ProjectDetailsContent(
             uiState = uiState,
-            onEvent = viewModel::onEvent
+            onSectionEvent = viewModel::onEvent,
+            onProjectEvent = viewModel::onProjectEvent
         )
         else -> MissingProjectDetails()
     }
@@ -112,7 +122,8 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
 @Composable
 private fun ProjectDetailsContent(
     uiState: ProjectDetailsUiState,
-    onEvent: (SectionEvent) -> Unit
+    onSectionEvent: (SectionEvent) -> Unit,
+    onProjectEvent: (ProjectEvent) -> Unit
 ) {
     val project = uiState.project ?: return
     Column(
@@ -133,16 +144,41 @@ private fun ProjectDetailsContent(
                 text = project.name,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
-            Icon(
-                imageVector = Icons.Default.MoreHoriz,
-                contentDescription = "Options"
-            )
+            Box {
+                IconButton(onClick = { onProjectEvent(ProjectEvent.MenuOpened) }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreHoriz,
+                        contentDescription = "Project Options"
+                    )
+                }
+                DropdownMenu(
+                    expanded = uiState.openProjectMenu,
+                    onDismissRequest = { onProjectEvent(ProjectEvent.MenuDismissed) }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Edit") },
+                        onClick = { onProjectEvent(ProjectEvent.EditClicked) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Delete") },
+                        onClick = { onProjectEvent(ProjectEvent.DeleteClicked) }
+                    )
+                }
+            }
         }
 
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
             thickness = 1.dp
         )
+        if (uiState.projectActionError != null) {
+            Text(
+                text = uiState.projectActionError,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
         if (uiState.sectionActionError != null) {
             Text(
                 text = uiState.sectionActionError,
@@ -183,7 +219,7 @@ private fun ProjectDetailsContent(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Box(modifier = Modifier.align(Alignment.CenterEnd)) {
-                                IconButton(onClick = { onEvent(SectionEvent.MenuOpened(section.id)) }) {
+                                IconButton(onClick = { onSectionEvent(SectionEvent.MenuOpened(section.id)) }) {
                                     Icon(
                                         imageVector = Icons.Default.MoreHoriz,
                                         contentDescription = "Section Options",
@@ -192,15 +228,15 @@ private fun ProjectDetailsContent(
                                 }
                                 DropdownMenu(
                                     expanded = uiState.openSectionMenuForId == section.id,
-                                    onDismissRequest = { onEvent(SectionEvent.MenuDismissed) }
+                                    onDismissRequest = { onSectionEvent(SectionEvent.MenuDismissed) }
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text(text = "Edit") },
-                                        onClick = { onEvent(SectionEvent.EditClicked(section.id)) }
+                                        onClick = { onSectionEvent(SectionEvent.EditClicked(section.id)) }
                                     )
                                     DropdownMenuItem(
                                         text = { Text(text = "Delete") },
-                                        onClick = { onEvent(SectionEvent.DeleteClicked(section.id)) }
+                                        onClick = { onSectionEvent(SectionEvent.DeleteClicked(section.id)) }
                                     )
                                 }
                             }
@@ -276,12 +312,12 @@ private fun ProjectDetailsContent(
 
         if (uiState.editingSectionId != null) {
             AlertDialog(
-                onDismissRequest = { onEvent(SectionEvent.EditDismissed) },
+                onDismissRequest = { onSectionEvent(SectionEvent.EditDismissed) },
                 title = { Text("Edit Section") },
                 text = {
                     TextField(
                         value = uiState.editingSectionName,
-                        onValueChange = { onEvent(SectionEvent.NameChanged(it)) },
+                        onValueChange = { onSectionEvent(SectionEvent.NameChanged(it)) },
                         placeholder = { Text("Section name") },
                         singleLine = true,
                         isError = uiState.sectionActionError != null,
@@ -291,12 +327,12 @@ private fun ProjectDetailsContent(
                     )
                 },
                 confirmButton = {
-                    Button(onClick = { onEvent(SectionEvent.EditConfirmed) }) {
+                    Button(onClick = { onSectionEvent(SectionEvent.EditConfirmed) }) {
                         Text("Save")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { onEvent(SectionEvent.EditDismissed) }) {
+                    TextButton(onClick = { onSectionEvent(SectionEvent.EditDismissed) }) {
                         Text("Cancel")
                     }
                 }
@@ -305,16 +341,62 @@ private fun ProjectDetailsContent(
 
         if (uiState.deleteConfirmSectionId != null) {
             AlertDialog(
-                onDismissRequest = { onEvent(SectionEvent.DeleteDismissed) },
+                onDismissRequest = { onSectionEvent(SectionEvent.DeleteDismissed) },
                 title = { Text("Delete Section") },
                 text = { Text("Are you sure you want to delete this section?") },
                 confirmButton = {
-                    Button(onClick = { onEvent(SectionEvent.DeleteConfirmed) }) {
+                    Button(onClick = { onSectionEvent(SectionEvent.DeleteConfirmed) }) {
                         Text("Delete")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { onEvent(SectionEvent.DeleteDismissed) }) {
+                    TextButton(onClick = { onSectionEvent(SectionEvent.DeleteDismissed) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+        if (uiState.isEditingProject) {
+            AlertDialog(
+                onDismissRequest = { onProjectEvent(ProjectEvent.EditDismissed) },
+                title = { Text("Edit Project") },
+                text = {
+                    TextField(
+                        value = uiState.editingProjectName,
+                        onValueChange = { onProjectEvent(ProjectEvent.NameChanged(it)) },
+                        placeholder = { Text("Project name") },
+                        singleLine = true,
+                        isError = uiState.projectActionError != null,
+                        supportingText = uiState.projectActionError?.let {
+                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
+                        }
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = { onProjectEvent(ProjectEvent.EditConfirmed) }) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onProjectEvent(ProjectEvent.EditDismissed) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (uiState.deleteConfirmProject) {
+            AlertDialog(
+                onDismissRequest = { onProjectEvent(ProjectEvent.DeleteDismissed) },
+                title = { Text("Delete Project") },
+                text = { Text("Are you sure you want to delete this project?") },
+                confirmButton = {
+                    Button(onClick = { onProjectEvent(ProjectEvent.DeleteConfirmed) }) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onProjectEvent(ProjectEvent.DeleteDismissed) }) {
                         Text("Cancel")
                     }
                 }

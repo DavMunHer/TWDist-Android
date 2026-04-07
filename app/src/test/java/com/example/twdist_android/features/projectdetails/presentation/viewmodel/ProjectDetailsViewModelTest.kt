@@ -1,7 +1,9 @@
 package com.example.twdist_android.features.projectdetails.presentation.viewmodel
 
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.UpdateProjectNameUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.UpdateSectionNameUseCase
 import com.example.twdist_android.features.projectdetails.domain.model.Project
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectAggregate
@@ -11,6 +13,7 @@ import com.example.twdist_android.features.projectdetails.domain.model.SectionNa
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
+import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -43,10 +46,14 @@ class ProjectDetailsViewModelTest {
         Dispatchers.setMain(testDispatcher)
 
         val getProjectByIdUseCase = GetProjectByIdUseCase(projectDetailsRepository, sectionStateStore)
+        val updateProjectNameUseCase = UpdateProjectNameUseCase(projectDetailsRepository)
+        val deleteProjectUseCase = DeleteProjectUseCase(projectDetailsRepository)
         val updateSectionNameUseCase = UpdateSectionNameUseCase(sectionRepository)
         val deleteSectionUseCase = DeleteSectionUseCase(sectionRepository)
         viewModel = ProjectDetailsViewModel(
             getProjectByIdUseCase = getProjectByIdUseCase,
+            updateProjectNameUseCase = updateProjectNameUseCase,
+            deleteProjectUseCase = deleteProjectUseCase,
             updateSectionNameUseCase = updateSectionNameUseCase,
             deleteSectionUseCase = deleteSectionUseCase
         )
@@ -133,6 +140,101 @@ class ProjectDetailsViewModelTest {
         assertEquals(0, state.project?.sections?.size)
         coVerify(exactly = 1) { sectionRepository.deleteSection(10L) }
         coVerify(exactly = 1) { projectDetailsRepository.getProjectById(1L) }
+    }
+
+    @Test
+    fun `onEditProjectConfirmed with invalid name should keep dialog open and show error`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+
+        viewModel.onProjectEvent(ProjectEvent.EditClicked)
+        viewModel.onProjectEvent(ProjectEvent.NameChanged("a"))
+        viewModel.onProjectEvent(ProjectEvent.EditConfirmed)
+
+        val state = viewModel.uiState.value
+        assertEquals(true, state.isEditingProject)
+        assertEquals("Project name must be at least 2 characters", state.projectActionError)
+    }
+
+    @Test
+    fun `onEditProjectConfirmed success should close dialog and update name optimistically`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { projectDetailsRepository.updateProjectName(1L, any()) } returns Result.success(Unit)
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+
+        viewModel.onProjectEvent(ProjectEvent.EditClicked)
+        viewModel.onProjectEvent(ProjectEvent.NameChanged("Updated"))
+        viewModel.onProjectEvent(ProjectEvent.EditConfirmed)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(false, state.isEditingProject)
+        assertEquals("", state.editingProjectName)
+        assertNull(state.projectActionError)
+        assertEquals("Updated", state.project?.name)
+        coVerify(exactly = 1) { projectDetailsRepository.updateProjectName(1L, any()) }
+    }
+
+    @Test
+    fun `onEditProjectConfirmed API failure should rollback name and show error`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery {
+            projectDetailsRepository.updateProjectName(1L, any())
+        } returns Result.failure(IllegalStateException("backend error"))
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+
+        viewModel.onProjectEvent(ProjectEvent.EditClicked)
+        viewModel.onProjectEvent(ProjectEvent.NameChanged("Updated"))
+        viewModel.onProjectEvent(ProjectEvent.EditConfirmed)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("Inbox", state.project?.name)
+        assertEquals("Could not update project", state.projectActionError)
+    }
+
+    @Test
+    fun `onDeleteProjectConfirmed success should mark project deleted`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { projectDetailsRepository.deleteProject(1L) } returns Result.success(Unit)
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+
+        viewModel.onProjectEvent(ProjectEvent.DeleteClicked)
+        viewModel.onProjectEvent(ProjectEvent.DeleteConfirmed)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(true, state.projectDeleted)
+        assertNull(state.projectActionError)
+        coVerify(exactly = 1) { projectDetailsRepository.deleteProject(1L) }
+    }
+
+    @Test
+    fun `onProjectDeletedHandled should reset deleted flag`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { projectDetailsRepository.deleteProject(1L) } returns Result.success(Unit)
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+        viewModel.onProjectEvent(ProjectEvent.DeleteClicked)
+        viewModel.onProjectEvent(ProjectEvent.DeleteConfirmed)
+        advanceUntilIdle()
+
+        viewModel.onProjectEvent(ProjectEvent.DeletedHandled)
+        assertEquals(false, viewModel.uiState.value.projectDeleted)
     }
 
     private fun createAggregate(): ProjectAggregate {
