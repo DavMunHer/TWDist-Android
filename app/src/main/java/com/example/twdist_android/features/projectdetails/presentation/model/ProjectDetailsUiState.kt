@@ -14,7 +14,15 @@ data class ProjectDetailsUiState(
     val editingSectionId: Long? = null,
     val editingSectionName: String = "",
     val sectionActionError: String? = null,
-    val deleteConfirmSectionId: Long? = null
+    val deleteConfirmSectionId: Long? = null,
+    val creatingTaskSectionId: Long? = null,
+    val creatingTaskName: String = "",
+    val editingTaskSectionId: Long? = null,
+    val editingTaskId: Long? = null,
+    val editingTaskName: String = "",
+    val deleteConfirmTaskSectionId: Long? = null,
+    val deleteConfirmTaskId: Long? = null,
+    val openTaskMenuForId: Long? = null
 )
 
 data class ProjectDetailsUi(
@@ -27,5 +35,11 @@ data class ProjectDetailsUi(
 data class SectionUi(
     val id: Long,
     val name: String,
-    val tasks: List<String>
+    val tasks: List<TaskUi>
+)
+
+data class TaskUi(
+    val id: Long,
+    val name: String,
+    val completed: Boolean
 )

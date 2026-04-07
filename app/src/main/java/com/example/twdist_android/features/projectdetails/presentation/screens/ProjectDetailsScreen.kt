@@ -1,6 +1,7 @@
 package com.example.twdist_android.features.projectdetails.presentation.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.HorizontalDivider
@@ -259,23 +261,76 @@ private fun ProjectDetailsContent(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    imageVector = Icons.Outlined.Circle,
-                                    contentDescription = "Unchecked",
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.outline
+                                    imageVector = if (taskItem.completed) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                                    contentDescription = "Task completion",
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clickable {
+                                            onSectionEvent(
+                                                SectionEvent.TaskCompletionToggled(
+                                                    sectionId = section.id,
+                                                    taskId = taskItem.id
+                                                )
+                                            )
+                                        },
+                                    tint = if (taskItem.completed) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.outline
+                                    }
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
-                                    text = taskItem,
-                                    style = MaterialTheme.typography.bodyLarge
+                                    text = taskItem.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.weight(1f)
                                 )
+                                Box {
+                                    IconButton(onClick = {
+                                        onSectionEvent(SectionEvent.TaskMenuOpened(taskItem.id))
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.MoreHoriz,
+                                            contentDescription = "Task options"
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = uiState.openTaskMenuForId == taskItem.id,
+                                        onDismissRequest = { onSectionEvent(SectionEvent.TaskMenuDismissed) }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(text = "Edit") },
+                                            onClick = {
+                                                onSectionEvent(
+                                                    SectionEvent.EditTaskClicked(
+                                                        sectionId = section.id,
+                                                        taskId = taskItem.id
+                                                    )
+                                                )
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(text = "Delete") },
+                                            onClick = {
+                                                onSectionEvent(
+                                                    SectionEvent.DeleteTaskClicked(
+                                                        sectionId = section.id,
+                                                        taskId = taskItem.id
+                                                    )
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
 
                     // Add Task Button
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSectionEvent(SectionEvent.AddTaskClicked(section.id)) },
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         ),
@@ -333,6 +388,76 @@ private fun ProjectDetailsContent(
                 },
                 dismissButton = {
                     TextButton(onClick = { onSectionEvent(SectionEvent.EditDismissed) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (uiState.creatingTaskSectionId != null) {
+            AlertDialog(
+                onDismissRequest = { onSectionEvent(SectionEvent.CreateTaskDismissed) },
+                title = { Text("Add Task") },
+                text = {
+                    TextField(
+                        value = uiState.creatingTaskName,
+                        onValueChange = { onSectionEvent(SectionEvent.CreateTaskNameChanged(it)) },
+                        placeholder = { Text("Task name") },
+                        singleLine = true,
+                        isError = uiState.sectionActionError != null
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = { onSectionEvent(SectionEvent.CreateTaskConfirmed) }) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onSectionEvent(SectionEvent.CreateTaskDismissed) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (uiState.editingTaskId != null) {
+            AlertDialog(
+                onDismissRequest = { onSectionEvent(SectionEvent.EditTaskDismissed) },
+                title = { Text("Edit Task") },
+                text = {
+                    TextField(
+                        value = uiState.editingTaskName,
+                        onValueChange = { onSectionEvent(SectionEvent.EditTaskNameChanged(it)) },
+                        placeholder = { Text("Task name") },
+                        singleLine = true,
+                        isError = uiState.sectionActionError != null
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = { onSectionEvent(SectionEvent.EditTaskConfirmed) }) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onSectionEvent(SectionEvent.EditTaskDismissed) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (uiState.deleteConfirmTaskId != null) {
+            AlertDialog(
+                onDismissRequest = { onSectionEvent(SectionEvent.DeleteTaskDismissed) },
+                title = { Text("Delete Task") },
+                text = { Text("Are you sure you want to delete this task?") },
+                confirmButton = {
+                    Button(onClick = { onSectionEvent(SectionEvent.DeleteTaskConfirmed) }) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onSectionEvent(SectionEvent.DeleteTaskDismissed) }) {
                         Text("Cancel")
                     }
                 }

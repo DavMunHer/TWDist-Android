@@ -4,21 +4,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.GetTasksBySectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.UpdateProjectNameUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.UpdateSectionNameUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.UpdateTaskUseCase
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectNameError
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectNameException
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 import com.example.twdist_android.features.projectdetails.domain.model.SectionNameError
 import com.example.twdist_android.features.projectdetails.domain.model.SectionNameException
+import com.example.twdist_android.features.projectdetails.domain.model.TaskName
+import com.example.twdist_android.features.projectdetails.domain.model.TaskNameError
+import com.example.twdist_android.features.projectdetails.domain.model.TaskNameException
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.mapper.removingSection
 import com.example.twdist_android.features.projectdetails.presentation.mapper.renamingSection
 import com.example.twdist_android.features.projectdetails.presentation.mapper.toDetailsUi
+import com.example.twdist_android.features.projectdetails.presentation.mapper.withSectionTasks
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
+import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +41,11 @@ class ProjectDetailsViewModel @Inject constructor(
     private val updateProjectNameUseCase: UpdateProjectNameUseCase,
     private val deleteProjectUseCase: DeleteProjectUseCase,
     private val updateSectionNameUseCase: UpdateSectionNameUseCase,
-    private val deleteSectionUseCase: DeleteSectionUseCase
+    private val deleteSectionUseCase: DeleteSectionUseCase,
+    private val getTasksBySectionUseCase: GetTasksBySectionUseCase,
+    private val createTaskUseCase: CreateTaskUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase
 ) : ViewModel() {
 
     private var projectId: Long = -1L
@@ -55,6 +68,7 @@ class ProjectDetailsViewModel @Inject constructor(
                             sectionActionError = null
                         )
                     }
+                    loadTasksForSections()
                 }
                 .onFailure { e ->
                     _uiState.update {
@@ -79,6 +93,20 @@ class ProjectDetailsViewModel @Inject constructor(
             is SectionEvent.DeleteClicked -> onDeleteSectionClick(event.sectionId)
             SectionEvent.DeleteConfirmed -> onDeleteSectionConfirm()
             SectionEvent.DeleteDismissed -> onDeleteSectionDismiss()
+            is SectionEvent.AddTaskClicked -> onAddTaskClick(event.sectionId)
+            is SectionEvent.CreateTaskNameChanged -> onCreateTaskNameChanged(event.name)
+            SectionEvent.CreateTaskConfirmed -> onCreateTaskConfirmed()
+            SectionEvent.CreateTaskDismissed -> onCreateTaskDismissed()
+            is SectionEvent.TaskMenuOpened -> onTaskMenuOpened(event.taskId)
+            SectionEvent.TaskMenuDismissed -> onTaskMenuDismissed()
+            is SectionEvent.EditTaskClicked -> onEditTaskClick(event.sectionId, event.taskId)
+            is SectionEvent.EditTaskNameChanged -> onEditTaskNameChanged(event.name)
+            SectionEvent.EditTaskConfirmed -> onEditTaskConfirmed()
+            SectionEvent.EditTaskDismissed -> onEditTaskDismissed()
+            is SectionEvent.DeleteTaskClicked -> onDeleteTaskClick(event.sectionId, event.taskId)
+            SectionEvent.DeleteTaskConfirmed -> onDeleteTaskConfirmed()
+            SectionEvent.DeleteTaskDismissed -> onDeleteTaskDismissed()
+            is SectionEvent.TaskCompletionToggled -> onTaskCompletionToggled(event.sectionId, event.taskId)
         }
     }
 
@@ -328,6 +356,235 @@ class ProjectDetailsViewModel @Inject constructor(
                 }
         }
     }
+
+    private fun loadTasksForSections() {
+        val currentProject = _uiState.value.project ?: return
+        currentProject.sections.forEach { section ->
+            viewModelScope.launch {
+                getTasksBySectionUseCase(currentProject.id, section.id)
+                    .onSuccess { tasks ->
+                        _uiState.update { state ->
+                            val updatedProject = state.project?.withSectionTasks(
+                                section.id,
+                                tasks.map { TaskUi(id = it.id, name = it.name, completed = it.completed) }
+                            )
+                            state.copy(project = updatedProject)
+                        }
+                    }
+                    .onFailure { error ->
+                        _uiState.update {
+                            it.copy(sectionActionError = error.message ?: "Could not load tasks")
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun onAddTaskClick(sectionId: Long) {
+        _uiState.update {
+            it.copy(
+                creatingTaskSectionId = sectionId,
+                creatingTaskName = "",
+                sectionActionError = null
+            )
+        }
+    }
+
+    private fun onCreateTaskNameChanged(name: String) {
+        _uiState.update { it.copy(creatingTaskName = name, sectionActionError = null) }
+    }
+
+    private fun onCreateTaskDismissed() {
+        _uiState.update {
+            it.copy(
+                creatingTaskSectionId = null,
+                creatingTaskName = ""
+            )
+        }
+    }
+
+    private fun onCreateTaskConfirmed() {
+        val state = _uiState.value
+        val currentProjectId = state.project?.id ?: return
+        val sectionId = state.creatingTaskSectionId ?: return
+        val taskName = TaskName.create(state.creatingTaskName)
+            .getOrElse { throwable ->
+                _uiState.update { it.copy(sectionActionError = throwable.toTaskValidationMessage()) }
+                return
+            }
+        viewModelScope.launch {
+            createTaskUseCase(currentProjectId, sectionId, taskName)
+                .onSuccess { createdTask ->
+                    _uiState.update { current ->
+                        val updatedProject = current.project?.let { project ->
+                            val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
+                            project.withSectionTasks(
+                                sectionId,
+                                section.tasks + TaskUi(
+                                    id = createdTask.id,
+                                    name = createdTask.name,
+                                    completed = createdTask.completed
+                                )
+                            )
+                        }
+                        current.copy(
+                            project = updatedProject,
+                            creatingTaskSectionId = null,
+                            creatingTaskName = "",
+                            sectionActionError = null
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(sectionActionError = error.message ?: "Could not create task")
+                    }
+                }
+        }
+    }
+
+    private fun onTaskMenuOpened(taskId: Long) {
+        _uiState.update { it.copy(openTaskMenuForId = taskId) }
+    }
+
+    private fun onTaskMenuDismissed() {
+        _uiState.update { it.copy(openTaskMenuForId = null) }
+    }
+
+    private fun onEditTaskClick(sectionId: Long, taskId: Long) {
+        val task = _uiState.value.project
+            ?.sections
+            ?.firstOrNull { it.id == sectionId }
+            ?.tasks
+            ?.firstOrNull { it.id == taskId } ?: return
+        _uiState.update {
+            it.copy(
+                openTaskMenuForId = null,
+                editingTaskSectionId = sectionId,
+                editingTaskId = taskId,
+                editingTaskName = task.name,
+                sectionActionError = null
+            )
+        }
+    }
+
+    private fun onEditTaskNameChanged(name: String) {
+        _uiState.update { it.copy(editingTaskName = name, sectionActionError = null) }
+    }
+
+    private fun onEditTaskDismissed() {
+        _uiState.update {
+            it.copy(
+                editingTaskSectionId = null,
+                editingTaskId = null,
+                editingTaskName = ""
+            )
+        }
+    }
+
+    private fun onEditTaskConfirmed() {
+        val state = _uiState.value
+        val currentProjectId = state.project?.id ?: return
+        val sectionId = state.editingTaskSectionId ?: return
+        val taskId = state.editingTaskId ?: return
+        val newName = TaskName.create(state.editingTaskName)
+            .getOrElse { throwable ->
+                _uiState.update { it.copy(sectionActionError = throwable.toTaskValidationMessage()) }
+                return
+            }
+        viewModelScope.launch {
+            updateTaskUseCase(currentProjectId, sectionId, taskId, newName)
+                .onSuccess { updatedTask ->
+                    _uiState.update { current ->
+                        val updatedProject = current.project?.let { project ->
+                            val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
+                            val mappedTasks = section.tasks.map { task ->
+                                if (task.id == taskId) {
+                                    task.copy(name = updatedTask.name, completed = updatedTask.completed)
+                                } else {
+                                    task
+                                }
+                            }
+                            project.withSectionTasks(sectionId, mappedTasks)
+                        }
+                        current.copy(
+                            project = updatedProject,
+                            editingTaskSectionId = null,
+                            editingTaskId = null,
+                            editingTaskName = "",
+                            sectionActionError = null
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(sectionActionError = error.message ?: "Could not update task")
+                    }
+                }
+        }
+    }
+
+    private fun onDeleteTaskClick(sectionId: Long, taskId: Long) {
+        _uiState.update {
+            it.copy(
+                openTaskMenuForId = null,
+                deleteConfirmTaskSectionId = sectionId,
+                deleteConfirmTaskId = taskId,
+                sectionActionError = null
+            )
+        }
+    }
+
+    private fun onDeleteTaskDismissed() {
+        _uiState.update { it.copy(deleteConfirmTaskSectionId = null, deleteConfirmTaskId = null) }
+    }
+
+    private fun onDeleteTaskConfirmed() {
+        val state = _uiState.value
+        val currentProjectId = state.project?.id ?: return
+        val sectionId = state.deleteConfirmTaskSectionId ?: return
+        val taskId = state.deleteConfirmTaskId ?: return
+        viewModelScope.launch {
+            deleteTaskUseCase(currentProjectId, sectionId, taskId)
+                .onSuccess {
+                    _uiState.update { current ->
+                        val updatedProject = current.project?.let { project ->
+                            val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
+                            project.withSectionTasks(
+                                sectionId,
+                                section.tasks.filterNot { it.id == taskId }
+                            )
+                        }
+                        current.copy(
+                            project = updatedProject,
+                            deleteConfirmTaskSectionId = null,
+                            deleteConfirmTaskId = null,
+                            sectionActionError = null
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(sectionActionError = error.message ?: "Could not delete task")
+                    }
+                }
+        }
+    }
+
+    private fun onTaskCompletionToggled(sectionId: Long, taskId: Long) {
+        // TODO: Persist task completion once backend endpoint supports completion updates.
+        // FIXME: Current backend task update endpoint only accepts `name`, not completion status.
+        _uiState.update { current ->
+            val updatedProject = current.project?.let { project ->
+                val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
+                val mappedTasks = section.tasks.map { task ->
+                    if (task.id == taskId) task.copy(completed = !task.completed) else task
+                }
+                project.withSectionTasks(sectionId, mappedTasks)
+            }
+            current.copy(project = updatedProject)
+        }
+    }
 }
 
 private fun Throwable.toValidationMessage(): String {
@@ -335,6 +592,14 @@ private fun Throwable.toValidationMessage(): String {
     return when (sectionNameError) {
         SectionNameError.TooShort -> "Section name must be at least 2 characters"
         SectionNameError.TooLong -> "Section name must be at most 50 characters"
+    }
+}
+
+private fun Throwable.toTaskValidationMessage(): String {
+    val taskNameError = (this as? TaskNameException)?.error ?: return message ?: "Invalid task name"
+    return when (taskNameError) {
+        TaskNameError.TooShort -> "Task name must be at least 2 characters"
+        TaskNameError.TooLong -> "Task name must be at most 50 characters"
     }
 }
 
