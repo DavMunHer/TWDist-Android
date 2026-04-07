@@ -1,9 +1,13 @@
 package com.example.twdist_android.di
 
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
+import com.example.twdist_android.features.projectdetails.domain.store.ProjectDetailsProjectStateStore
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.data.store.inmemory.InMemorySectionStore
+import com.example.twdist_android.features.projectdetails.data.store.inmemory.InMemoryProjectDetailsProjectStore
+import com.example.twdist_android.features.projectdetails.data.store.inmemory.InMemoryTaskStore
 import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
+import com.example.twdist_android.features.projectdetails.domain.store.TaskStateStore
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.data.repository.ProjectDetailsRepositoryImpl
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
@@ -28,6 +32,15 @@ object ProjectDetailsModule {
 
     @Provides
     @Singleton
+    fun provideProjectDetailsProjectStateStore(): ProjectDetailsProjectStateStore =
+        InMemoryProjectDetailsProjectStore()
+
+    @Provides
+    @Singleton
+    fun provideTaskStateStore(): TaskStateStore = InMemoryTaskStore()
+
+    @Provides
+    @Singleton
     fun provideProjectDetailsRepository(
         api: ProjectDetailsApi,
         projectStateStore: ProjectStateStore
@@ -38,23 +51,26 @@ object ProjectDetailsModule {
     @Singleton
     fun provideSectionRepository(
         api: ProjectDetailsApi,
-        sectionStateStore: SectionStateStore
+        sectionStateStore: SectionStateStore,
+        taskStateStore: TaskStateStore
     ): SectionRepository =
-        SectionRepositoryImpl(api, sectionStateStore)
+        SectionRepositoryImpl(api, sectionStateStore, taskStateStore)
 
     @Provides
     @Singleton
     fun provideTaskRepository(
-        api: ProjectDetailsApi
-    ): TaskRepository = TaskRepositoryImpl(api)
+        api: ProjectDetailsApi,
+        taskStateStore: TaskStateStore
+    ): TaskRepository = TaskRepositoryImpl(api, taskStateStore)
 
     @Provides
     @Singleton
     fun provideGetProjectByIdUseCase(
         repository: ProjectDetailsRepository,
+        projectStateStore: ProjectDetailsProjectStateStore,
         sectionStateStore: SectionStateStore
     ): GetProjectByIdUseCase =
-        GetProjectByIdUseCase(repository, sectionStateStore)
+        GetProjectByIdUseCase(repository, projectStateStore, sectionStateStore)
 
     @Provides
     @Singleton
