@@ -18,7 +18,11 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun getTasksBySection(projectId: Long, sectionId: Long): Result<List<Task>> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                api.getTasksBySection(projectId, sectionId).map { it.toDomainTask() }
+                val response = api.getTasksBySection(projectId, sectionId)
+                if (!response.isSuccessful) {
+                    error("Failed to fetch tasks (HTTP ${response.code()})")
+                }
+                response.body()?.map { it.toDomainTask() } ?: emptyList()
             }
         }
     }
@@ -26,7 +30,12 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun createTask(projectId: Long, sectionId: Long, name: TaskName): Result<Task> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                api.createTask(projectId, sectionId, CreateTaskRequestDto(name.asString())).toDomainTask()
+                val response = api.createTask(projectId, sectionId, CreateTaskRequestDto(name.asString()))
+                if (!response.isSuccessful) {
+                    error("Failed to create task (HTTP ${response.code()})")
+                }
+                val dto = response.body() ?: error("Task creation returned empty body")
+                dto.toDomainTask()
             }
         }
     }
@@ -39,12 +48,17 @@ class TaskRepositoryImpl @Inject constructor(
     ): Result<Task> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                api.updateTask(
+                val response = api.updateTask(
                     projectId,
                     sectionId,
                     taskId,
                     UpdateTaskRequestDto(name.asString())
-                ).toDomainTask()
+                )
+                if (!response.isSuccessful) {
+                    error("Failed to update task (HTTP ${response.code()})")
+                }
+                val dto = response.body() ?: error("Task update returned empty body")
+                dto.toDomainTask()
             }
         }
     }

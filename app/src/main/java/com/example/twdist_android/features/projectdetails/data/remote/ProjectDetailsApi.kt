@@ -50,13 +50,13 @@ interface ProjectDetailsApi {
         @Path("projectId") projectId: Long,
         @Path("sectionId") sectionId: Long,
         @Body request: CreateTaskRequestDto
-    ): TaskResponseDto
+    ): Response<TaskResponseDto>
 
     @GET("projects/{projectId}/section/{sectionId}/task/get")
     suspend fun getTasksBySection(
         @Path("projectId") projectId: Long,
         @Path("sectionId") sectionId: Long
-    ): List<TaskResponseDto>
+    ): Response<List<TaskResponseDto>>
 
     @PUT("projects/{projectId}/section/{sectionId}/task/{taskId}/update")
     suspend fun updateTask(
@@ -64,7 +64,7 @@ interface ProjectDetailsApi {
         @Path("sectionId") sectionId: Long,
         @Path("taskId") taskId: Long,
         @Body request: UpdateTaskRequestDto
-    ): TaskResponseDto
+    ): Response<TaskResponseDto>
 
     @DELETE("projects/{projectId}/section/{sectionId}/task/{taskId}/delete")
     suspend fun deleteTask(
