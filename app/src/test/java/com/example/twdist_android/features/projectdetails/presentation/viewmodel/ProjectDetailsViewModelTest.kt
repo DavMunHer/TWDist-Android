@@ -19,6 +19,7 @@ import com.example.twdist_android.features.projectdetails.domain.model.SectionNa
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
 import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
+import com.example.twdist_android.features.projectdetails.domain.store.ProjectDetailsProjectStateStore
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
@@ -43,6 +44,7 @@ class ProjectDetailsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val projectDetailsRepository: ProjectDetailsRepository = mockk()
+    private val projectStateStore: ProjectDetailsProjectStateStore = mockk(relaxed = true)
     private val sectionStateStore: SectionStateStore = mockk(relaxed = true)
     private val sectionRepository: SectionRepository = mockk()
     private val taskRepository: TaskRepository = mockk()
@@ -53,7 +55,7 @@ class ProjectDetailsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
 
-        val getProjectByIdUseCase = GetProjectByIdUseCase(projectDetailsRepository, sectionStateStore)
+        val getProjectByIdUseCase = GetProjectByIdUseCase(projectDetailsRepository, projectStateStore, sectionStateStore)
         val updateProjectNameUseCase = UpdateProjectNameUseCase(projectDetailsRepository)
         val deleteProjectUseCase = DeleteProjectUseCase(projectDetailsRepository)
         val updateSectionNameUseCase = UpdateSectionNameUseCase(sectionRepository)
@@ -143,7 +145,7 @@ class ProjectDetailsViewModelTest {
         assertNull(state.editingSectionId)
         assertEquals("", state.editingSectionName)
         assertNull(state.sectionActionError)
-        assertEquals("Updated", state.project?.sections?.firstOrNull { it.id == 10L }?.name)
+        assertEquals("Updated", state.sectionItems.firstOrNull { it.id == 10L }?.name)
         coVerify(exactly = 1) { sectionRepository.updateSectionName(10L, any()) }
         coVerify(exactly = 1) { projectDetailsRepository.getProjectById(1L) }
     }
@@ -278,9 +280,9 @@ class ProjectDetailsViewModelTest {
         viewModel.onEvent(SectionEvent.CreateTaskConfirmed)
         advanceUntilIdle()
 
-        val taskNames = viewModel.uiState.value.project?.sections?.firstOrNull { it.id == 10L }
-            ?.tasks
-            ?.map { it.name }
+        val state = viewModel.uiState.value
+        val sectionTaskIds = state.sectionItems.firstOrNull { it.id == 10L }?.taskIds.orEmpty()
+        val taskNames = sectionTaskIds.mapNotNull { state.tasksById[it]?.name }
         assertEquals(listOf("task-1", "Task2"), taskNames)
     }
 
@@ -293,9 +295,7 @@ class ProjectDetailsViewModelTest {
         advanceUntilIdle()
         viewModel.onEvent(SectionEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
 
-        val task = viewModel.uiState.value.project?.sections?.firstOrNull { it.id == 10L }
-            ?.tasks
-            ?.firstOrNull { it.id == 100L }
+        val task = viewModel.uiState.value.tasksById["100"]
         assertEquals(true, task?.completed)
     }
 
