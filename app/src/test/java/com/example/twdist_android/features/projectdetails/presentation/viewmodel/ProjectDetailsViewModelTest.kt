@@ -1,10 +1,16 @@
 package com.example.twdist_android.features.projectdetails.presentation.viewmodel
 
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.GetTasksBySectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.UpdateProjectNameUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.UpdateSectionNameUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.UpdateTaskUseCase
+import com.example.twdist_android.features.projectdetails.domain.model.Task
+import com.example.twdist_android.features.projectdetails.domain.model.TaskName
 import com.example.twdist_android.features.projectdetails.domain.model.Project
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectAggregate
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
@@ -12,6 +18,7 @@ import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
+import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
@@ -38,6 +45,7 @@ class ProjectDetailsViewModelTest {
     private val projectDetailsRepository: ProjectDetailsRepository = mockk()
     private val sectionStateStore: SectionStateStore = mockk(relaxed = true)
     private val sectionRepository: SectionRepository = mockk()
+    private val taskRepository: TaskRepository = mockk()
 
     private lateinit var viewModel: ProjectDetailsViewModel
 
@@ -50,12 +58,30 @@ class ProjectDetailsViewModelTest {
         val deleteProjectUseCase = DeleteProjectUseCase(projectDetailsRepository)
         val updateSectionNameUseCase = UpdateSectionNameUseCase(sectionRepository)
         val deleteSectionUseCase = DeleteSectionUseCase(sectionRepository)
+        val getTasksBySectionUseCase = GetTasksBySectionUseCase(taskRepository)
+        val createTaskUseCase = CreateTaskUseCase(taskRepository)
+        val updateTaskUseCase = UpdateTaskUseCase(taskRepository)
+        val deleteTaskUseCase = DeleteTaskUseCase(taskRepository)
+        coEvery { taskRepository.getTasksBySection(any(), any()) } returns Result.success(
+            listOf(
+                Task(
+                    id = 100L,
+                    sectionId = 10L,
+                    name = "task-1",
+                    completed = false
+                )
+            )
+        )
         viewModel = ProjectDetailsViewModel(
             getProjectByIdUseCase = getProjectByIdUseCase,
             updateProjectNameUseCase = updateProjectNameUseCase,
             deleteProjectUseCase = deleteProjectUseCase,
             updateSectionNameUseCase = updateSectionNameUseCase,
-            deleteSectionUseCase = deleteSectionUseCase
+            deleteSectionUseCase = deleteSectionUseCase,
+            getTasksBySectionUseCase = getTasksBySectionUseCase,
+            createTaskUseCase = createTaskUseCase,
+            updateTaskUseCase = updateTaskUseCase,
+            deleteTaskUseCase = deleteTaskUseCase
         )
     }
 
@@ -235,6 +261,42 @@ class ProjectDetailsViewModelTest {
 
         viewModel.onProjectEvent(ProjectEvent.DeletedHandled)
         assertEquals(false, viewModel.uiState.value.projectDeleted)
+    }
+
+    @Test
+    fun `create task should append task to matching section`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { taskRepository.createTask(1L, 10L, TaskName.create("Task2").getOrThrow()) } returns Result.success(
+            Task(id = 101L, sectionId = 10L, name = "Task2", completed = false)
+        )
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+        viewModel.onEvent(SectionEvent.AddTaskClicked(10L))
+        viewModel.onEvent(SectionEvent.CreateTaskNameChanged("Task2"))
+        viewModel.onEvent(SectionEvent.CreateTaskConfirmed)
+        advanceUntilIdle()
+
+        val taskNames = viewModel.uiState.value.project?.sections?.firstOrNull { it.id == 10L }
+            ?.tasks
+            ?.map { it.name }
+        assertEquals(listOf("task-1", "Task2"), taskNames)
+    }
+
+    @Test
+    fun `task completion toggle should update local state only`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+        viewModel.onEvent(SectionEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
+
+        val task = viewModel.uiState.value.project?.sections?.firstOrNull { it.id == 10L }
+            ?.tasks
+            ?.firstOrNull { it.id == 100L }
+        assertEquals(true, task?.completed)
     }
 
     private fun createAggregate(): ProjectAggregate {
