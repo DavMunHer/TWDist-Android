@@ -12,20 +12,12 @@ import com.example.twdist_android.features.projectdetails.application.usecases.U
 import com.example.twdist_android.features.projectdetails.application.usecases.UpdateSectionNameUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.UpdateTaskUseCase
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
-import com.example.twdist_android.features.projectdetails.domain.model.ProjectNameError
-import com.example.twdist_android.features.projectdetails.domain.model.ProjectNameException
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
-import com.example.twdist_android.features.projectdetails.domain.model.SectionNameError
-import com.example.twdist_android.features.projectdetails.domain.model.SectionNameException
 import com.example.twdist_android.features.projectdetails.domain.model.TaskName
-import com.example.twdist_android.features.projectdetails.domain.model.TaskNameError
-import com.example.twdist_android.features.projectdetails.domain.model.TaskNameException
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
-import com.example.twdist_android.features.projectdetails.presentation.mapper.removingSection
-import com.example.twdist_android.features.projectdetails.presentation.mapper.renamingSection
 import com.example.twdist_android.features.projectdetails.presentation.mapper.toDetailsUi
-import com.example.twdist_android.features.projectdetails.presentation.mapper.withSectionTasks
+import com.example.twdist_android.features.projectdetails.presentation.model.SectionUi
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -66,7 +58,15 @@ class ProjectDetailsViewModel @Inject constructor(
                             isLoading = false,
                             project = aggregate.toDetailsUi(),
                             sectionActionError = null,
-                            taskActionError = null
+                            taskActionError = null,
+                            sectionItems = aggregate.sections.map { section ->
+                                SectionUi(
+                                    id = section.id,
+                                    name = section.name.asString(),
+                                    taskIds = section.taskIds
+                                )
+                            },
+                            tasksById = emptyMap()
                         )
                     }
                     loadTasksForSections()
@@ -252,7 +252,7 @@ class ProjectDetailsViewModel @Inject constructor(
     }
 
     private fun onEditSectionClick(sectionId: Long) {
-        val section = _uiState.value.project?.sections?.firstOrNull { it.id == sectionId } ?: return
+        val section = _uiState.value.sectionItems.firstOrNull { it.id == sectionId } ?: return
         _uiState.update {
             it.copy(
                 openSectionMenuForId = null,
@@ -295,9 +295,12 @@ class ProjectDetailsViewModel @Inject constructor(
         val previousProject = _uiState.value.project
 
         _uiState.update { state ->
-            val updatedProject = state.project?.renamingSection(editingSectionId, name.asString())
+            val updatedSections = state.sectionItems.map { section ->
+                if (section.id == editingSectionId) section.copy(name = name.asString()) else section
+            }
             state.copy(
-                project = updatedProject,
+                project = state.project?.copy(sections = updatedSections.map { it.name }),
+                sectionItems = updatedSections,
                 editingSectionId = null,
                 editingSectionName = "",
                 sectionActionError = null
@@ -339,9 +342,10 @@ class ProjectDetailsViewModel @Inject constructor(
         val sectionId = _uiState.value.deleteConfirmSectionId ?: return
         val previousProject = _uiState.value.project
         _uiState.update { state ->
-            val updatedProject = state.project?.removingSection(sectionId)
+            val updatedSections = state.sectionItems.filterNot { it.id == sectionId }
             state.copy(
-                project = updatedProject,
+                project = state.project?.copy(sections = updatedSections.map { it.name }),
+                sectionItems = updatedSections,
                 deleteConfirmSectionId = null,
                 sectionActionError = null
             )
@@ -365,16 +369,21 @@ class ProjectDetailsViewModel @Inject constructor(
 
     private fun loadTasksForSections() {
         val currentProject = _uiState.value.project ?: return
-        currentProject.sections.forEach { section ->
+        _uiState.value.sectionItems.forEach { section ->
             viewModelScope.launch {
                 getTasksBySectionUseCase(currentProject.id, section.id)
                     .onSuccess { tasks ->
                         _uiState.update { state ->
-                            val updatedProject = state.project?.withSectionTasks(
-                                section.id,
-                                tasks.map { TaskUi(id = it.id, name = it.name, completed = it.completed) }
-                            )
-                            state.copy(project = updatedProject)
+                            val mapped = tasks.map {
+                                TaskUi(id = it.id, name = it.name, completed = it.completed)
+                            }
+                            val nextTasksById = state.tasksById.toMutableMap().apply {
+                                mapped.forEach { put(it.id.toString(), it) }
+                            }
+                            val nextSections = state.sectionItems.map {
+                                if (it.id == section.id) it.copy(taskIds = mapped.map { t -> t.id.toString() }) else it
+                            }
+                            state.copy(tasksById = nextTasksById, sectionItems = nextSections)
                         }
                     }
                     .onFailure { error ->
@@ -425,22 +434,29 @@ class ProjectDetailsViewModel @Inject constructor(
                 .onSuccess { createdTask ->
                     _uiState.update { current ->
                         val updatedProject = current.project?.let { project ->
-                            val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
-                            project.withSectionTasks(
-                                sectionId,
-                                section.tasks + TaskUi(
-                                    id = createdTask.id,
-                                    name = createdTask.name,
-                                    completed = createdTask.completed
-                                )
-                            )
+                            project
+                        }
+                        val createdTaskUi = TaskUi(
+                            id = createdTask.id,
+                            name = createdTask.name,
+                            completed = createdTask.completed
+                        )
+                        val nextTasksById = current.tasksById.toMutableMap().apply {
+                            put(createdTaskUi.id.toString(), createdTaskUi)
+                        }
+                        val nextSections = current.sectionItems.map { section ->
+                            if (section.id == sectionId) {
+                                section.copy(taskIds = section.taskIds + createdTaskUi.id.toString())
+                            } else section
                         }
                         current.copy(
                             project = updatedProject,
                             creatingTaskSectionId = null,
                             creatingTaskName = "",
                             taskActionError = null,
-                            isTaskCreateLoading = false
+                            isTaskCreateLoading = false,
+                            tasksById = nextTasksById,
+                            sectionItems = nextSections
                         )
                     }
                 }
@@ -464,11 +480,8 @@ class ProjectDetailsViewModel @Inject constructor(
     }
 
     private fun onEditTaskClick(sectionId: Long, taskId: Long) {
-        val task = _uiState.value.project
-            ?.sections
-            ?.firstOrNull { it.id == sectionId }
-            ?.tasks
-            ?.firstOrNull { it.id == taskId } ?: return
+        val section = _uiState.value.sectionItems.firstOrNull { it.id == sectionId } ?: return
+        val task = section.taskIds.mapNotNull { _uiState.value.tasksById[it] }.firstOrNull { it.id == taskId } ?: return
         _uiState.update {
             it.copy(
                 openTaskMenuForId = null,
@@ -511,15 +524,10 @@ class ProjectDetailsViewModel @Inject constructor(
                 .onSuccess { updatedTask ->
                     _uiState.update { current ->
                         val updatedProject = current.project?.let { project ->
-                            val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
-                            val mappedTasks = section.tasks.map { task ->
-                                if (task.id == taskId) {
-                                    task.copy(name = updatedTask.name, completed = updatedTask.completed)
-                                } else {
-                                    task
-                                }
-                            }
-                            project.withSectionTasks(sectionId, mappedTasks)
+                            project
+                        }
+                        val nextTasksById = current.tasksById.toMutableMap().apply {
+                            put(taskId.toString(), TaskUi(taskId, updatedTask.name, updatedTask.completed))
                         }
                         current.copy(
                             project = updatedProject,
@@ -527,7 +535,8 @@ class ProjectDetailsViewModel @Inject constructor(
                             editingTaskId = null,
                             editingTaskName = "",
                             taskActionError = null,
-                            isTaskEditLoading = false
+                            isTaskEditLoading = false,
+                            tasksById = nextTasksById
                         )
                     }
                 }
@@ -568,18 +577,22 @@ class ProjectDetailsViewModel @Inject constructor(
                 .onSuccess {
                     _uiState.update { current ->
                         val updatedProject = current.project?.let { project ->
-                            val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
-                            project.withSectionTasks(
-                                sectionId,
-                                section.tasks.filterNot { it.id == taskId }
-                            )
+                            project
+                        }
+                        val nextTasksById = current.tasksById.toMutableMap().apply { remove(taskId.toString()) }
+                        val nextSections = current.sectionItems.map { section ->
+                            if (section.id == sectionId) {
+                                section.copy(taskIds = section.taskIds.filterNot { it == taskId.toString() })
+                            } else section
                         }
                         current.copy(
                             project = updatedProject,
                             deleteConfirmTaskSectionId = null,
                             deleteConfirmTaskId = null,
                             taskActionError = null,
-                            isTaskDeleteLoading = false
+                            isTaskDeleteLoading = false,
+                            tasksById = nextTasksById,
+                            sectionItems = nextSections
                         )
                     }
                 }
@@ -599,30 +612,16 @@ class ProjectDetailsViewModel @Inject constructor(
         // FIXME: Current backend task update endpoint only accepts `name`, not completion status.
         _uiState.update { current ->
             val updatedProject = current.project?.let { project ->
-                val section = project.sections.firstOrNull { it.id == sectionId } ?: return@let project
-                val mappedTasks = section.tasks.map { task ->
-                    if (task.id == taskId) task.copy(completed = !task.completed) else task
-                }
-                project.withSectionTasks(sectionId, mappedTasks)
+                project
             }
-            current.copy(project = updatedProject)
+            val nextTasksById = current.tasksById.toMutableMap()
+            val key = taskId.toString()
+            val task = nextTasksById[key]
+            if (task != null) {
+                nextTasksById[key] = task.copy(completed = !task.completed)
+            }
+            current.copy(project = updatedProject, tasksById = nextTasksById)
         }
-    }
-}
-
-private fun Throwable.toValidationMessage(): String {
-    val sectionNameError = (this as? SectionNameException)?.error ?: return message ?: "Invalid section name"
-    return when (sectionNameError) {
-        SectionNameError.TooShort -> "Section name must be at least 2 characters"
-        SectionNameError.TooLong -> "Section name must be at most 50 characters"
-    }
-}
-
-private fun Throwable.toTaskValidationMessage(): String {
-    val taskNameError = (this as? TaskNameException)?.error ?: return message ?: "Invalid task name"
-    return when (taskNameError) {
-        TaskNameError.TooShort -> "Task name must be at least 2 characters"
-        TaskNameError.TooLong -> "Task name must be at most 50 characters"
     }
 }
 

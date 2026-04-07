@@ -205,7 +205,7 @@ private fun ProjectDetailsContent(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(project.sections) { section ->
+            items(uiState.sectionItems) { section ->
                 Column(
                     modifier = Modifier.fillParentMaxWidth(0.95f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -254,7 +254,8 @@ private fun ProjectDetailsContent(
                     }
 
                     // Tasks List
-                    section.tasks.forEach { taskItem ->
+                    val sectionTasks = section.taskIds.mapNotNull { uiState.tasksById[it] }
+                    sectionTasks.forEach { taskItem ->
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
