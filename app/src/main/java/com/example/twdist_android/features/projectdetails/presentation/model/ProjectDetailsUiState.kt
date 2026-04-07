@@ -14,18 +14,38 @@ data class ProjectDetailsUiState(
     val editingSectionId: Long? = null,
     val editingSectionName: String = "",
     val sectionActionError: String? = null,
-    val deleteConfirmSectionId: Long? = null
+    val taskActionError: String? = null,
+    val isTaskCreateLoading: Boolean = false,
+    val isTaskEditLoading: Boolean = false,
+    val isTaskDeleteLoading: Boolean = false,
+    val deleteConfirmSectionId: Long? = null,
+    val creatingTaskSectionId: Long? = null,
+    val creatingTaskName: String = "",
+    val editingTaskSectionId: Long? = null,
+    val editingTaskId: Long? = null,
+    val editingTaskName: String = "",
+    val deleteConfirmTaskSectionId: Long? = null,
+    val deleteConfirmTaskId: Long? = null,
+    val openTaskMenuForId: Long? = null,
+    val sectionItems: List<SectionUi> = emptyList(),
+    val tasksById: Map<String, TaskUi> = emptyMap()
 )
 
 data class ProjectDetailsUi(
     val id: Long,
     val name: String,
     val isFavorite: Boolean,
-    val sections: List<SectionUi>
+    val sections: List<String>,
 )
 
 data class SectionUi(
     val id: Long,
     val name: String,
-    val tasks: List<String>
+    val taskIds: List<String>
+)
+
+data class TaskUi(
+    val id: Long,
+    val name: String,
+    val completed: Boolean
 )

@@ -5,6 +5,7 @@ import com.example.twdist_android.features.projectdetails.domain.model.ProjectAg
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
+import com.example.twdist_android.features.projectdetails.domain.store.ProjectDetailsProjectStateStore
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
@@ -22,11 +23,12 @@ class GetProjectByIdUseCaseTest {
     private lateinit var getProjectByIdUseCase: GetProjectByIdUseCase
 
     private val projectDetailsRepository: ProjectDetailsRepository = mockk()
+    private val projectStateStore: ProjectDetailsProjectStateStore = mockk(relaxed = true)
     private val sectionStateStore: SectionStateStore = mockk(relaxed = true)
 
     @Before
     fun setUp() {
-        getProjectByIdUseCase = GetProjectByIdUseCase(projectDetailsRepository, sectionStateStore)
+        getProjectByIdUseCase = GetProjectByIdUseCase(projectDetailsRepository, projectStateStore, sectionStateStore)
     }
 
     @Test
@@ -53,6 +55,7 @@ class GetProjectByIdUseCaseTest {
         val result = getProjectByIdUseCase(10L)
 
         coVerify(exactly = 1) { projectDetailsRepository.getProjectById(10L) }
+        verify(exactly = 1) { projectStateStore.upsert(project) }
         verify(exactly = 1) { sectionStateStore.upsertAll(listOf(section)) }
         assertTrue(result.isSuccess)
         assertEquals(aggregate, result.getOrThrow())
@@ -66,6 +69,7 @@ class GetProjectByIdUseCaseTest {
         val result = getProjectByIdUseCase(404L)
 
         coVerify(exactly = 1) { projectDetailsRepository.getProjectById(404L) }
+        verify(exactly = 0) { projectStateStore.upsert(any()) }
         verify(exactly = 0) { sectionStateStore.upsertAll(any()) }
         assertTrue(result.isFailure)
         assertEquals(expectedError, result.exceptionOrNull())
