@@ -1,0 +1,13 @@
+package com.example.twdist_android.features.projectdetails.data.mapper
+
+import com.example.twdist_android.features.projectdetails.data.dto.TaskResponseDto
+import com.example.twdist_android.features.projectdetails.domain.model.Task
+
+fun TaskResponseDto.toDomainTask(): Task {
+    return Task(
+        id = id,
+        sectionId = sectionId,
+        name = name,
+        completed = completed
+    )
+}

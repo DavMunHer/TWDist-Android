@@ -8,7 +8,9 @@ import com.example.twdist_android.features.projectdetails.application.usecases.G
 import com.example.twdist_android.features.projectdetails.data.repository.ProjectDetailsRepositoryImpl
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 import com.example.twdist_android.features.projectdetails.data.repository.SectionRepositoryImpl
+import com.example.twdist_android.features.projectdetails.data.repository.TaskRepositoryImpl
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
+import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
 import com.example.twdist_android.features.projectdetails.application.usecases.*
 import dagger.Module
 import dagger.Provides
@@ -39,6 +41,12 @@ object ProjectDetailsModule {
         sectionStateStore: SectionStateStore
     ): SectionRepository =
         SectionRepositoryImpl(api, sectionStateStore)
+
+    @Provides
+    @Singleton
+    fun provideTaskRepository(
+        api: ProjectDetailsApi
+    ): TaskRepository = TaskRepositoryImpl(api)
 
     @Provides
     @Singleton
@@ -102,4 +110,28 @@ object ProjectDetailsModule {
     fun provideDeleteSectionUseCase(
         repository: SectionRepository
     ): DeleteSectionUseCase = DeleteSectionUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideGetTasksBySectionUseCase(
+        repository: TaskRepository
+    ): GetTasksBySectionUseCase = GetTasksBySectionUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideCreateTaskUseCase(
+        repository: TaskRepository
+    ): CreateTaskUseCase = CreateTaskUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideUpdateTaskUseCase(
+        repository: TaskRepository
+    ): UpdateTaskUseCase = UpdateTaskUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideDeleteTaskUseCase(
+        repository: TaskRepository
+    ): DeleteTaskUseCase = DeleteTaskUseCase(repository)
 }
