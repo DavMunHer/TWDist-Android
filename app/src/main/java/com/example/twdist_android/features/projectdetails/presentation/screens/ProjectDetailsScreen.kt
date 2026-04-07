@@ -189,6 +189,14 @@ private fun ProjectDetailsContent(
                 color = MaterialTheme.colorScheme.error
             )
         }
+        if (uiState.taskActionError != null) {
+            Text(
+                text = uiState.taskActionError,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
 
         LazyRow(
             modifier = Modifier
@@ -404,11 +412,17 @@ private fun ProjectDetailsContent(
                         onValueChange = { onSectionEvent(SectionEvent.CreateTaskNameChanged(it)) },
                         placeholder = { Text("Task name") },
                         singleLine = true,
-                        isError = uiState.sectionActionError != null
+                        isError = uiState.taskActionError != null,
+                        supportingText = uiState.taskActionError?.let {
+                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
+                        }
                     )
                 },
                 confirmButton = {
-                    Button(onClick = { onSectionEvent(SectionEvent.CreateTaskConfirmed) }) {
+                    Button(
+                        onClick = { onSectionEvent(SectionEvent.CreateTaskConfirmed) },
+                        enabled = !uiState.isTaskCreateLoading
+                    ) {
                         Text("Save")
                     }
                 },
@@ -430,11 +444,17 @@ private fun ProjectDetailsContent(
                         onValueChange = { onSectionEvent(SectionEvent.EditTaskNameChanged(it)) },
                         placeholder = { Text("Task name") },
                         singleLine = true,
-                        isError = uiState.sectionActionError != null
+                        isError = uiState.taskActionError != null,
+                        supportingText = uiState.taskActionError?.let {
+                            { Text(text = it, color = MaterialTheme.colorScheme.error) }
+                        }
                     )
                 },
                 confirmButton = {
-                    Button(onClick = { onSectionEvent(SectionEvent.EditTaskConfirmed) }) {
+                    Button(
+                        onClick = { onSectionEvent(SectionEvent.EditTaskConfirmed) },
+                        enabled = !uiState.isTaskEditLoading
+                    ) {
                         Text("Save")
                     }
                 },
@@ -452,7 +472,10 @@ private fun ProjectDetailsContent(
                 title = { Text("Delete Task") },
                 text = { Text("Are you sure you want to delete this task?") },
                 confirmButton = {
-                    Button(onClick = { onSectionEvent(SectionEvent.DeleteTaskConfirmed) }) {
+                    Button(
+                        onClick = { onSectionEvent(SectionEvent.DeleteTaskConfirmed) },
+                        enabled = !uiState.isTaskDeleteLoading
+                    ) {
                         Text("Delete")
                     }
                 },

@@ -65,7 +65,8 @@ class ProjectDetailsViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             project = aggregate.toDetailsUi(),
-                            sectionActionError = null
+                            sectionActionError = null,
+                            taskActionError = null
                         )
                     }
                     loadTasksForSections()
@@ -240,7 +241,8 @@ class ProjectDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 openSectionMenuForId = sectionId,
-                sectionActionError = null
+                sectionActionError = null,
+                taskActionError = null
             )
         }
     }
@@ -256,7 +258,8 @@ class ProjectDetailsViewModel @Inject constructor(
                 openSectionMenuForId = null,
                 editingSectionId = sectionId,
                 editingSectionName = section.name,
-                sectionActionError = null
+                sectionActionError = null,
+                taskActionError = null
             )
         }
     }
@@ -265,7 +268,8 @@ class ProjectDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 editingSectionName = value,
-                sectionActionError = null
+                sectionActionError = null,
+                taskActionError = null
             )
         }
     }
@@ -275,7 +279,8 @@ class ProjectDetailsViewModel @Inject constructor(
             it.copy(
                 editingSectionId = null,
                 editingSectionName = "",
-                sectionActionError = null
+                sectionActionError = null,
+                taskActionError = null
             )
         }
     }
@@ -320,7 +325,8 @@ class ProjectDetailsViewModel @Inject constructor(
             it.copy(
                 openSectionMenuForId = null,
                 deleteConfirmSectionId = sectionId,
-                sectionActionError = null
+                sectionActionError = null,
+                taskActionError = null
             )
         }
     }
@@ -373,7 +379,7 @@ class ProjectDetailsViewModel @Inject constructor(
                     }
                     .onFailure { error ->
                         _uiState.update {
-                            it.copy(sectionActionError = error.message ?: "Could not load tasks")
+                            it.copy(taskActionError = error.message ?: "Could not load tasks")
                         }
                     }
             }
@@ -385,20 +391,21 @@ class ProjectDetailsViewModel @Inject constructor(
             it.copy(
                 creatingTaskSectionId = sectionId,
                 creatingTaskName = "",
-                sectionActionError = null
+                taskActionError = null
             )
         }
     }
 
     private fun onCreateTaskNameChanged(name: String) {
-        _uiState.update { it.copy(creatingTaskName = name, sectionActionError = null) }
+        _uiState.update { it.copy(creatingTaskName = name, taskActionError = null) }
     }
 
     private fun onCreateTaskDismissed() {
         _uiState.update {
             it.copy(
                 creatingTaskSectionId = null,
-                creatingTaskName = ""
+                creatingTaskName = "",
+                taskActionError = null
             )
         }
     }
@@ -409,9 +416,10 @@ class ProjectDetailsViewModel @Inject constructor(
         val sectionId = state.creatingTaskSectionId ?: return
         val taskName = TaskName.create(state.creatingTaskName)
             .getOrElse { throwable ->
-                _uiState.update { it.copy(sectionActionError = throwable.toTaskValidationMessage()) }
+                _uiState.update { it.copy(taskActionError = throwable.toTaskValidationMessage()) }
                 return
             }
+        _uiState.update { it.copy(isTaskCreateLoading = true, taskActionError = null) }
         viewModelScope.launch {
             createTaskUseCase(currentProjectId, sectionId, taskName)
                 .onSuccess { createdTask ->
@@ -431,13 +439,17 @@ class ProjectDetailsViewModel @Inject constructor(
                             project = updatedProject,
                             creatingTaskSectionId = null,
                             creatingTaskName = "",
-                            sectionActionError = null
+                            taskActionError = null,
+                            isTaskCreateLoading = false
                         )
                     }
                 }
                 .onFailure { error ->
                     _uiState.update {
-                        it.copy(sectionActionError = error.message ?: "Could not create task")
+                        it.copy(
+                            taskActionError = error.message ?: "Could not create task",
+                            isTaskCreateLoading = false
+                        )
                     }
                 }
         }
@@ -463,13 +475,13 @@ class ProjectDetailsViewModel @Inject constructor(
                 editingTaskSectionId = sectionId,
                 editingTaskId = taskId,
                 editingTaskName = task.name,
-                sectionActionError = null
+                taskActionError = null
             )
         }
     }
 
     private fun onEditTaskNameChanged(name: String) {
-        _uiState.update { it.copy(editingTaskName = name, sectionActionError = null) }
+        _uiState.update { it.copy(editingTaskName = name, taskActionError = null) }
     }
 
     private fun onEditTaskDismissed() {
@@ -477,7 +489,8 @@ class ProjectDetailsViewModel @Inject constructor(
             it.copy(
                 editingTaskSectionId = null,
                 editingTaskId = null,
-                editingTaskName = ""
+                editingTaskName = "",
+                taskActionError = null
             )
         }
     }
@@ -489,9 +502,10 @@ class ProjectDetailsViewModel @Inject constructor(
         val taskId = state.editingTaskId ?: return
         val newName = TaskName.create(state.editingTaskName)
             .getOrElse { throwable ->
-                _uiState.update { it.copy(sectionActionError = throwable.toTaskValidationMessage()) }
+                _uiState.update { it.copy(taskActionError = throwable.toTaskValidationMessage()) }
                 return
             }
+        _uiState.update { it.copy(isTaskEditLoading = true, taskActionError = null) }
         viewModelScope.launch {
             updateTaskUseCase(currentProjectId, sectionId, taskId, newName)
                 .onSuccess { updatedTask ->
@@ -512,13 +526,17 @@ class ProjectDetailsViewModel @Inject constructor(
                             editingTaskSectionId = null,
                             editingTaskId = null,
                             editingTaskName = "",
-                            sectionActionError = null
+                            taskActionError = null,
+                            isTaskEditLoading = false
                         )
                     }
                 }
                 .onFailure { error ->
                     _uiState.update {
-                        it.copy(sectionActionError = error.message ?: "Could not update task")
+                        it.copy(
+                            taskActionError = error.message ?: "Could not update task",
+                            isTaskEditLoading = false
+                        )
                     }
                 }
         }
@@ -530,13 +548,13 @@ class ProjectDetailsViewModel @Inject constructor(
                 openTaskMenuForId = null,
                 deleteConfirmTaskSectionId = sectionId,
                 deleteConfirmTaskId = taskId,
-                sectionActionError = null
+                taskActionError = null
             )
         }
     }
 
     private fun onDeleteTaskDismissed() {
-        _uiState.update { it.copy(deleteConfirmTaskSectionId = null, deleteConfirmTaskId = null) }
+        _uiState.update { it.copy(deleteConfirmTaskSectionId = null, deleteConfirmTaskId = null, taskActionError = null) }
     }
 
     private fun onDeleteTaskConfirmed() {
@@ -544,6 +562,7 @@ class ProjectDetailsViewModel @Inject constructor(
         val currentProjectId = state.project?.id ?: return
         val sectionId = state.deleteConfirmTaskSectionId ?: return
         val taskId = state.deleteConfirmTaskId ?: return
+        _uiState.update { it.copy(isTaskDeleteLoading = true, taskActionError = null) }
         viewModelScope.launch {
             deleteTaskUseCase(currentProjectId, sectionId, taskId)
                 .onSuccess {
@@ -559,13 +578,17 @@ class ProjectDetailsViewModel @Inject constructor(
                             project = updatedProject,
                             deleteConfirmTaskSectionId = null,
                             deleteConfirmTaskId = null,
-                            sectionActionError = null
+                            taskActionError = null,
+                            isTaskDeleteLoading = false
                         )
                     }
                 }
                 .onFailure { error ->
                     _uiState.update {
-                        it.copy(sectionActionError = error.message ?: "Could not delete task")
+                        it.copy(
+                            taskActionError = error.message ?: "Could not delete task",
+                            isTaskDeleteLoading = false
+                        )
                     }
                 }
         }
