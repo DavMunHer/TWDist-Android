@@ -7,21 +7,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 
 @Composable
 fun CreateTaskDialog(
     uiState: ProjectDetailsUiState,
-    onSectionEvent: (SectionEvent) -> Unit
+    onTaskEvent: (TaskEvent) -> Unit
 ) {
     AlertDialog(
-        onDismissRequest = { onSectionEvent(SectionEvent.CreateTaskDismissed) },
+        onDismissRequest = { onTaskEvent(TaskEvent.CreateTaskDismissed) },
         title = { Text("Add Task") },
         text = {
             TextField(
                 value = uiState.creatingTaskName,
-                onValueChange = { onSectionEvent(SectionEvent.CreateTaskNameChanged(it)) },
+                onValueChange = { onTaskEvent(TaskEvent.CreateTaskNameChanged(it)) },
                 placeholder = { Text("Task name") },
                 singleLine = true,
                 isError = uiState.taskActionError != null,
@@ -32,14 +32,14 @@ fun CreateTaskDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSectionEvent(SectionEvent.CreateTaskConfirmed) },
+                onClick = { onTaskEvent(TaskEvent.CreateTaskConfirmed) },
                 enabled = !uiState.isTaskCreateLoading
             ) {
                 Text("Save")
             }
         },
         dismissButton = {
-            TextButton(onClick = { onSectionEvent(SectionEvent.CreateTaskDismissed) }) {
+            TextButton(onClick = { onTaskEvent(TaskEvent.CreateTaskDismissed) }) {
                 Text("Cancel")
             }
         }

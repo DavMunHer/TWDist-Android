@@ -7,21 +7,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 
 @Composable
 fun EditTaskDialog(
     uiState: ProjectDetailsUiState,
-    onSectionEvent: (SectionEvent) -> Unit
+    onTaskEvent: (TaskEvent) -> Unit
 ) {
     AlertDialog(
-        onDismissRequest = { onSectionEvent(SectionEvent.EditTaskDismissed) },
+        onDismissRequest = { onTaskEvent(TaskEvent.EditTaskDismissed) },
         title = { Text("Edit Task") },
         text = {
             TextField(
                 value = uiState.editingTaskName,
-                onValueChange = { onSectionEvent(SectionEvent.EditTaskNameChanged(it)) },
+                onValueChange = { onTaskEvent(TaskEvent.EditTaskNameChanged(it)) },
                 placeholder = { Text("Task name") },
                 singleLine = true,
                 isError = uiState.taskActionError != null,
@@ -32,14 +32,14 @@ fun EditTaskDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSectionEvent(SectionEvent.EditTaskConfirmed) },
+                onClick = { onTaskEvent(TaskEvent.EditTaskConfirmed) },
                 enabled = !uiState.isTaskEditLoading
             ) {
                 Text("Save")
             }
         },
         dismissButton = {
-            TextButton(onClick = { onSectionEvent(SectionEvent.EditTaskDismissed) }) {
+            TextButton(onClick = { onTaskEvent(TaskEvent.EditTaskDismissed) }) {
                 Text("Cancel")
             }
         }

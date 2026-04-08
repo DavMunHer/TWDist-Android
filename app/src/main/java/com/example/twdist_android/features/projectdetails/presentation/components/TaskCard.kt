@@ -27,7 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 
 @Composable
@@ -35,7 +35,7 @@ internal fun TaskCard(
     sectionId: Long,
     taskItem: TaskUi,
     isTaskMenuOpen: Boolean,
-    onSectionEvent: (SectionEvent) -> Unit
+    onTaskEvent: (TaskEvent) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -62,8 +62,8 @@ internal fun TaskCard(
                 modifier = Modifier
                     .size(24.dp)
                     .clickable {
-                        onSectionEvent(
-                            SectionEvent.TaskCompletionToggled(
+                        onTaskEvent(
+                            TaskEvent.TaskCompletionToggled(
                                 sectionId = sectionId,
                                 taskId = taskItem.id
                             )
@@ -82,7 +82,7 @@ internal fun TaskCard(
             )
             }
             Box {
-                IconButton(onClick = { onSectionEvent(SectionEvent.TaskMenuOpened(taskItem.id)) }) {
+                IconButton(onClick = { onTaskEvent(TaskEvent.TaskMenuOpened(taskItem.id)) }) {
                     Icon(
                         imageVector = Icons.Default.MoreHoriz,
                         contentDescription = "Task options"
@@ -90,13 +90,13 @@ internal fun TaskCard(
                 }
                 DropdownMenu(
                     expanded = isTaskMenuOpen,
-                    onDismissRequest = { onSectionEvent(SectionEvent.TaskMenuDismissed) }
+                    onDismissRequest = { onTaskEvent(TaskEvent.TaskMenuDismissed) }
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = "Edit") },
                         onClick = {
-                            onSectionEvent(
-                                SectionEvent.EditTaskClicked(
+                            onTaskEvent(
+                                TaskEvent.EditTaskClicked(
                                     sectionId = sectionId,
                                     taskId = taskItem.id
                                 )
@@ -106,8 +106,8 @@ internal fun TaskCard(
                     DropdownMenuItem(
                         text = { Text(text = "Delete") },
                         onClick = {
-                            onSectionEvent(
-                                SectionEvent.DeleteTaskClicked(
+                            onTaskEvent(
+                                TaskEvent.DeleteTaskClicked(
                                     sectionId = sectionId,
                                     taskId = taskItem.id
                                 )

@@ -22,17 +22,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 
 @Composable
 internal fun AddTaskCard(
     sectionId: Long,
-    onSectionEvent: (SectionEvent) -> Unit
+    onTaskEvent: (TaskEvent) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSectionEvent(SectionEvent.AddTaskClicked(sectionId)) },
+            .clickable { onTaskEvent(TaskEvent.AddTaskClicked(sectionId)) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
         ),
