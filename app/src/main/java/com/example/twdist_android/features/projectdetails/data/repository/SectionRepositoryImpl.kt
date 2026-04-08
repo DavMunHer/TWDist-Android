@@ -32,9 +32,17 @@ class SectionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createSection(projectId: Long, sectionName: SectionName): Result<Section> {
-        return Result.failure(
-            NotImplementedError("Section creation endpoint is not implemented in ProjectDetailsApi yet")
-        )
+        return runSuspendCatching {
+            withContext(Dispatchers.IO) {
+                val dto = api.createSection(
+                    projectId = projectId,
+                    request = UpdateSectionRequestDto(name = sectionName.asString())
+                )
+                val createdSection = dto.toDomain(projectId).getOrThrow()
+                sectionStateStore.upsert(createdSection)
+                createdSection
+            }
+        }
     }
 
     override suspend fun updateSectionName(sectionId: Long, sectionName: SectionName): Result<Section> {

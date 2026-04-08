@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import com.example.twdist_android.features.projectdetails.presentation.model.SectionUi
 
@@ -15,6 +16,7 @@ internal fun SectionCard(
     section: SectionUi,
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit,
+    onTaskEvent: (TaskEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -33,13 +35,13 @@ internal fun SectionCard(
                 sectionId = section.id,
                 taskItem = taskItem,
                 isTaskMenuOpen = uiState.openTaskMenuForId == taskItem.id,
-                onSectionEvent = onSectionEvent
+                onTaskEvent = onTaskEvent
             )
         }
 
         AddTaskCard(
             sectionId = section.id,
-            onSectionEvent = onSectionEvent
+            onTaskEvent = onTaskEvent
         )
     }
 }

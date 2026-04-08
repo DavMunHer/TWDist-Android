@@ -7,39 +7,39 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 
 @Composable
-fun CreateTaskDialog(
+fun CreateSectionDialog(
     uiState: ProjectDetailsUiState,
-    onTaskEvent: (TaskEvent) -> Unit
+    onSectionEvent: (SectionEvent) -> Unit
 ) {
     AlertDialog(
-        onDismissRequest = { onTaskEvent(TaskEvent.CreateTaskDismissed) },
-        title = { Text("Add Task") },
+        onDismissRequest = { onSectionEvent(SectionEvent.CreateSectionDismissed) },
+        title = { Text("New Section") },
         text = {
             TextField(
-                value = uiState.creatingTaskName,
-                onValueChange = { onTaskEvent(TaskEvent.CreateTaskNameChanged(it)) },
-                placeholder = { Text("Task name") },
+                value = uiState.creatingSectionName,
+                onValueChange = { onSectionEvent(SectionEvent.CreateSectionNameChanged(it)) },
+                placeholder = { Text("Section name") },
                 singleLine = true,
-                isError = uiState.taskActionError != null,
-                supportingText = uiState.taskActionError?.let {
+                isError = uiState.sectionActionError != null,
+                supportingText = uiState.sectionActionError?.let {
                     { Text(text = it, color = MaterialTheme.colorScheme.error) }
                 }
             )
         },
         confirmButton = {
             Button(
-                onClick = { onTaskEvent(TaskEvent.CreateTaskConfirmed) },
-                enabled = !uiState.isTaskCreateLoading
+                onClick = { onSectionEvent(SectionEvent.CreateSectionConfirmed) },
+                enabled = !uiState.isSectionCreateLoading
             ) {
                 Text("Save")
             }
         },
         dismissButton = {
-            TextButton(onClick = { onTaskEvent(TaskEvent.CreateTaskDismissed) }) {
+            TextButton(onClick = { onSectionEvent(SectionEvent.CreateSectionDismissed) }) {
                 Text("Cancel")
             }
         }

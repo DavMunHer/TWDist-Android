@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.CreateSectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetTasksBySectionUseCase
@@ -16,6 +17,7 @@ import com.example.twdist_android.features.projectdetails.domain.model.SectionNa
 import com.example.twdist_android.features.projectdetails.domain.model.TaskName
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.mapper.toDetailsUi
 import com.example.twdist_android.features.projectdetails.presentation.model.SectionUi
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
@@ -34,6 +36,7 @@ class ProjectDetailsViewModel @Inject constructor(
     private val deleteProjectUseCase: DeleteProjectUseCase,
     private val updateSectionNameUseCase: UpdateSectionNameUseCase,
     private val deleteSectionUseCase: DeleteSectionUseCase,
+    private val createSectionUseCase: CreateSectionUseCase,
     private val getTasksBySectionUseCase: GetTasksBySectionUseCase,
     private val createTaskUseCase: CreateTaskUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
@@ -83,8 +86,12 @@ class ProjectDetailsViewModel @Inject constructor(
         loadProjectDetails(projectId)
     }
 
-    fun onEvent(event: SectionEvent) {
+    fun onSectionEvent(event: SectionEvent) {
         when (event) {
+            SectionEvent.AddSectionClicked -> onAddSectionClick()
+            is SectionEvent.CreateSectionNameChanged -> onCreateSectionNameChanged(event.name)
+            SectionEvent.CreateSectionConfirmed -> onCreateSectionConfirmed()
+            SectionEvent.CreateSectionDismissed -> onCreateSectionDismissed()
             is SectionEvent.MenuOpened -> onSectionOptionsClick(event.sectionId)
             SectionEvent.MenuDismissed -> onSectionOptionsDismiss()
             is SectionEvent.EditClicked -> onEditSectionClick(event.sectionId)
@@ -94,20 +101,25 @@ class ProjectDetailsViewModel @Inject constructor(
             is SectionEvent.DeleteClicked -> onDeleteSectionClick(event.sectionId)
             SectionEvent.DeleteConfirmed -> onDeleteSectionConfirm()
             SectionEvent.DeleteDismissed -> onDeleteSectionDismiss()
-            is SectionEvent.AddTaskClicked -> onAddTaskClick(event.sectionId)
-            is SectionEvent.CreateTaskNameChanged -> onCreateTaskNameChanged(event.name)
-            SectionEvent.CreateTaskConfirmed -> onCreateTaskConfirmed()
-            SectionEvent.CreateTaskDismissed -> onCreateTaskDismissed()
-            is SectionEvent.TaskMenuOpened -> onTaskMenuOpened(event.taskId)
-            SectionEvent.TaskMenuDismissed -> onTaskMenuDismissed()
-            is SectionEvent.EditTaskClicked -> onEditTaskClick(event.sectionId, event.taskId)
-            is SectionEvent.EditTaskNameChanged -> onEditTaskNameChanged(event.name)
-            SectionEvent.EditTaskConfirmed -> onEditTaskConfirmed()
-            SectionEvent.EditTaskDismissed -> onEditTaskDismissed()
-            is SectionEvent.DeleteTaskClicked -> onDeleteTaskClick(event.sectionId, event.taskId)
-            SectionEvent.DeleteTaskConfirmed -> onDeleteTaskConfirmed()
-            SectionEvent.DeleteTaskDismissed -> onDeleteTaskDismissed()
-            is SectionEvent.TaskCompletionToggled -> onTaskCompletionToggled(event.sectionId, event.taskId)
+        }
+    }
+
+    fun onTaskEvent(event: TaskEvent) {
+        when (event) {
+            is TaskEvent.AddTaskClicked -> onAddTaskClick(event.sectionId)
+            is TaskEvent.CreateTaskNameChanged -> onCreateTaskNameChanged(event.name)
+            TaskEvent.CreateTaskConfirmed -> onCreateTaskConfirmed()
+            TaskEvent.CreateTaskDismissed -> onCreateTaskDismissed()
+            is TaskEvent.TaskMenuOpened -> onTaskMenuOpened(event.taskId)
+            TaskEvent.TaskMenuDismissed -> onTaskMenuDismissed()
+            is TaskEvent.EditTaskClicked -> onEditTaskClick(event.sectionId, event.taskId)
+            is TaskEvent.EditTaskNameChanged -> onEditTaskNameChanged(event.name)
+            TaskEvent.EditTaskConfirmed -> onEditTaskConfirmed()
+            TaskEvent.EditTaskDismissed -> onEditTaskDismissed()
+            is TaskEvent.DeleteTaskClicked -> onDeleteTaskClick(event.sectionId, event.taskId)
+            TaskEvent.DeleteTaskConfirmed -> onDeleteTaskConfirmed()
+            TaskEvent.DeleteTaskDismissed -> onDeleteTaskDismissed()
+            is TaskEvent.TaskCompletionToggled -> onTaskCompletionToggled(event.sectionId, event.taskId)
         }
     }
 
@@ -241,6 +253,7 @@ class ProjectDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 openSectionMenuForId = sectionId,
+                isCreatingSection = false,
                 sectionActionError = null,
                 taskActionError = null
             )
@@ -256,6 +269,7 @@ class ProjectDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 openSectionMenuForId = null,
+                isCreatingSection = false,
                 editingSectionId = sectionId,
                 editingSectionName = section.name,
                 sectionActionError = null,
@@ -327,6 +341,7 @@ class ProjectDetailsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 openSectionMenuForId = null,
+                isCreatingSection = false,
                 deleteConfirmSectionId = sectionId,
                 sectionActionError = null,
                 taskActionError = null
@@ -361,6 +376,72 @@ class ProjectDetailsViewModel @Inject constructor(
                         it.copy(
                             project = previousProject,
                             sectionActionError = error.message ?: "Could not delete section"
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun onAddSectionClick() {
+        _uiState.update {
+            it.copy(
+                isCreatingSection = true,
+                creatingSectionName = "",
+                sectionActionError = null,
+                taskActionError = null
+            )
+        }
+    }
+
+    private fun onCreateSectionNameChanged(name: String) {
+        _uiState.update { it.copy(creatingSectionName = name, sectionActionError = null) }
+    }
+
+    private fun onCreateSectionDismissed() {
+        _uiState.update {
+            it.copy(
+                isCreatingSection = false,
+                creatingSectionName = "",
+                isSectionCreateLoading = false,
+                sectionActionError = null
+            )
+        }
+    }
+
+    private fun onCreateSectionConfirmed() {
+        val state = _uiState.value
+        val currentProjectId = state.project?.id ?: return
+        val sectionName = SectionName.create(state.creatingSectionName)
+            .getOrElse { throwable ->
+                _uiState.update { it.copy(sectionActionError = throwable.toValidationMessage()) }
+                return
+            }
+        _uiState.update { it.copy(isSectionCreateLoading = true, sectionActionError = null) }
+        viewModelScope.launch {
+            createSectionUseCase(currentProjectId, sectionName)
+                .onSuccess { createdSection ->
+                    _uiState.update { current ->
+                        val createdSectionUi = SectionUi(
+                            id = createdSection.id,
+                            name = createdSection.name.asString(),
+                            taskIds = createdSection.taskIds
+                        )
+                        val nextSections = current.sectionItems + createdSectionUi
+                        current.copy(
+                            project = current.project?.copy(sections = nextSections.map { it.name }),
+                            sectionItems = nextSections,
+                            isCreatingSection = false,
+                            creatingSectionName = "",
+                            isSectionCreateLoading = false,
+                            sectionActionError = null
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            sectionActionError = error.message ?: "Could not create section",
+                            isSectionCreateLoading = false
                         )
                     }
                 }

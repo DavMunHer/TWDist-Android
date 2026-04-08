@@ -31,7 +31,7 @@ fun SectionUpdateResponseDto.toDomain(projectId: Long): Result<Section> {
         return Result.failure(nameResult.exceptionOrNull()!!)
     }
 
-    val taskIds = tasks.map { it.id.toString() }
+    val taskIds = tasks.orEmpty().map { it.id.toString() }
 
     return Section.create(
         id = sectionId,

@@ -39,6 +39,12 @@ interface ProjectDetailsApi {
         @Body request: UpdateSectionRequestDto
     ): SectionUpdateResponseDto
 
+    @POST("projects/{projectId}/section/create")
+    suspend fun createSection(
+        @Path("projectId") projectId: Long,
+        @Body request: UpdateSectionRequestDto
+    ): SectionUpdateResponseDto
+
     @DELETE("projects/{projectId}/section/{sectionId}/delete")
     suspend fun deleteSection(
         @Path("projectId") projectId: Long,

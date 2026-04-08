@@ -3,6 +3,7 @@ package com.example.twdist_android.features.projectdetails.presentation.viewmode
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.CreateSectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetTasksBySectionUseCase
@@ -23,6 +24,7 @@ import com.example.twdist_android.features.projectdetails.domain.store.ProjectDe
 import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -60,6 +62,7 @@ class ProjectDetailsViewModelTest {
         val deleteProjectUseCase = DeleteProjectUseCase(projectDetailsRepository)
         val updateSectionNameUseCase = UpdateSectionNameUseCase(sectionRepository)
         val deleteSectionUseCase = DeleteSectionUseCase(sectionRepository)
+        val createSectionUseCase = CreateSectionUseCase(sectionRepository)
         val getTasksBySectionUseCase = GetTasksBySectionUseCase(taskRepository)
         val createTaskUseCase = CreateTaskUseCase(taskRepository)
         val updateTaskUseCase = UpdateTaskUseCase(taskRepository)
@@ -80,6 +83,7 @@ class ProjectDetailsViewModelTest {
             deleteProjectUseCase = deleteProjectUseCase,
             updateSectionNameUseCase = updateSectionNameUseCase,
             deleteSectionUseCase = deleteSectionUseCase,
+            createSectionUseCase = createSectionUseCase,
             getTasksBySectionUseCase = getTasksBySectionUseCase,
             createTaskUseCase = createTaskUseCase,
             updateTaskUseCase = updateTaskUseCase,
@@ -99,7 +103,7 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEvent(SectionEvent.EditClicked(10L))
+        viewModel.onSectionEvent(SectionEvent.EditClicked(10L))
 
         val state = viewModel.uiState.value
         assertEquals(10L, state.editingSectionId)
@@ -113,9 +117,9 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEvent(SectionEvent.EditClicked(10L))
-        viewModel.onEvent(SectionEvent.NameChanged("a"))
-        viewModel.onEvent(SectionEvent.EditConfirmed)
+        viewModel.onSectionEvent(SectionEvent.EditClicked(10L))
+        viewModel.onSectionEvent(SectionEvent.NameChanged("a"))
+        viewModel.onSectionEvent(SectionEvent.EditConfirmed)
 
         val state = viewModel.uiState.value
         assertEquals(10L, state.editingSectionId)
@@ -136,9 +140,9 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEvent(SectionEvent.EditClicked(10L))
-        viewModel.onEvent(SectionEvent.NameChanged("Updated"))
-        viewModel.onEvent(SectionEvent.EditConfirmed)
+        viewModel.onSectionEvent(SectionEvent.EditClicked(10L))
+        viewModel.onSectionEvent(SectionEvent.NameChanged("Updated"))
+        viewModel.onSectionEvent(SectionEvent.EditConfirmed)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -158,8 +162,8 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEvent(SectionEvent.DeleteClicked(10L))
-        viewModel.onEvent(SectionEvent.DeleteConfirmed)
+        viewModel.onSectionEvent(SectionEvent.DeleteClicked(10L))
+        viewModel.onSectionEvent(SectionEvent.DeleteConfirmed)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -275,9 +279,9 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEvent(SectionEvent.AddTaskClicked(10L))
-        viewModel.onEvent(SectionEvent.CreateTaskNameChanged("Task2"))
-        viewModel.onEvent(SectionEvent.CreateTaskConfirmed)
+        viewModel.onTaskEvent(TaskEvent.AddTaskClicked(10L))
+        viewModel.onTaskEvent(TaskEvent.CreateTaskNameChanged("Task2"))
+        viewModel.onTaskEvent(TaskEvent.CreateTaskConfirmed)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -293,7 +297,7 @@ class ProjectDetailsViewModelTest {
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
-        viewModel.onEvent(SectionEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
 
         val task = viewModel.uiState.value.tasksById["100"]
         assertEquals(true, task?.completed)

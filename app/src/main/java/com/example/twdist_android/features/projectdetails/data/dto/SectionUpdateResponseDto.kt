@@ -8,5 +8,5 @@ data class SectionUpdateResponseDto(
     @Serializable(with = FlexibleStringIdSerializer::class)
     val id: String,
     val name: String,
-    val tasks: List<TaskResponseDto> = emptyList()
+    val tasks: List<TaskResponseDto>? = emptyList()
 )
