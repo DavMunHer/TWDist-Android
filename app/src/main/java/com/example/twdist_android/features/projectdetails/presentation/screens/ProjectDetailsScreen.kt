@@ -33,6 +33,7 @@ import com.example.twdist_android.features.projectdetails.presentation.component
 import com.example.twdist_android.features.projectdetails.presentation.components.dialogs.ProjectDetailsDialogs
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
+import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import com.example.twdist_android.features.projectdetails.presentation.viewmodel.ProjectDetailsViewModel
 
@@ -63,7 +64,8 @@ fun ProjectDetailsScreen(
         )
         uiState.project != null -> ProjectDetailsContent(
             uiState = uiState,
-            onSectionEvent = viewModel::onEvent,
+            onSectionEvent = viewModel::onSectionEvent,
+            onTaskEvent = viewModel::onTaskEvent,
             onProjectEvent = viewModel::onProjectEvent
         )
         else -> MissingProjectDetails()
@@ -110,6 +112,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
 private fun ProjectDetailsContent(
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit,
+    onTaskEvent: (TaskEvent) -> Unit,
     onProjectEvent: (ProjectEvent) -> Unit
 ) {
     val project = uiState.project ?: return
@@ -186,12 +189,14 @@ private fun ProjectDetailsContent(
         SectionsRow(
             modifier = Modifier.weight(1f),
             uiState = uiState,
-            onSectionEvent = onSectionEvent
+            onSectionEvent = onSectionEvent,
+            onTaskEvent = onTaskEvent
         )
 
         ProjectDetailsDialogs(
             uiState = uiState,
             onSectionEvent = onSectionEvent,
+            onTaskEvent = onTaskEvent,
             onProjectEvent = onProjectEvent
         )
     }
