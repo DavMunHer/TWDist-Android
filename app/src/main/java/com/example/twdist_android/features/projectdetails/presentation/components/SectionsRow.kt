@@ -13,11 +13,12 @@ import com.example.twdist_android.features.projectdetails.presentation.model.Pro
 
 @Composable
 fun SectionsRow(
+    modifier: Modifier = Modifier,
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit
 ) {
     LazyRow(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -26,7 +27,8 @@ fun SectionsRow(
             SectionCard(
                 section = section,
                 uiState = uiState,
-                onSectionEvent = onSectionEvent
+                onSectionEvent = onSectionEvent,
+                modifier = Modifier.fillParentMaxWidth()
             )
         }
     }

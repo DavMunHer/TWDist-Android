@@ -14,10 +14,11 @@ import com.example.twdist_android.features.projectdetails.presentation.model.Sec
 internal fun SectionCard(
     section: SectionUi,
     uiState: ProjectDetailsUiState,
-    onSectionEvent: (SectionEvent) -> Unit
+    onSectionEvent: (SectionEvent) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(0.95f),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         SectionHeader(

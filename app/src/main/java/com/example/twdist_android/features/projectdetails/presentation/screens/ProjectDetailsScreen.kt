@@ -184,6 +184,7 @@ private fun ProjectDetailsContent(
         }
 
         SectionsRow(
+            modifier = Modifier.weight(1f),
             uiState = uiState,
             onSectionEvent = onSectionEvent
         )
