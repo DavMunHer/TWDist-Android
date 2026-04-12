@@ -16,9 +16,11 @@ okhttp = "4.12.0"
 hilt = "2.54"
 hiltNavigationCompose = "1.2.0"
 robolectric = "4.16.1"
+recyclerview = "1.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
