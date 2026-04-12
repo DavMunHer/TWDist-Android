@@ -6,6 +6,7 @@ import com.example.twdist_android.features.explore.data.store.inmemory.InMemoryP
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
 import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
 import com.example.twdist_android.features.explore.application.usecases.CreateProjectUseCase
+import com.example.twdist_android.features.explore.application.usecases.DeleteProjectUseCase
 import com.example.twdist_android.features.explore.application.usecases.GetProjectsUseCase
 import dagger.Module
 import dagger.Provides
@@ -43,4 +44,12 @@ object ExploreModule {
         projectStateStore: ProjectStateStore
     ): CreateProjectUseCase =
         CreateProjectUseCase(repository, projectStateStore)
+
+    @Provides
+    @Singleton
+    fun provideDeleteProjectUseCase(
+        repository: ProjectRepository,
+        projectStateStore: ProjectStateStore
+    ): DeleteProjectUseCase =
+        DeleteProjectUseCase(repository, projectStateStore)
 }
