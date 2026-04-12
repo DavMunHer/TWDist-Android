@@ -2,9 +2,9 @@ package com.example.twdist_android.features.explore.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -14,7 +14,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.twdist_android.features.explore.presentation.components.CreateProjectDialog
-import com.example.twdist_android.features.explore.presentation.components.ProjectList
+import com.example.twdist_android.features.explore.presentation.components.DeleteProjectDialog
+import com.example.twdist_android.features.explore.presentation.components.ProjectListRecycler
 import com.example.twdist_android.features.explore.presentation.components.SectionHeader
 import com.example.twdist_android.features.explore.presentation.event.ExploreEvent
 import com.example.twdist_android.features.explore.presentation.viewmodel.ExploreViewModel
@@ -51,39 +52,41 @@ fun ExploreScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
-            item {
-                SectionHeader(
-                    title = "My projects",
-                    isExpanded = state.isExpanded,
-                    onExpandClick = { viewModel.handleEvent(ExploreEvent.ToggleExpanded) },
-                    onAddClick = { showCreateDialog = true }
-                )
-            }
+            SectionHeader(
+                title = "My projects",
+                isExpanded = state.isExpanded,
+                onExpandClick = { viewModel.handleEvent(ExploreEvent.ToggleExpanded) },
+                onAddClick = { showCreateDialog = true }
+            )
 
             if (state.isExpanded) {
                 // If its loading and no projects, show loading indicator
                 if (state.isLoading && state.projects.isEmpty()) {
-                    item {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp)
-                                .wrapContentWidth()
-                        )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                }
-
-                item {
-                    ProjectList(
+                } else {
+                    ProjectListRecycler(
                         projects = state.projects,
                         onProjectClick = { project -> onNavigateToProjectDetails(project.id) },
-                        onStarClick = { _ -> /* TODO: Logic add favourite */ }
+                        onStarClick = { _ -> /* TODO: Logic add favourite */ },
+                        onSwipeDeleteThreshold = { projectId ->
+                            viewModel.handleEvent(ExploreEvent.ShowDeleteProjectConfirmation(projectId))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
                     )
                 }
             }
@@ -109,6 +112,14 @@ fun ExploreScreen(
             },
             onConfirm = { name -> viewModel.handleEvent(ExploreEvent.CreateProject(name)) },
             error = state.projectNameError
+        )
+    }
+
+    state.projectPendingDelete?.let { project ->
+        DeleteProjectDialog(
+            project = project,
+            onDismiss = { viewModel.handleEvent(ExploreEvent.DismissDeleteProjectConfirmation) },
+            onConfirm = { viewModel.handleEvent(ExploreEvent.ConfirmDeleteProject) }
         )
     }
 }
