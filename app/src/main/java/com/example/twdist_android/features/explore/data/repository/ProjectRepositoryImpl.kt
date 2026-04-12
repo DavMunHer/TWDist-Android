@@ -11,6 +11,7 @@ import com.example.twdist_android.features.explore.domain.model.ProjectSummary
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class ProjectRepositoryImpl @Inject constructor(
@@ -35,6 +36,17 @@ class ProjectRepositoryImpl @Inject constructor(
             withContext(Dispatchers.IO) {
                 val request = CreateProjectRequestDto(name = projectName.asString())
                 api.createProject(request).toDomainResponse().getOrThrow()
+            }
+        }
+    }
+
+    override suspend fun deleteProject(projectId: Long): Result<Unit> {
+        return runSuspendCatching {
+            withContext(Dispatchers.IO) {
+                val response = api.deleteProject(projectId)
+                if (!response.isSuccessful) {
+                    throw HttpException(response)
+                }
             }
         }
     }

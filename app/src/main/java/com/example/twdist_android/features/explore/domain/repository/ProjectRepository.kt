@@ -7,4 +7,5 @@ import com.example.twdist_android.features.explore.domain.model.ProjectSummary
 interface ProjectRepository {
     suspend fun getAllProjects(): Result<List<ProjectSummary>>
     suspend fun createProject(projectName: ProjectName): Result<Project>
+    suspend fun deleteProject(projectId: Long): Result<Unit>
 }
