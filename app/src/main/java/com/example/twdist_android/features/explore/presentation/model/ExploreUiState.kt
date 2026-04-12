@@ -7,5 +7,6 @@ data class ExploreUiState(
     val projects: List<ProjectUi> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val projectNameError: String? = null
+    val projectNameError: String? = null,
+    val projectPendingDelete: ProjectUi? = null
 )
