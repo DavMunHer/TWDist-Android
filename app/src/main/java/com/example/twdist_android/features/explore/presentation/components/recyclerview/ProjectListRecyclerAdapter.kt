@@ -63,7 +63,7 @@ class ProjectRowViewHolder(
 
     private var bound: ProjectUi? = null
 
-    /** Same as [com.example.twdist_android.features.explore.presentation.components.ProjectCard] `remember { mutableStateOf(false) }`. */
+    /** Mirrors favorite in the UI; seeded from [ProjectUi.isFavorite], toggled locally on star tap. */
     private var starVisualFilled: Boolean = false
     private var starVisualProjectId: Long = Long.MIN_VALUE
 
@@ -94,9 +94,13 @@ class ProjectRowViewHolder(
         onProjectClick = projectClick
         onStarClick = starClick
         lastRowColors = rowColors
+
+        val previous = bound
         if (starVisualProjectId != project.id) {
             starVisualProjectId = project.id
-            starVisualFilled = false
+            starVisualFilled = project.isFavorite
+        } else if (previous?.id == project.id && previous.isFavorite != project.isFavorite) {
+            starVisualFilled = project.isFavorite
         }
         bound = project
 

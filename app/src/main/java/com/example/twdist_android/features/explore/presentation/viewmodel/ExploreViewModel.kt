@@ -68,11 +68,7 @@ class ExploreViewModel @Inject constructor(
         val projectId = pending.id
         viewModelScope.launch {
             _uiState.update {
-                it.copy(
-                    projectPendingDelete = null,
-                    isLoading = true,
-                    error = null
-                )
+                it.copy(projectPendingDelete = null, error = null)
             }
             deleteProjectUseCase(projectId)
                 .onSuccess {
