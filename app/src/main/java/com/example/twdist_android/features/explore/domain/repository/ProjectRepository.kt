@@ -8,4 +8,5 @@ interface ProjectRepository {
     suspend fun getAllProjects(): Result<List<ProjectSummary>>
     suspend fun createProject(projectName: ProjectName): Result<Project>
     suspend fun deleteProject(projectId: Long): Result<Unit>
+    suspend fun changeFavorite(projectId: Long, isFavorite: Boolean): Result<Unit>
 }

@@ -1,6 +1,7 @@
 package com.example.twdist_android.features.explore.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
+import com.example.twdist_android.features.explore.data.dto.ChangeFavoriteRequestDto
 import com.example.twdist_android.features.explore.data.dto.CreateProjectRequestDto
 import com.example.twdist_android.features.explore.data.mapper.toDomainResponse
 import com.example.twdist_android.features.explore.data.mapper.toDomainSummary
@@ -44,6 +45,20 @@ class ProjectRepositoryImpl @Inject constructor(
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
                 val response = api.deleteProject(projectId)
+                if (!response.isSuccessful) {
+                    throw HttpException(response)
+                }
+            }
+        }
+    }
+
+    override suspend fun changeFavorite(projectId: Long, isFavorite: Boolean): Result<Unit> {
+        return runSuspendCatching {
+            withContext(Dispatchers.IO) {
+                val response = api.changeFavorite(
+                    projectId = projectId,
+                    request = ChangeFavoriteRequestDto(favorite = isFavorite)
+                )
                 if (!response.isSuccessful) {
                     throw HttpException(response)
                 }

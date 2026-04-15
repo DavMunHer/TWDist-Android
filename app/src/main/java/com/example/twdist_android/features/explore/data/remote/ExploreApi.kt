@@ -1,6 +1,7 @@
 package com.example.twdist_android.features.explore.data.remote
 
 import com.example.twdist_android.features.explore.data.dto.CreateProjectRequestDto
+import com.example.twdist_android.features.explore.data.dto.ChangeFavoriteRequestDto
 import com.example.twdist_android.features.explore.data.dto.ProjectResponseDto
 import com.example.twdist_android.features.explore.data.dto.ProjectSummaryDto
 import retrofit2.Response
@@ -9,6 +10,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.PUT
 
 interface ExploreApi {
     @GET("projects/get")
@@ -21,4 +23,10 @@ interface ExploreApi {
 
     @DELETE("projects/{projectId}/delete")
     suspend fun deleteProject(@Path("projectId") projectId: Long): Response<Unit>
+
+    @PUT("projects/{projectId}/favorite")
+    suspend fun changeFavorite(
+        @Path("projectId") projectId: Long,
+        @Body request: ChangeFavoriteRequestDto
+    ): Response<Unit>
 }
