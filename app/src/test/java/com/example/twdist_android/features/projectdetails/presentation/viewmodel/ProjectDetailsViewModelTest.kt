@@ -3,6 +3,7 @@ package com.example.twdist_android.features.projectdetails.presentation.viewmode
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.CompleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.CreateSectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
@@ -66,6 +67,7 @@ class ProjectDetailsViewModelTest {
         val getTasksBySectionUseCase = GetTasksBySectionUseCase(taskRepository)
         val createTaskUseCase = CreateTaskUseCase(taskRepository)
         val updateTaskUseCase = UpdateTaskUseCase(taskRepository)
+        val completeTaskUseCase = CompleteTaskUseCase(taskRepository)
         val deleteTaskUseCase = DeleteTaskUseCase(taskRepository)
         coEvery { taskRepository.getTasksBySection(any(), any()) } returns Result.success(
             listOf(
@@ -87,6 +89,7 @@ class ProjectDetailsViewModelTest {
             getTasksBySectionUseCase = getTasksBySectionUseCase,
             createTaskUseCase = createTaskUseCase,
             updateTaskUseCase = updateTaskUseCase,
+            completeTaskUseCase = completeTaskUseCase,
             deleteTaskUseCase = deleteTaskUseCase
         )
     }
@@ -291,16 +294,84 @@ class ProjectDetailsViewModelTest {
     }
 
     @Test
-    fun `task completion toggle should update local state only`() = runTest {
+    fun `task completion toggle should remove task from visible state`() = runTest {
         val aggregate = createAggregate()
         coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { taskRepository.completeTask(1L, 10L, 100L, any()) } returns Result.success(
+            Task(id = 100L, sectionId = 10L, name = "task-1", completed = true)
+        )
 
         viewModel.loadProjectDetails(1L)
         advanceUntilIdle()
         viewModel.onTaskEvent(TaskEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
+        advanceUntilIdle()
 
-        val task = viewModel.uiState.value.tasksById["100"]
-        assertEquals(true, task?.completed)
+        val state = viewModel.uiState.value
+        assertNull(state.tasksById["100"])
+        assertEquals(emptyList<String>(), state.sectionItems.firstOrNull { it.id == 10L }?.taskIds)
+        coVerify(exactly = 1) { taskRepository.completeTask(1L, 10L, 100L, any()) }
+    }
+
+    @Test
+    fun `undo completed task should restore task in visible state`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { taskRepository.completeTask(1L, 10L, 100L, any()) } returnsMany listOf(
+            Result.success(Task(id = 100L, sectionId = 10L, name = "task-1", completed = true)),
+            Result.success(Task(id = 100L, sectionId = 10L, name = "task-1", completed = false))
+        )
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
+        advanceUntilIdle()
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionUndoHandled(undo = true))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("task-1", state.tasksById["100"]?.name)
+        assertEquals(listOf("100"), state.sectionItems.firstOrNull { it.id == 10L }?.taskIds)
+    }
+
+    @Test
+    fun `undo completed task should remove task and set snackbar when undo request fails`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { taskRepository.completeTask(1L, 10L, 100L, any()) } returnsMany listOf(
+            Result.success(Task(id = 100L, sectionId = 10L, name = "task-1", completed = true)),
+            Result.failure(IllegalStateException("backend error"))
+        )
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
+        advanceUntilIdle()
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionUndoHandled(undo = true))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertNull(state.tasksById["100"])
+        assertEquals("Could not undo task completion", state.taskSnackbarMessage)
+    }
+
+    @Test
+    fun `loadProjectDetails should hide completed tasks from section list`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { taskRepository.getTasksBySection(any(), any()) } returns Result.success(
+            listOf(
+                Task(id = 100L, sectionId = 10L, name = "task-completed", completed = true),
+                Task(id = 101L, sectionId = 10L, name = "task-open", completed = false)
+            )
+        )
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertNull(state.tasksById["100"])
+        assertEquals("task-open", state.tasksById["101"]?.name)
+        assertEquals(listOf("101"), state.sectionItems.firstOrNull { it.id == 10L }?.taskIds)
     }
 
     private fun createAggregate(): ProjectAggregate {

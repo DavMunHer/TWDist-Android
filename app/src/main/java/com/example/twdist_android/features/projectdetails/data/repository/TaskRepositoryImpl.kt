@@ -1,6 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
+import com.example.twdist_android.features.projectdetails.data.mapper.toCompleteTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.dto.CreateTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.dto.UpdateTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainTask
@@ -11,6 +12,7 @@ import com.example.twdist_android.features.projectdetails.domain.repository.Task
 import com.example.twdist_android.features.projectdetails.domain.store.TaskStateStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import javax.inject.Inject
 
 class TaskRepositoryImpl @Inject constructor(
@@ -57,12 +59,35 @@ class TaskRepositoryImpl @Inject constructor(
                     projectId,
                     sectionId,
                     taskId,
-                    UpdateTaskRequestDto(name.asString())
+                    UpdateTaskRequestDto(name = name.asString())
                 )
                 if (!response.isSuccessful) {
                     error("Failed to update task (HTTP ${response.code()})")
                 }
                 val dto = response.body() ?: error("Task update returned empty body")
+                dto.toDomainTask(sectionId).also(taskStateStore::upsert)
+            }
+        }
+    }
+
+    override suspend fun completeTask(
+        projectId: Long,
+        sectionId: Long,
+        taskId: Long,
+        completedDate: LocalDate?
+    ): Result<Task> {
+        return runSuspendCatching {
+            withContext(Dispatchers.IO) {
+                val response = api.completeTask(
+                    projectId = projectId,
+                    sectionId = sectionId,
+                    taskId = taskId,
+                    request = completedDate.toCompleteTaskRequestDto()
+                )
+                if (!response.isSuccessful) {
+                    error("Failed to complete task (HTTP ${response.code()})")
+                }
+                val dto = response.body() ?: error("Task completion returned empty body")
                 dto.toDomainTask(sectionId).also(taskStateStore::upsert)
             }
         }

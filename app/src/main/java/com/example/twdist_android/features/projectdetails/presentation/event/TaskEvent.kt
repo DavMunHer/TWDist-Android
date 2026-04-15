@@ -15,4 +15,6 @@ sealed interface TaskEvent {
     data object DeleteTaskConfirmed : TaskEvent
     data object DeleteTaskDismissed : TaskEvent
     data class TaskCompletionToggled(val sectionId: Long, val taskId: Long) : TaskEvent
+    data class TaskCompletionUndoHandled(val undo: Boolean) : TaskEvent
+    data object TaskSnackbarShown : TaskEvent
 }

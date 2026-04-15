@@ -147,6 +147,12 @@ object ProjectDetailsModule {
 
     @Provides
     @Singleton
+    fun provideCompleteTaskUseCase(
+        repository: TaskRepository
+    ): CompleteTaskUseCase = CompleteTaskUseCase(repository)
+
+    @Provides
+    @Singleton
     fun provideDeleteTaskUseCase(
         repository: TaskRepository
     ): DeleteTaskUseCase = DeleteTaskUseCase(repository)
