@@ -7,14 +7,17 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-fun TaskResponseDto.toDomainTask(sectionId: Long): Task {
+fun TaskResponseDto.toDomainTask(
+    sectionId: Long,
+    now: Instant = Instant.now()
+): Task {
     // Intentionally mapping only fields currently used by Project Details UI.
     // Keep DTO fields (description/dates/subtasks) for forward compatibility with future task screens.
     return Task(
         id = id,
         sectionId = sectionId,
         name = name,
-        completed = isCompletedByDate()
+        completed = isCompletedByDate(now = now)
     )
 }
 

@@ -50,4 +50,22 @@ class TaskMapperTest {
 
         assertEquals(true, mapped.completed)
     }
+
+    @Test
+    fun `toDomainTask should map as not completed when completedDate is in the future`() {
+        val fixedNow = Instant.parse("2026-01-10T00:00:00Z")
+        val dto = TaskResponseDto(
+            id = 4L,
+            name = "Task D",
+            completedDate = LocalDate.of(2026, 1, 11).toString(),
+            completed = true
+        )
+
+        val mapped = dto.toDomainTask(
+            sectionId = 10L,
+            now = fixedNow
+        )
+
+        assertEquals(false, mapped.completed)
+    }
 }
