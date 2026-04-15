@@ -2,6 +2,7 @@ package com.example.twdist_android.features.projectdetails.data.remote
 
 import com.example.twdist_android.features.projectdetails.data.dto.ProjectDetailResponseDto
 import com.example.twdist_android.features.projectdetails.data.dto.CreateTaskRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.CompleteTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.dto.SectionUpdateResponseDto
 import com.example.twdist_android.features.projectdetails.data.dto.TaskResponseDto
 import com.example.twdist_android.features.projectdetails.data.dto.UpdateProjectRequestDto
@@ -11,6 +12,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.PUT
@@ -70,6 +72,14 @@ interface ProjectDetailsApi {
         @Path("sectionId") sectionId: Long,
         @Path("taskId") taskId: Long,
         @Body request: UpdateTaskRequestDto
+    ): Response<TaskResponseDto>
+
+    @PATCH("projects/{projectId}/section/{sectionId}/task/{taskId}/complete")
+    suspend fun completeTask(
+        @Path("projectId") projectId: Long,
+        @Path("sectionId") sectionId: Long,
+        @Path("taskId") taskId: Long,
+        @Body request: CompleteTaskRequestDto
     ): Response<TaskResponseDto>
 
     @DELETE("projects/{projectId}/section/{sectionId}/task/{taskId}/delete")
