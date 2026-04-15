@@ -2,6 +2,7 @@ package com.example.twdist_android.features.explore.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.twdist_android.features.explore.application.usecases.ChangeProjectFavoriteUseCase
 import com.example.twdist_android.features.explore.application.usecases.CreateProjectUseCase
 import com.example.twdist_android.features.explore.application.usecases.DeleteProjectUseCase
 import com.example.twdist_android.features.explore.application.usecases.GetProjectsUseCase
@@ -22,11 +23,13 @@ import javax.inject.Inject
 class ExploreViewModel @Inject constructor(
     private val getProjectsUseCase: GetProjectsUseCase,
     private val createProjectUseCase: CreateProjectUseCase,
-    private val deleteProjectUseCase: DeleteProjectUseCase
+    private val deleteProjectUseCase: DeleteProjectUseCase,
+    private val changeProjectFavoriteUseCase: ChangeProjectFavoriteUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ExploreUiState())
     val uiState: StateFlow<ExploreUiState> = _uiState
+    private val favoriteRequestVersion = mutableMapOf<Long, Int>()
 
     init {
         loadProjects()
@@ -37,6 +40,7 @@ class ExploreViewModel @Inject constructor(
             is ExploreEvent.ToggleExpanded -> toggleExpanded()
             is ExploreEvent.CreateProject -> createProject(event.name)
             is ExploreEvent.LoadProjects -> loadProjects()
+            is ExploreEvent.ToggleProjectFavorite -> toggleProjectFavorite(event.projectId)
             is ExploreEvent.ClearValidationErrors -> clearValidationErrors()
             is ExploreEvent.ShowDeleteProjectConfirmation -> showDeleteConfirmation(event.projectId)
             is ExploreEvent.DismissDeleteProjectConfirmation -> dismissDeleteConfirmation()
@@ -82,15 +86,58 @@ class ExploreViewModel @Inject constructor(
         }
     }
 
+    private fun toggleProjectFavorite(projectId: Long) {
+        val currentProject = _uiState.value.projects.firstOrNull { it.id == projectId } ?: return
+        val nextFavorite = !currentProject.isFavorite
+        val version = (favoriteRequestVersion[projectId] ?: 0) + 1
+        favoriteRequestVersion[projectId] = version
+
+        _uiState.update { state ->
+            state.copy(
+                projects = state.projects.map { project ->
+                    if (project.id == projectId) project.copy(isFavorite = nextFavorite) else project
+                },
+                error = null
+            )
+        }
+
+        viewModelScope.launch {
+            changeProjectFavoriteUseCase(projectId, nextFavorite)
+                .onFailure { e ->
+                    if (favoriteRequestVersion[projectId] == version) {
+                        _uiState.update { state ->
+                            state.copy(
+                                projects = state.projects.map { project ->
+                                    if (project.id == projectId) {
+                                        project.copy(isFavorite = !nextFavorite)
+                                    } else {
+                                        project
+                                    }
+                                },
+                                error = e.message
+                            )
+                        }
+                    }
+                }
+                .onSuccess {
+                    if (favoriteRequestVersion[projectId] == version) {
+                        favoriteRequestVersion.remove(projectId)
+                    }
+                }
+            }
+    }
+
     private fun loadProjects() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             getProjectsUseCase().onSuccess { list ->
+                favoriteRequestVersion.clear()
                 _uiState.update {
                     it.copy(
                         projects = list.map { p -> p.toUi() },
-                        isLoading = false
+                        isLoading = false,
+                        error = null
                     )
                 }
             }.onFailure { e ->

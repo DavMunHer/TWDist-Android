@@ -63,18 +63,12 @@ class ProjectRowViewHolder(
 
     private var bound: ProjectUi? = null
 
-    /** Mirrors favorite in the UI; seeded from [ProjectUi.isFavorite], toggled locally on star tap. */
-    private var starVisualFilled: Boolean = false
-    private var starVisualProjectId: Long = Long.MIN_VALUE
-
     init {
         itemRoot.setOnClickListener {
             bound?.let { onProjectClick(it) }
         }
         starButton.setOnClickListener {
             bound?.let { project ->
-                starVisualFilled = !starVisualFilled
-                applyStarVisual(rowColorsSnapshot())
                 onStarClick(project)
             }
         }
@@ -82,8 +76,6 @@ class ProjectRowViewHolder(
     }
 
     private var lastRowColors: ProjectRowColors = ProjectRowColors.defaultLightFallback()
-
-    private fun rowColorsSnapshot(): ProjectRowColors = lastRowColors
 
     fun bind(
         project: ProjectUi,
@@ -94,14 +86,6 @@ class ProjectRowViewHolder(
         onProjectClick = projectClick
         onStarClick = starClick
         lastRowColors = rowColors
-
-        val previous = bound
-        if (starVisualProjectId != project.id) {
-            starVisualProjectId = project.id
-            starVisualFilled = project.isFavorite
-        } else if (previous?.id == project.id && previous.isFavorite != project.isFavorite) {
-            starVisualFilled = project.isFavorite
-        }
         bound = project
 
         val density = itemRoot.resources.displayMetrics.density
@@ -122,13 +106,13 @@ class ProjectRowViewHolder(
 
         navigateIcon.imageTintList = ColorStateList.valueOf(rowColors.onSurface)
 
-        applyStarVisual(rowColors)
+        applyStarVisual(project.isFavorite, rowColors)
     }
 
-    private fun applyStarVisual(rowColors: ProjectRowColors) {
+    private fun applyStarVisual(isFavorite: Boolean, rowColors: ProjectRowColors) {
         val ctx = itemRoot.context
         val starGold = ContextCompat.getColor(ctx, R.color.star_gold)
-        if (starVisualFilled) {
+        if (isFavorite) {
             starButton.setImageResource(R.drawable.ic_star_filled_24)
             starButton.imageTintList = ColorStateList.valueOf(starGold)
         } else {
