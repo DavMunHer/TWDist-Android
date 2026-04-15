@@ -125,6 +125,7 @@ class ProjectDetailsViewModel @Inject constructor(
             TaskEvent.DeleteTaskDismissed -> onDeleteTaskDismissed()
             is TaskEvent.TaskCompletionToggled -> onTaskCompletionToggled(event.sectionId, event.taskId)
             is TaskEvent.TaskCompletionUndoHandled -> onTaskCompletionUndoHandled(event.undo)
+            TaskEvent.TaskSnackbarShown -> onTaskSnackbarShown()
         }
     }
 
@@ -716,7 +717,8 @@ class ProjectDetailsViewModel @Inject constructor(
                     }
                 },
                 taskCompletionUndo = TaskCompletionUndo(sectionId = sectionId, task = task),
-                taskActionError = null
+                taskActionError = null,
+                taskSnackbarMessage = null
             )
         }
 
@@ -758,7 +760,8 @@ class ProjectDetailsViewModel @Inject constructor(
                         tasksById = nextTasksById,
                         sectionItems = nextSections,
                         taskCompletionUndo = null,
-                        taskActionError = error.message ?: "Could not update task"
+                        taskActionError = error.message ?: "Could not update task",
+                        taskSnackbarMessage = "Could not update task"
                     )
                 }
             }
@@ -793,7 +796,26 @@ class ProjectDetailsViewModel @Inject constructor(
                 sectionId = sectionId,
                 taskId = task.id,
                 completedDate = null
-            ).onFailure { error ->
+            ).onSuccess { updatedTask ->
+                if (updatedTask.completed) {
+                    _uiState.update { current ->
+                        val nextTasksById = current.tasksById.toMutableMap().apply {
+                            remove(taskKey)
+                        }
+                        val nextSections = current.sectionItems.map { section ->
+                            if (section.id == sectionId) {
+                                section.copy(taskIds = section.taskIds.filterNot { it == taskKey })
+                            } else section
+                        }
+                        current.copy(
+                            tasksById = nextTasksById,
+                            sectionItems = nextSections,
+                            taskActionError = "Could not undo task completion",
+                            taskSnackbarMessage = "Could not undo task completion"
+                        )
+                    }
+                }
+            }.onFailure { error ->
                 _uiState.update { current ->
                     val nextTasksById = current.tasksById.toMutableMap().apply {
                         remove(taskKey)
@@ -806,11 +828,16 @@ class ProjectDetailsViewModel @Inject constructor(
                     current.copy(
                         tasksById = nextTasksById,
                         sectionItems = nextSections,
-                        taskActionError = error.message ?: "Could not undo task completion"
+                        taskActionError = error.message ?: "Could not undo task completion",
+                        taskSnackbarMessage = "Could not undo task completion"
                     )
                 }
             }
         }
+    }
+
+    private fun onTaskSnackbarShown() {
+        _uiState.update { it.copy(taskSnackbarMessage = null) }
     }
 }
 

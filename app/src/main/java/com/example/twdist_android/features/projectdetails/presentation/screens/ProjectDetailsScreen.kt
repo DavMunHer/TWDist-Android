@@ -79,6 +79,12 @@ fun ProjectDetailsScreen(
         viewModel.onTaskEvent(TaskEvent.TaskCompletionUndoHandled(undo = result == SnackbarResult.ActionPerformed))
     }
 
+    LaunchedEffect(uiState.taskSnackbarMessage) {
+        val message = uiState.taskSnackbarMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Short)
+        viewModel.onTaskEvent(TaskEvent.TaskSnackbarShown)
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             uiState.isLoading -> LoadingState()

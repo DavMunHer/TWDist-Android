@@ -31,6 +31,7 @@ data class ProjectDetailsUiState(
     val deleteConfirmTaskId: Long? = null,
     val openTaskMenuForId: Long? = null,
     val taskCompletionUndo: TaskCompletionUndo? = null,
+    val taskSnackbarMessage: String? = null,
     val sectionItems: List<SectionUi> = emptyList(),
     val tasksById: Map<String, TaskUi> = emptyMap()
 )

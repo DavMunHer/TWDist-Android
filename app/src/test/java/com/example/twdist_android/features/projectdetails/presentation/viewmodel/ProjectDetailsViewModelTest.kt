@@ -334,6 +334,27 @@ class ProjectDetailsViewModelTest {
     }
 
     @Test
+    fun `undo completed task should remove task and set snackbar when undo request fails`() = runTest {
+        val aggregate = createAggregate()
+        coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
+        coEvery { taskRepository.completeTask(1L, 10L, 100L, any()) } returnsMany listOf(
+            Result.success(Task(id = 100L, sectionId = 10L, name = "task-1", completed = true)),
+            Result.failure(IllegalStateException("backend error"))
+        )
+
+        viewModel.loadProjectDetails(1L)
+        advanceUntilIdle()
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionToggled(sectionId = 10L, taskId = 100L))
+        advanceUntilIdle()
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionUndoHandled(undo = true))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertNull(state.tasksById["100"])
+        assertEquals("Could not undo task completion", state.taskSnackbarMessage)
+    }
+
+    @Test
     fun `loadProjectDetails should hide completed tasks from section list`() = runTest {
         val aggregate = createAggregate()
         coEvery { projectDetailsRepository.getProjectById(1L) } returns Result.success(aggregate)
