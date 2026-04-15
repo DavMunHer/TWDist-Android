@@ -80,7 +80,11 @@ fun ExploreScreen(
                     ProjectListRecycler(
                         projects = state.projects,
                         onProjectClick = { project -> onNavigateToProjectDetails(project.id) },
-                        onStarClick = { _ -> /* TODO: Logic add favourite */ },
+                        onStarClick = { project ->
+                            viewModel.handleEvent(
+                                ExploreEvent.ToggleProjectFavorite(projectId = project.id)
+                            )
+                        },
                         onSwipeDeleteThreshold = { projectId ->
                             viewModel.handleEvent(ExploreEvent.ShowDeleteProjectConfirmation(projectId))
                         },
