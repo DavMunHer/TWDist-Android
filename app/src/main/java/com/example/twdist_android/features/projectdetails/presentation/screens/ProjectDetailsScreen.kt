@@ -14,6 +14,10 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -36,6 +41,8 @@ import com.example.twdist_android.features.projectdetails.presentation.event.Sec
 import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
 import com.example.twdist_android.features.projectdetails.presentation.viewmodel.ProjectDetailsViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProjectDetailsScreen(
@@ -44,6 +51,7 @@ fun ProjectDetailsScreen(
     viewModel: ProjectDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(projectId) {
         viewModel.loadProjectDetails(projectId)
@@ -56,19 +64,41 @@ fun ProjectDetailsScreen(
         }
     }
 
-    when {
-        uiState.isLoading -> LoadingState()
-        uiState.error != null -> ErrorState(
-            message = uiState.error!!,
-            onRetry = viewModel::retry
+    LaunchedEffect(uiState.taskCompletionUndo) {
+        val pendingUndo = uiState.taskCompletionUndo ?: return@LaunchedEffect
+        val autoDismissJob = launch {
+            delay(3_000)
+            snackbarHostState.currentSnackbarData?.dismiss()
+        }
+        val result = snackbarHostState.showSnackbar(
+            message = "Task was marked as complete",
+            actionLabel = "Undo",
+            duration = SnackbarDuration.Indefinite
         )
-        uiState.project != null -> ProjectDetailsContent(
-            uiState = uiState,
-            onSectionEvent = viewModel::onSectionEvent,
-            onTaskEvent = viewModel::onTaskEvent,
-            onProjectEvent = viewModel::onProjectEvent
+        autoDismissJob.cancel()
+        viewModel.onTaskEvent(TaskEvent.TaskCompletionUndoHandled(undo = result == SnackbarResult.ActionPerformed))
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            uiState.isLoading -> LoadingState()
+            uiState.error != null -> ErrorState(
+                message = uiState.error!!,
+                onRetry = viewModel::retry
+            )
+            uiState.project != null -> ProjectDetailsContent(
+                uiState = uiState,
+                onSectionEvent = viewModel::onSectionEvent,
+                onTaskEvent = viewModel::onTaskEvent,
+                onProjectEvent = viewModel::onProjectEvent
+            )
+            else -> MissingProjectDetails()
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
-        else -> MissingProjectDetails()
     }
 }
 
@@ -110,6 +140,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
 
 @Composable
 private fun ProjectDetailsContent(
+    modifier: Modifier = Modifier,
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit,
     onTaskEvent: (TaskEvent) -> Unit,
@@ -117,7 +148,7 @@ private fun ProjectDetailsContent(
 ) {
     val project = uiState.project ?: return
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(top = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)

@@ -6,6 +6,7 @@ import com.example.twdist_android.features.projectdetails.application.usecases.D
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.CreateSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.CompleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.GetTasksBySectionUseCase
@@ -21,12 +22,14 @@ import com.example.twdist_android.features.projectdetails.presentation.event.Tas
 import com.example.twdist_android.features.projectdetails.presentation.mapper.toDetailsUi
 import com.example.twdist_android.features.projectdetails.presentation.model.SectionUi
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
+import com.example.twdist_android.features.projectdetails.presentation.model.TaskCompletionUndo
 import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,6 +43,7 @@ class ProjectDetailsViewModel @Inject constructor(
     private val getTasksBySectionUseCase: GetTasksBySectionUseCase,
     private val createTaskUseCase: CreateTaskUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
+    private val completeTaskUseCase: CompleteTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase
 ) : ViewModel() {
 
@@ -120,6 +124,7 @@ class ProjectDetailsViewModel @Inject constructor(
             TaskEvent.DeleteTaskConfirmed -> onDeleteTaskConfirmed()
             TaskEvent.DeleteTaskDismissed -> onDeleteTaskDismissed()
             is TaskEvent.TaskCompletionToggled -> onTaskCompletionToggled(event.sectionId, event.taskId)
+            is TaskEvent.TaskCompletionUndoHandled -> onTaskCompletionUndoHandled(event.undo)
         }
     }
 
@@ -458,11 +463,12 @@ class ProjectDetailsViewModel @Inject constructor(
                             val mapped = tasks.map {
                                 TaskUi(id = it.id, name = it.name, completed = it.completed)
                             }
+                            val visibleTasks = mapped.filterNot { it.completed }
                             val nextTasksById = state.tasksById.toMutableMap().apply {
-                                mapped.forEach { put(it.id.toString(), it) }
+                                visibleTasks.forEach { put(it.id.toString(), it) }
                             }
                             val nextSections = state.sectionItems.map {
-                                if (it.id == section.id) it.copy(taskIds = mapped.map { t -> t.id.toString() }) else it
+                                if (it.id == section.id) it.copy(taskIds = visibleTasks.map { t -> t.id.toString() }) else it
                             }
                             state.copy(tasksById = nextTasksById, sectionItems = nextSections)
                         }
@@ -601,7 +607,12 @@ class ProjectDetailsViewModel @Inject constructor(
             }
         _uiState.update { it.copy(isTaskEditLoading = true, taskActionError = null) }
         viewModelScope.launch {
-            updateTaskUseCase(currentProjectId, sectionId, taskId, newName)
+            updateTaskUseCase(
+                projectId = currentProjectId,
+                sectionId = sectionId,
+                taskId = taskId,
+                name = newName
+            )
                 .onSuccess { updatedTask ->
                     _uiState.update { current ->
                         val updatedProject = current.project?.let { project ->
@@ -689,19 +700,116 @@ class ProjectDetailsViewModel @Inject constructor(
     }
 
     private fun onTaskCompletionToggled(sectionId: Long, taskId: Long) {
-        // TODO: Persist task completion once backend endpoint supports completion updates.
-        // FIXME: Current backend task update endpoint only accepts `name`, not completion status.
+        val state = _uiState.value
+        val currentProjectId = state.project?.id ?: return
+        val taskKey = taskId.toString()
+        val task = state.tasksById[taskKey] ?: return
+
         _uiState.update { current ->
-            val updatedProject = current.project?.let { project ->
-                project
+            current.copy(
+                tasksById = current.tasksById.toMutableMap().apply { remove(taskKey) },
+                sectionItems = current.sectionItems.map { section ->
+                    if (section.id == sectionId) {
+                        section.copy(taskIds = section.taskIds.filterNot { it == taskKey })
+                    } else {
+                        section
+                    }
+                },
+                taskCompletionUndo = TaskCompletionUndo(sectionId = sectionId, task = task),
+                taskActionError = null
+            )
+        }
+
+        viewModelScope.launch {
+            completeTaskUseCase(
+                projectId = currentProjectId,
+                sectionId = sectionId,
+                taskId = taskId,
+                completedDate = LocalDate.now()
+            ).onSuccess { updatedTask ->
+                if (!updatedTask.completed) {
+                    _uiState.update { current ->
+                        val nextTasksById = current.tasksById.toMutableMap().apply {
+                            put(taskKey, TaskUi(id = updatedTask.id, name = updatedTask.name, completed = updatedTask.completed))
+                        }
+                        val nextSections = current.sectionItems.map { section ->
+                            if (section.id == sectionId && taskKey !in section.taskIds) {
+                                section.copy(taskIds = section.taskIds + taskKey)
+                            } else {
+                                section
+                            }
+                        }
+                        current.copy(tasksById = nextTasksById, sectionItems = nextSections)
+                    }
+                }
+            }.onFailure { error ->
+                _uiState.update { current ->
+                    val nextTasksById = current.tasksById.toMutableMap().apply {
+                        put(taskKey, task)
+                    }
+                    val nextSections = current.sectionItems.map { section ->
+                        if (section.id == sectionId && taskKey !in section.taskIds) {
+                            section.copy(taskIds = section.taskIds + taskKey)
+                        } else {
+                            section
+                        }
+                    }
+                    current.copy(
+                        tasksById = nextTasksById,
+                        sectionItems = nextSections,
+                        taskCompletionUndo = null,
+                        taskActionError = error.message ?: "Could not update task"
+                    )
+                }
             }
-            val nextTasksById = current.tasksById.toMutableMap()
-            val key = taskId.toString()
-            val task = nextTasksById[key]
-            if (task != null) {
-                nextTasksById[key] = task.copy(completed = !task.completed)
+        }
+    }
+
+    private fun onTaskCompletionUndoHandled(undo: Boolean) {
+        val pendingUndo = _uiState.value.taskCompletionUndo ?: return
+        _uiState.update { it.copy(taskCompletionUndo = null) }
+        if (!undo) return
+
+        val projectId = _uiState.value.project?.id ?: return
+        val task = pendingUndo.task
+        val taskKey = task.id.toString()
+        val sectionId = pendingUndo.sectionId
+
+        _uiState.update { current ->
+            val nextTasksById = current.tasksById.toMutableMap().apply {
+                put(taskKey, task.copy(completed = false))
             }
-            current.copy(project = updatedProject, tasksById = nextTasksById)
+            val nextSections = current.sectionItems.map { section ->
+                if (section.id == sectionId && taskKey !in section.taskIds) {
+                    section.copy(taskIds = section.taskIds + taskKey)
+                } else section
+            }
+            current.copy(tasksById = nextTasksById, sectionItems = nextSections, taskActionError = null)
+        }
+
+        viewModelScope.launch {
+            completeTaskUseCase(
+                projectId = projectId,
+                sectionId = sectionId,
+                taskId = task.id,
+                completedDate = null
+            ).onFailure { error ->
+                _uiState.update { current ->
+                    val nextTasksById = current.tasksById.toMutableMap().apply {
+                        remove(taskKey)
+                    }
+                    val nextSections = current.sectionItems.map { section ->
+                        if (section.id == sectionId) {
+                            section.copy(taskIds = section.taskIds.filterNot { it == taskKey })
+                        } else section
+                    }
+                    current.copy(
+                        tasksById = nextTasksById,
+                        sectionItems = nextSections,
+                        taskActionError = error.message ?: "Could not undo task completion"
+                    )
+                }
+            }
         }
     }
 }
