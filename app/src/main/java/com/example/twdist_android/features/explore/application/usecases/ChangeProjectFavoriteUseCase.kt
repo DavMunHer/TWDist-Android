@@ -11,8 +11,10 @@ class ChangeProjectFavoriteUseCase @Inject constructor(
     suspend operator fun invoke(projectId: Long, isFavorite: Boolean): Result<Unit> {
         return repository.changeFavorite(projectId, isFavorite)
             .onSuccess {
-                val existing = projectStateStore.getById(projectId) ?: return@onSuccess
-                projectStateStore.upsert(existing.copy(isFavorite = isFavorite))
+                val existing = projectStateStore.getById(projectId)
+                if (existing != null) {
+                    projectStateStore.upsert(existing.copy(isFavorite = isFavorite))
+                }
             }
     }
 }
