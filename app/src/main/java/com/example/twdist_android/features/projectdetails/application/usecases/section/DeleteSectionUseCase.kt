@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.section
 
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
 import javax.inject.Inject
@@ -10,3 +10,4 @@ class DeleteSectionUseCase @Inject constructor(
         return repository.deleteSection(sectionId)
     }
 }
+

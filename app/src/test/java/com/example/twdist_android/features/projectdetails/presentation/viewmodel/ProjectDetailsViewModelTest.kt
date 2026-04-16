@@ -1,16 +1,16 @@
 package com.example.twdist_android.features.projectdetails.presentation.viewmodel
 
-import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.CompleteTaskUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.CreateSectionUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.GetTasksBySectionUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.UpdateProjectNameUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.UpdateSectionNameUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.UpdateTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.project.DeleteProjectUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.project.GetProjectByIdUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.project.UpdateProjectNameUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.section.CreateSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.section.DeleteSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.section.UpdateSectionNameUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.CompleteTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.CreateTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.DeleteTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.GetTasksBySectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.UpdateTaskUseCase
 import com.example.twdist_android.features.projectdetails.domain.model.Task
 import com.example.twdist_android.features.projectdetails.domain.model.TaskName
 import com.example.twdist_android.features.projectdetails.domain.model.Project

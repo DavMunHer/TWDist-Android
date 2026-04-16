@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.project
 
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectAggregate
 import com.example.twdist_android.features.projectdetails.domain.store.ProjectDetailsProjectStateStore
@@ -19,3 +19,4 @@ class GetProjectByIdUseCase @Inject constructor(
             }
     }
 }
+
