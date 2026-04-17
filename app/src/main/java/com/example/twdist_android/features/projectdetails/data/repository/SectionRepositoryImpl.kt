@@ -3,7 +3,7 @@ package com.example.twdist_android.features.projectdetails.data.repository
 import com.example.twdist_android.core.coroutines.runSuspendCatching
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomain
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
-import com.example.twdist_android.features.projectdetails.data.dto.UpdateSectionRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.section.UpdateSectionRequestDto
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName

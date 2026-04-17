@@ -3,7 +3,7 @@ package com.example.twdist_android.features.projectdetails.data.mapper
 import com.example.twdist_android.features.projectdetails.domain.model.Project
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectAggregate
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
-import com.example.twdist_android.features.projectdetails.data.dto.ProjectDetailResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.project.ProjectDetailResponseDto
 
 fun ProjectDetailResponseDto.toDomainAggregate(): Result<ProjectAggregate> {
     val projectId = id.toLongOrNull()

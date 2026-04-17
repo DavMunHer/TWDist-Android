@@ -1,7 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.dto
 
 import com.example.twdist_android.features.explore.data.dto.ProjectSummaryDto
-import com.example.twdist_android.features.projectdetails.data.dto.ProjectDetailResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.project.ProjectDetailResponseDto
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test

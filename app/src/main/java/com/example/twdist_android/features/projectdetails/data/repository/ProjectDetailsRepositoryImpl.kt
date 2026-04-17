@@ -5,7 +5,7 @@ import com.example.twdist_android.BuildConfig
 import com.example.twdist_android.core.coroutines.runSuspendCatching
 import com.example.twdist_android.features.explore.domain.model.ProjectSummary
 import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
-import com.example.twdist_android.features.projectdetails.data.dto.UpdateProjectRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.project.UpdateProjectRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectAggregate

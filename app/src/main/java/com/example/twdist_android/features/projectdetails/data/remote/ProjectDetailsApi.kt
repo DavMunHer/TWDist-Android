@@ -1,13 +1,13 @@
 package com.example.twdist_android.features.projectdetails.data.remote
 
-import com.example.twdist_android.features.projectdetails.data.dto.ProjectDetailResponseDto
-import com.example.twdist_android.features.projectdetails.data.dto.CreateTaskRequestDto
-import com.example.twdist_android.features.projectdetails.data.dto.CompleteTaskRequestDto
-import com.example.twdist_android.features.projectdetails.data.dto.SectionUpdateResponseDto
-import com.example.twdist_android.features.projectdetails.data.dto.TaskResponseDto
-import com.example.twdist_android.features.projectdetails.data.dto.UpdateProjectRequestDto
-import com.example.twdist_android.features.projectdetails.data.dto.UpdateSectionRequestDto
-import com.example.twdist_android.features.projectdetails.data.dto.UpdateTaskRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.project.ProjectDetailResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.task.CreateTaskRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.task.CompleteTaskRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.section.SectionUpdateResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.task.TaskResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.project.UpdateProjectRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.section.UpdateSectionRequestDto
+import com.example.twdist_android.features.projectdetails.data.dto.task.UpdateTaskRequestDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
