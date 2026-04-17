@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.project
 
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 

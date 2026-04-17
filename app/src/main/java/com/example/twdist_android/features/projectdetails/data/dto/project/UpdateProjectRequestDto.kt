@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.data.dto
+package com.example.twdist_android.features.projectdetails.data.dto.project
 
 import kotlinx.serialization.Serializable
 

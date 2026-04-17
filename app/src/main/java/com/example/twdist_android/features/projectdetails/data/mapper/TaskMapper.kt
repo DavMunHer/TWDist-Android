@@ -1,6 +1,6 @@
 package com.example.twdist_android.features.projectdetails.data.mapper
 
-import com.example.twdist_android.features.projectdetails.data.dto.TaskResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.task.TaskResponseDto
 import com.example.twdist_android.features.projectdetails.domain.model.Task
 import java.time.Instant
 import java.time.LocalDate

@@ -1,7 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.mapper
 
-import com.example.twdist_android.features.projectdetails.data.dto.ProjectDetailResponseDto
-import com.example.twdist_android.features.projectdetails.data.dto.SectionResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.project.ProjectDetailResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.section.SectionResponseDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

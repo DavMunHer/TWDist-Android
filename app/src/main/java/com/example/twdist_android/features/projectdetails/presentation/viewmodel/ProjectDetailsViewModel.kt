@@ -2,27 +2,32 @@ package com.example.twdist_android.features.projectdetails.presentation.viewmode
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.twdist_android.features.projectdetails.application.usecases.DeleteProjectUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.DeleteSectionUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.DeleteTaskUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.CreateSectionUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.CompleteTaskUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.CreateTaskUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.GetProjectByIdUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.GetTasksBySectionUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.UpdateProjectNameUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.UpdateSectionNameUseCase
-import com.example.twdist_android.features.projectdetails.application.usecases.UpdateTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.project.DeleteProjectUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.project.GetProjectByIdUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.project.UpdateProjectNameUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.section.CreateSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.section.DeleteSectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.section.UpdateSectionNameUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.CompleteTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.CreateTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.DeleteTaskUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.GetTasksBySectionUseCase
+import com.example.twdist_android.features.projectdetails.application.usecases.task.UpdateTaskUseCase
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
+import com.example.twdist_android.features.projectdetails.domain.model.Section
+import com.example.twdist_android.features.projectdetails.domain.model.Task
 import com.example.twdist_android.features.projectdetails.domain.model.TaskName
+import com.example.twdist_android.features.projectdetails.presentation.viewmodel.events.ProjectDetailsMutationContext
+import com.example.twdist_android.features.projectdetails.presentation.viewmodel.events.ProjectEventDelegate
+import com.example.twdist_android.features.projectdetails.presentation.viewmodel.events.SectionEventDelegate
+import com.example.twdist_android.features.projectdetails.presentation.viewmodel.events.TaskEventDelegate
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.mapper.toDetailsUi
 import com.example.twdist_android.features.projectdetails.presentation.model.SectionUi
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
-import com.example.twdist_android.features.projectdetails.presentation.model.TaskCompletionUndo
 import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,12 +50,67 @@ class ProjectDetailsViewModel @Inject constructor(
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val completeTaskUseCase: CompleteTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase
-) : ViewModel() {
+) : ViewModel(), ProjectDetailsMutationContext {
 
     private var projectId: Long = -1L
 
     private val _uiState = MutableStateFlow(ProjectDetailsUiState())
     val uiState: StateFlow<ProjectDetailsUiState> = _uiState
+    private val projectEventDelegate = ProjectEventDelegate(this)
+    private val sectionEventDelegate = SectionEventDelegate(this)
+    private val taskEventDelegate = TaskEventDelegate(this)
+
+    override val state: ProjectDetailsUiState
+        get() = _uiState.value
+
+    override fun updateState(transform: (ProjectDetailsUiState) -> ProjectDetailsUiState) {
+        _uiState.update(transform)
+    }
+
+    override fun launch(block: suspend () -> Unit) {
+        viewModelScope.launch { block() }
+    }
+
+    override suspend fun updateProjectName(projectId: Long, name: ProjectName): Result<Unit> {
+        return updateProjectNameUseCase(projectId, name)
+    }
+
+    override suspend fun deleteProject(projectId: Long): Result<Unit> {
+        return deleteProjectUseCase(projectId)
+    }
+
+    override suspend fun updateSectionName(sectionId: Long, sectionName: SectionName): Result<Section> {
+        return updateSectionNameUseCase(sectionId, sectionName)
+    }
+
+    override suspend fun deleteSection(sectionId: Long): Result<Unit> {
+        return deleteSectionUseCase(sectionId)
+    }
+
+    override suspend fun createSection(projectId: Long, sectionName: SectionName): Result<Section> {
+        return createSectionUseCase(projectId, sectionName)
+    }
+
+    override suspend fun createTask(projectId: Long, sectionId: Long, name: TaskName): Result<Task> {
+        return createTaskUseCase(projectId, sectionId, name)
+    }
+
+    override suspend fun updateTask(projectId: Long, sectionId: Long, taskId: Long, name: TaskName): Result<Task> {
+        return updateTaskUseCase(projectId, sectionId, taskId, name)
+    }
+
+    override suspend fun completeTask(
+        projectId: Long,
+        sectionId: Long,
+        taskId: Long,
+        completedDate: LocalDate?
+    ): Result<Task> {
+        return completeTaskUseCase(projectId, sectionId, taskId, completedDate)
+    }
+
+    override suspend fun deleteTask(projectId: Long, sectionId: Long, taskId: Long): Result<Unit> {
+        return deleteTaskUseCase(projectId, sectionId, taskId)
+    }
 
     fun loadProjectDetails(projectId: Long) {
         this.projectId = projectId
@@ -91,367 +151,15 @@ class ProjectDetailsViewModel @Inject constructor(
     }
 
     fun onSectionEvent(event: SectionEvent) {
-        when (event) {
-            SectionEvent.AddSectionClicked -> onAddSectionClick()
-            is SectionEvent.CreateSectionNameChanged -> onCreateSectionNameChanged(event.name)
-            SectionEvent.CreateSectionConfirmed -> onCreateSectionConfirmed()
-            SectionEvent.CreateSectionDismissed -> onCreateSectionDismissed()
-            is SectionEvent.MenuOpened -> onSectionOptionsClick(event.sectionId)
-            SectionEvent.MenuDismissed -> onSectionOptionsDismiss()
-            is SectionEvent.EditClicked -> onEditSectionClick(event.sectionId)
-            is SectionEvent.NameChanged -> onEditSectionNameChange(event.name)
-            SectionEvent.EditConfirmed -> onSaveSectionEdit()
-            SectionEvent.EditDismissed -> onEditSectionDismiss()
-            is SectionEvent.DeleteClicked -> onDeleteSectionClick(event.sectionId)
-            SectionEvent.DeleteConfirmed -> onDeleteSectionConfirm()
-            SectionEvent.DeleteDismissed -> onDeleteSectionDismiss()
-        }
+        sectionEventDelegate.onEvent(event)
     }
 
     fun onTaskEvent(event: TaskEvent) {
-        when (event) {
-            is TaskEvent.AddTaskClicked -> onAddTaskClick(event.sectionId)
-            is TaskEvent.CreateTaskNameChanged -> onCreateTaskNameChanged(event.name)
-            TaskEvent.CreateTaskConfirmed -> onCreateTaskConfirmed()
-            TaskEvent.CreateTaskDismissed -> onCreateTaskDismissed()
-            is TaskEvent.TaskMenuOpened -> onTaskMenuOpened(event.taskId)
-            TaskEvent.TaskMenuDismissed -> onTaskMenuDismissed()
-            is TaskEvent.EditTaskClicked -> onEditTaskClick(event.sectionId, event.taskId)
-            is TaskEvent.EditTaskNameChanged -> onEditTaskNameChanged(event.name)
-            TaskEvent.EditTaskConfirmed -> onEditTaskConfirmed()
-            TaskEvent.EditTaskDismissed -> onEditTaskDismissed()
-            is TaskEvent.DeleteTaskClicked -> onDeleteTaskClick(event.sectionId, event.taskId)
-            TaskEvent.DeleteTaskConfirmed -> onDeleteTaskConfirmed()
-            TaskEvent.DeleteTaskDismissed -> onDeleteTaskDismissed()
-            is TaskEvent.TaskCompletionToggled -> onTaskCompletionToggled(event.sectionId, event.taskId)
-            is TaskEvent.TaskCompletionUndoHandled -> onTaskCompletionUndoHandled(event.undo)
-            TaskEvent.TaskSnackbarShown -> onTaskSnackbarShown()
-        }
+        taskEventDelegate.onEvent(event)
     }
 
     fun onProjectEvent(event: ProjectEvent) {
-        when (event) {
-            ProjectEvent.MenuOpened -> onProjectMenuOpened()
-            ProjectEvent.MenuDismissed -> onProjectMenuDismissed()
-            ProjectEvent.EditClicked -> onEditProjectClicked()
-            is ProjectEvent.NameChanged -> onEditProjectNameChanged(event.name)
-            ProjectEvent.EditConfirmed -> onEditProjectConfirmed()
-            ProjectEvent.EditDismissed -> onEditProjectDismissed()
-            ProjectEvent.DeleteClicked -> onDeleteProjectClicked()
-            ProjectEvent.DeleteConfirmed -> onDeleteProjectConfirmed()
-            ProjectEvent.DeleteDismissed -> onDeleteProjectDismissed()
-            ProjectEvent.DeletedHandled -> onProjectDeletedHandled()
-        }
-    }
-
-    private fun onProjectMenuOpened() {
-        _uiState.update { it.copy(openProjectMenu = true, projectActionError = null) }
-    }
-
-    private fun onProjectMenuDismissed() {
-        _uiState.update { it.copy(openProjectMenu = false) }
-    }
-
-    private fun onEditProjectClicked() {
-        val currentName = _uiState.value.project?.name ?: return
-        _uiState.update {
-            it.copy(
-                openProjectMenu = false,
-                isEditingProject = true,
-                editingProjectName = currentName,
-                projectActionError = null
-            )
-        }
-    }
-
-    private fun onEditProjectNameChanged(value: String) {
-        _uiState.update { it.copy(editingProjectName = value, projectActionError = null) }
-    }
-
-    private fun onEditProjectDismissed() {
-        _uiState.update {
-            it.copy(
-                isEditingProject = false,
-                editingProjectName = "",
-                projectActionError = null
-            )
-        }
-    }
-
-    private fun onEditProjectConfirmed() {
-        val projectId = _uiState.value.project?.id ?: return
-        val name = ProjectName.create(_uiState.value.editingProjectName)
-            .getOrElse { throwable ->
-                _uiState.update { it.copy(projectActionError = throwable.toProjectValidationMessage()) }
-                return
-            }
-
-        val previousProject = _uiState.value.project
-        _uiState.update { state ->
-            state.copy(
-                project = state.project?.copy(name = name.asString()),
-                isEditingProject = false,
-                editingProjectName = "",
-                projectActionError = null
-            )
-        }
-
-        viewModelScope.launch {
-            updateProjectNameUseCase(projectId, name)
-                .onSuccess {
-                    _uiState.update { it.copy(projectActionError = null) }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            project = previousProject,
-                            projectActionError = error.toProjectActionMessage("Could not update project")
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun onDeleteProjectClicked() {
-        _uiState.update {
-            it.copy(
-                openProjectMenu = false,
-                deleteConfirmProject = true,
-                projectActionError = null
-            )
-        }
-    }
-
-    private fun onDeleteProjectDismissed() {
-        _uiState.update { it.copy(deleteConfirmProject = false) }
-    }
-
-    private fun onDeleteProjectConfirmed() {
-        val projectId = _uiState.value.project?.id ?: return
-        _uiState.update { it.copy(deleteConfirmProject = false, projectActionError = null) }
-
-        viewModelScope.launch {
-            deleteProjectUseCase(projectId)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            project = null,
-                            projectDeleted = true,
-                            projectActionError = null
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            projectActionError = error.toProjectActionMessage("Could not delete project")
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun onProjectDeletedHandled() {
-        _uiState.update { it.copy(projectDeleted = false) }
-    }
-
-    private fun onSectionOptionsClick(sectionId: Long) {
-        _uiState.update {
-            it.copy(
-                openSectionMenuForId = sectionId,
-                isCreatingSection = false,
-                sectionActionError = null,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onSectionOptionsDismiss() {
-        _uiState.update { it.copy(openSectionMenuForId = null) }
-    }
-
-    private fun onEditSectionClick(sectionId: Long) {
-        val section = _uiState.value.sectionItems.firstOrNull { it.id == sectionId } ?: return
-        _uiState.update {
-            it.copy(
-                openSectionMenuForId = null,
-                isCreatingSection = false,
-                editingSectionId = sectionId,
-                editingSectionName = section.name,
-                sectionActionError = null,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onEditSectionNameChange(value: String) {
-        _uiState.update {
-            it.copy(
-                editingSectionName = value,
-                sectionActionError = null,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onEditSectionDismiss() {
-        _uiState.update {
-            it.copy(
-                editingSectionId = null,
-                editingSectionName = "",
-                sectionActionError = null,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onSaveSectionEdit() {
-        val editingSectionId = _uiState.value.editingSectionId ?: return
-        val name = SectionName.create(_uiState.value.editingSectionName)
-            .getOrElse { throwable ->
-                _uiState.update { it.copy(sectionActionError = throwable.toValidationMessage()) }
-                return
-            }
-        val previousProject = _uiState.value.project
-
-        _uiState.update { state ->
-            val updatedSections = state.sectionItems.map { section ->
-                if (section.id == editingSectionId) section.copy(name = name.asString()) else section
-            }
-            state.copy(
-                project = state.project?.copy(sections = updatedSections.map { it.name }),
-                sectionItems = updatedSections,
-                editingSectionId = null,
-                editingSectionName = "",
-                sectionActionError = null
-            )
-        }
-
-        viewModelScope.launch {
-            updateSectionNameUseCase(editingSectionId, name)
-                .onSuccess {
-                    _uiState.update { it.copy(sectionActionError = null) }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            project = previousProject,
-                            sectionActionError = error.message ?: "Could not update section"
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun onDeleteSectionClick(sectionId: Long) {
-        _uiState.update {
-            it.copy(
-                openSectionMenuForId = null,
-                isCreatingSection = false,
-                deleteConfirmSectionId = sectionId,
-                sectionActionError = null,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onDeleteSectionDismiss() {
-        _uiState.update { it.copy(deleteConfirmSectionId = null) }
-    }
-
-    private fun onDeleteSectionConfirm() {
-        val sectionId = _uiState.value.deleteConfirmSectionId ?: return
-        val previousProject = _uiState.value.project
-        _uiState.update { state ->
-            val updatedSections = state.sectionItems.filterNot { it.id == sectionId }
-            state.copy(
-                project = state.project?.copy(sections = updatedSections.map { it.name }),
-                sectionItems = updatedSections,
-                deleteConfirmSectionId = null,
-                sectionActionError = null
-            )
-        }
-
-        viewModelScope.launch {
-            deleteSectionUseCase(sectionId)
-                .onSuccess {
-                    _uiState.update { it.copy(sectionActionError = null) }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            project = previousProject,
-                            sectionActionError = error.message ?: "Could not delete section"
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun onAddSectionClick() {
-        _uiState.update {
-            it.copy(
-                isCreatingSection = true,
-                creatingSectionName = "",
-                sectionActionError = null,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onCreateSectionNameChanged(name: String) {
-        _uiState.update { it.copy(creatingSectionName = name, sectionActionError = null) }
-    }
-
-    private fun onCreateSectionDismissed() {
-        _uiState.update {
-            it.copy(
-                isCreatingSection = false,
-                creatingSectionName = "",
-                isSectionCreateLoading = false,
-                sectionActionError = null
-            )
-        }
-    }
-
-    private fun onCreateSectionConfirmed() {
-        val state = _uiState.value
-        val currentProjectId = state.project?.id ?: return
-        val sectionName = SectionName.create(state.creatingSectionName)
-            .getOrElse { throwable ->
-                _uiState.update { it.copy(sectionActionError = throwable.toValidationMessage()) }
-                return
-            }
-        _uiState.update { it.copy(isSectionCreateLoading = true, sectionActionError = null) }
-        viewModelScope.launch {
-            createSectionUseCase(currentProjectId, sectionName)
-                .onSuccess { createdSection ->
-                    _uiState.update { current ->
-                        val createdSectionUi = SectionUi(
-                            id = createdSection.id,
-                            name = createdSection.name.asString(),
-                            taskIds = createdSection.taskIds
-                        )
-                        val nextSections = current.sectionItems + createdSectionUi
-                        current.copy(
-                            project = current.project?.copy(sections = nextSections.map { it.name }),
-                            sectionItems = nextSections,
-                            isCreatingSection = false,
-                            creatingSectionName = "",
-                            isSectionCreateLoading = false,
-                            sectionActionError = null
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            sectionActionError = error.message ?: "Could not create section",
-                            isSectionCreateLoading = false
-                        )
-                    }
-                }
-        }
+        projectEventDelegate.onEvent(event)
     }
 
     private fun loadTasksForSections() {
@@ -483,361 +191,5 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun onAddTaskClick(sectionId: Long) {
-        _uiState.update {
-            it.copy(
-                creatingTaskSectionId = sectionId,
-                creatingTaskName = "",
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onCreateTaskNameChanged(name: String) {
-        _uiState.update { it.copy(creatingTaskName = name, taskActionError = null) }
-    }
-
-    private fun onCreateTaskDismissed() {
-        _uiState.update {
-            it.copy(
-                creatingTaskSectionId = null,
-                creatingTaskName = "",
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onCreateTaskConfirmed() {
-        val state = _uiState.value
-        val currentProjectId = state.project?.id ?: return
-        val sectionId = state.creatingTaskSectionId ?: return
-        val taskName = TaskName.create(state.creatingTaskName)
-            .getOrElse { throwable ->
-                _uiState.update { it.copy(taskActionError = throwable.toTaskValidationMessage()) }
-                return
-            }
-        _uiState.update { it.copy(isTaskCreateLoading = true, taskActionError = null) }
-        viewModelScope.launch {
-            createTaskUseCase(currentProjectId, sectionId, taskName)
-                .onSuccess { createdTask ->
-                    _uiState.update { current ->
-                        val updatedProject = current.project?.let { project ->
-                            project
-                        }
-                        val createdTaskUi = TaskUi(
-                            id = createdTask.id,
-                            name = createdTask.name,
-                            completed = createdTask.completed
-                        )
-                        val nextTasksById = current.tasksById.toMutableMap().apply {
-                            put(createdTaskUi.id.toString(), createdTaskUi)
-                        }
-                        val nextSections = current.sectionItems.map { section ->
-                            if (section.id == sectionId) {
-                                section.copy(taskIds = section.taskIds + createdTaskUi.id.toString())
-                            } else section
-                        }
-                        current.copy(
-                            project = updatedProject,
-                            creatingTaskSectionId = null,
-                            creatingTaskName = "",
-                            taskActionError = null,
-                            isTaskCreateLoading = false,
-                            tasksById = nextTasksById,
-                            sectionItems = nextSections
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            taskActionError = error.message ?: "Could not create task",
-                            isTaskCreateLoading = false
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun onTaskMenuOpened(taskId: Long) {
-        _uiState.update { it.copy(openTaskMenuForId = taskId) }
-    }
-
-    private fun onTaskMenuDismissed() {
-        _uiState.update { it.copy(openTaskMenuForId = null) }
-    }
-
-    private fun onEditTaskClick(sectionId: Long, taskId: Long) {
-        val section = _uiState.value.sectionItems.firstOrNull { it.id == sectionId } ?: return
-        val task = section.taskIds.mapNotNull { _uiState.value.tasksById[it] }.firstOrNull { it.id == taskId } ?: return
-        _uiState.update {
-            it.copy(
-                openTaskMenuForId = null,
-                editingTaskSectionId = sectionId,
-                editingTaskId = taskId,
-                editingTaskName = task.name,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onEditTaskNameChanged(name: String) {
-        _uiState.update { it.copy(editingTaskName = name, taskActionError = null) }
-    }
-
-    private fun onEditTaskDismissed() {
-        _uiState.update {
-            it.copy(
-                editingTaskSectionId = null,
-                editingTaskId = null,
-                editingTaskName = "",
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onEditTaskConfirmed() {
-        val state = _uiState.value
-        val currentProjectId = state.project?.id ?: return
-        val sectionId = state.editingTaskSectionId ?: return
-        val taskId = state.editingTaskId ?: return
-        val newName = TaskName.create(state.editingTaskName)
-            .getOrElse { throwable ->
-                _uiState.update { it.copy(taskActionError = throwable.toTaskValidationMessage()) }
-                return
-            }
-        _uiState.update { it.copy(isTaskEditLoading = true, taskActionError = null) }
-        viewModelScope.launch {
-            updateTaskUseCase(
-                projectId = currentProjectId,
-                sectionId = sectionId,
-                taskId = taskId,
-                name = newName
-            )
-                .onSuccess { updatedTask ->
-                    _uiState.update { current ->
-                        val updatedProject = current.project?.let { project ->
-                            project
-                        }
-                        val nextTasksById = current.tasksById.toMutableMap().apply {
-                            put(taskId.toString(), TaskUi(taskId, updatedTask.name, updatedTask.completed))
-                        }
-                        current.copy(
-                            project = updatedProject,
-                            editingTaskSectionId = null,
-                            editingTaskId = null,
-                            editingTaskName = "",
-                            taskActionError = null,
-                            isTaskEditLoading = false,
-                            tasksById = nextTasksById
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            taskActionError = error.message ?: "Could not update task",
-                            isTaskEditLoading = false
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun onDeleteTaskClick(sectionId: Long, taskId: Long) {
-        _uiState.update {
-            it.copy(
-                openTaskMenuForId = null,
-                deleteConfirmTaskSectionId = sectionId,
-                deleteConfirmTaskId = taskId,
-                taskActionError = null
-            )
-        }
-    }
-
-    private fun onDeleteTaskDismissed() {
-        _uiState.update { it.copy(deleteConfirmTaskSectionId = null, deleteConfirmTaskId = null, taskActionError = null) }
-    }
-
-    private fun onDeleteTaskConfirmed() {
-        val state = _uiState.value
-        val currentProjectId = state.project?.id ?: return
-        val sectionId = state.deleteConfirmTaskSectionId ?: return
-        val taskId = state.deleteConfirmTaskId ?: return
-        _uiState.update { it.copy(isTaskDeleteLoading = true, taskActionError = null) }
-        viewModelScope.launch {
-            deleteTaskUseCase(currentProjectId, sectionId, taskId)
-                .onSuccess {
-                    _uiState.update { current ->
-                        val updatedProject = current.project?.let { project ->
-                            project
-                        }
-                        val nextTasksById = current.tasksById.toMutableMap().apply { remove(taskId.toString()) }
-                        val nextSections = current.sectionItems.map { section ->
-                            if (section.id == sectionId) {
-                                section.copy(taskIds = section.taskIds.filterNot { it == taskId.toString() })
-                            } else section
-                        }
-                        current.copy(
-                            project = updatedProject,
-                            deleteConfirmTaskSectionId = null,
-                            deleteConfirmTaskId = null,
-                            taskActionError = null,
-                            isTaskDeleteLoading = false,
-                            tasksById = nextTasksById,
-                            sectionItems = nextSections
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            taskActionError = error.message ?: "Could not delete task",
-                            isTaskDeleteLoading = false
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun onTaskCompletionToggled(sectionId: Long, taskId: Long) {
-        val state = _uiState.value
-        val currentProjectId = state.project?.id ?: return
-        val taskKey = taskId.toString()
-        val task = state.tasksById[taskKey] ?: return
-
-        _uiState.update { current ->
-            current.copy(
-                tasksById = current.tasksById.toMutableMap().apply { remove(taskKey) },
-                sectionItems = current.sectionItems.map { section ->
-                    if (section.id == sectionId) {
-                        section.copy(taskIds = section.taskIds.filterNot { it == taskKey })
-                    } else {
-                        section
-                    }
-                },
-                taskCompletionUndo = TaskCompletionUndo(sectionId = sectionId, task = task),
-                taskActionError = null,
-                taskSnackbarMessage = null
-            )
-        }
-
-        viewModelScope.launch {
-            completeTaskUseCase(
-                projectId = currentProjectId,
-                sectionId = sectionId,
-                taskId = taskId,
-                completedDate = LocalDate.now()
-            ).onSuccess { updatedTask ->
-                if (!updatedTask.completed) {
-                    _uiState.update { current ->
-                        val nextTasksById = current.tasksById.toMutableMap().apply {
-                            put(taskKey, TaskUi(id = updatedTask.id, name = updatedTask.name, completed = updatedTask.completed))
-                        }
-                        val nextSections = current.sectionItems.map { section ->
-                            if (section.id == sectionId && taskKey !in section.taskIds) {
-                                section.copy(taskIds = section.taskIds + taskKey)
-                            } else {
-                                section
-                            }
-                        }
-                        current.copy(tasksById = nextTasksById, sectionItems = nextSections)
-                    }
-                }
-            }.onFailure { error ->
-                _uiState.update { current ->
-                    val nextTasksById = current.tasksById.toMutableMap().apply {
-                        put(taskKey, task)
-                    }
-                    val nextSections = current.sectionItems.map { section ->
-                        if (section.id == sectionId && taskKey !in section.taskIds) {
-                            section.copy(taskIds = section.taskIds + taskKey)
-                        } else {
-                            section
-                        }
-                    }
-                    current.copy(
-                        tasksById = nextTasksById,
-                        sectionItems = nextSections,
-                        taskCompletionUndo = null,
-                        taskActionError = error.message ?: "Could not update task",
-                        taskSnackbarMessage = "Could not update task"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun onTaskCompletionUndoHandled(undo: Boolean) {
-        val pendingUndo = _uiState.value.taskCompletionUndo ?: return
-        _uiState.update { it.copy(taskCompletionUndo = null) }
-        if (!undo) return
-
-        val projectId = _uiState.value.project?.id ?: return
-        val task = pendingUndo.task
-        val taskKey = task.id.toString()
-        val sectionId = pendingUndo.sectionId
-
-        _uiState.update { current ->
-            val nextTasksById = current.tasksById.toMutableMap().apply {
-                put(taskKey, task.copy(completed = false))
-            }
-            val nextSections = current.sectionItems.map { section ->
-                if (section.id == sectionId && taskKey !in section.taskIds) {
-                    section.copy(taskIds = section.taskIds + taskKey)
-                } else section
-            }
-            current.copy(tasksById = nextTasksById, sectionItems = nextSections, taskActionError = null)
-        }
-
-        viewModelScope.launch {
-            completeTaskUseCase(
-                projectId = projectId,
-                sectionId = sectionId,
-                taskId = task.id,
-                completedDate = null
-            ).onSuccess { updatedTask ->
-                if (updatedTask.completed) {
-                    _uiState.update { current ->
-                        val nextTasksById = current.tasksById.toMutableMap().apply {
-                            remove(taskKey)
-                        }
-                        val nextSections = current.sectionItems.map { section ->
-                            if (section.id == sectionId) {
-                                section.copy(taskIds = section.taskIds.filterNot { it == taskKey })
-                            } else section
-                        }
-                        current.copy(
-                            tasksById = nextTasksById,
-                            sectionItems = nextSections,
-                            taskActionError = "Could not undo task completion",
-                            taskSnackbarMessage = "Could not undo task completion"
-                        )
-                    }
-                }
-            }.onFailure { error ->
-                _uiState.update { current ->
-                    val nextTasksById = current.tasksById.toMutableMap().apply {
-                        remove(taskKey)
-                    }
-                    val nextSections = current.sectionItems.map { section ->
-                        if (section.id == sectionId) {
-                            section.copy(taskIds = section.taskIds.filterNot { it == taskKey })
-                        } else section
-                    }
-                    current.copy(
-                        tasksById = nextTasksById,
-                        sectionItems = nextSections,
-                        taskActionError = error.message ?: "Could not undo task completion",
-                        taskSnackbarMessage = "Could not undo task completion"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun onTaskSnackbarShown() {
-        _uiState.update { it.copy(taskSnackbarMessage = null) }
-    }
 }
 

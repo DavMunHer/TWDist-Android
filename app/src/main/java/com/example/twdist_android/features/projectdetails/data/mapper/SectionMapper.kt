@@ -1,7 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.mapper
 
-import com.example.twdist_android.features.projectdetails.data.dto.SectionResponseDto
-import com.example.twdist_android.features.projectdetails.data.dto.SectionUpdateResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.section.SectionResponseDto
+import com.example.twdist_android.features.projectdetails.data.dto.section.SectionUpdateResponseDto
 import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 

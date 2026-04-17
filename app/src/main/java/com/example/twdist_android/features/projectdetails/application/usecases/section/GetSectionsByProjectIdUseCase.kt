@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.section
 
 import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
@@ -14,3 +14,4 @@ class GetSectionsByProjectIdUseCase @Inject constructor(
             .onSuccess { sections -> sectionStateStore.upsertAll(sections) }
     }
 }
+

@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.task
 
 import com.example.twdist_android.features.projectdetails.domain.model.Task
 import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
@@ -17,3 +17,4 @@ class CompleteTaskUseCase @Inject constructor(
         return repository.completeTask(projectId, sectionId, taskId, completedDate)
     }
 }
+

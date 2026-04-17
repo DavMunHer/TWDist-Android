@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.task
 
 import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
 import javax.inject.Inject
@@ -10,3 +10,4 @@ class DeleteTaskUseCase @Inject constructor(
         return repository.deleteTask(projectId, sectionId, taskId)
     }
 }
+

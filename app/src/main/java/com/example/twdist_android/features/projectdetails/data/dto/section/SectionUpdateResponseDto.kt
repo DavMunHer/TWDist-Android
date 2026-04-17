@@ -1,6 +1,7 @@
-package com.example.twdist_android.features.projectdetails.data.dto
+package com.example.twdist_android.features.projectdetails.data.dto.section
 
 import com.example.twdist_android.core.network.FlexibleStringIdSerializer
+import com.example.twdist_android.features.projectdetails.data.dto.task.TaskResponseDto
 import kotlinx.serialization.Serializable
 
 @Serializable

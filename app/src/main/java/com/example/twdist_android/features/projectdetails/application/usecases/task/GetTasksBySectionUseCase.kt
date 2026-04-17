@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.task
 
 import com.example.twdist_android.features.projectdetails.domain.model.Task
 import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
@@ -11,3 +11,4 @@ class GetTasksBySectionUseCase @Inject constructor(
         return repository.getTasksBySection(projectId, sectionId)
     }
 }
+
