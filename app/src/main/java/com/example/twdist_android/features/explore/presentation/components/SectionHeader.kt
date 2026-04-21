@@ -20,6 +20,7 @@ fun SectionHeader(
     isExpanded: Boolean,
     onExpandClick: () -> Unit,
     onAddClick: () -> Unit,
+    showAddButton: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -48,11 +49,16 @@ fun SectionHeader(
             )
         }
 
-        IconButton(onClick = onAddClick) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add project"
-            )
+        if (showAddButton) {
+            IconButton(onClick = onAddClick) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add project"
+                )
+            }
+        } else {
+            // Keep the same header height/alignment as screens that show the add button.
+            Spacer(modifier = Modifier.size(48.dp))
         }
     }
 }

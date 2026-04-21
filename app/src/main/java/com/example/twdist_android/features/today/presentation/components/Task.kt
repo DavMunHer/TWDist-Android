@@ -20,8 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.twdist_android.features.favorite.presentation.components.FavoriteProjectCard
-import com.example.twdist_android.features.favorite.presentation.model.FavoriteProjectState
 import com.example.twdist_android.features.today.presentation.model.TaskState
 
 @Composable
