@@ -43,6 +43,10 @@ class FavoriteProjectsViewModel @Inject constructor(
     }
 
     private fun loadProjects() {
+        if (_uiState.value.pendingUndo != null) {
+            // Avoid wiping optimistic undo state while snackbar is active.
+            return
+        }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             getProjectsUseCase()
@@ -98,6 +102,12 @@ class FavoriteProjectsViewModel @Inject constructor(
                                 it.copy(error = error.message)
                             }
                         }
+                        requestVersion.remove(projectId)
+                    }
+                }
+                .onSuccess {
+                    if (requestVersion[projectId] == version) {
+                        requestVersion.remove(projectId)
                     }
                 }
         }
@@ -128,15 +138,19 @@ class FavoriteProjectsViewModel @Inject constructor(
                                 error = error.message
                             )
                         }
+                        requestVersion.remove(project.id)
+                    }
+                }
+                .onSuccess {
+                    if (requestVersion[project.id] == version) {
+                        requestVersion.remove(project.id)
                     }
                 }
         }
     }
 
     private fun handleUndoMessageDismiss(token: Long) {
-        pendingUndoActions.remove(token)?.let { pending ->
-            requestVersion.remove(pending.project.id)
-        }
+        pendingUndoActions.remove(token)
         _uiState.update {
             if (it.pendingUndo?.token == token) {
                 it.copy(pendingUndo = null)
