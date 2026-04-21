@@ -8,16 +8,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.twdist_android.features.favorite.presentation.model.FavoriteProjectState
+import com.example.twdist_android.features.explore.presentation.model.ProjectUi
 
 @Composable
 fun FavoriteProjectList(
-    favoriteProjects: List<FavoriteProjectState>
+    favoriteProjects: List<ProjectUi>,
+    onProjectClick: (ProjectUi) -> Unit,
+    onUnfavoriteClick: (Long) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    LazyColumn {
+    LazyColumn(modifier = modifier) {
         items(favoriteProjects) { project ->
-            FavoriteProjectCard(project = project)
-            Spacer(Modifier.height(15.dp))
+            FavoriteProjectCard(
+                project = project,
+                onProjectClick = onProjectClick,
+                onUnfavoriteClick = onUnfavoriteClick
+            )
+            Spacer(Modifier.height(12.dp))
         }
     }
 }
@@ -26,9 +33,13 @@ fun FavoriteProjectList(
 @Composable
 fun FavoriteProjectListPreview() {
     val sampleProjects = listOf(
-        FavoriteProjectState("Project Alpha", 5),
-        FavoriteProjectState("Project Beta", 2),
-        FavoriteProjectState("Project Gamma", 8)
+        ProjectUi(id = 1, name = "Project Alpha", pendingTasks = 5, isFavorite = true),
+        ProjectUi(id = 2, name = "Project Beta", pendingTasks = 2, isFavorite = true),
+        ProjectUi(id = 3, name = "Project Gamma", pendingTasks = 8, isFavorite = true)
     )
-    FavoriteProjectList(favoriteProjects = sampleProjects)
+    FavoriteProjectList(
+        favoriteProjects = sampleProjects,
+        onProjectClick = {},
+        onUnfavoriteClick = {}
+    )
 }
