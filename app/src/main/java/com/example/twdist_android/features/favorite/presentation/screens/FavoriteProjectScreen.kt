@@ -1,39 +1,47 @@
 package com.example.twdist_android.features.favorite.presentation.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.twdist_android.features.favorite.presentation.components.FavoriteProjectList
-import com.example.twdist_android.features.favorite.presentation.model.FavoriteProjectState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.twdist_android.features.favorite.presentation.components.FavoriteProjectScreenContent
+import com.example.twdist_android.features.favorite.presentation.components.FavoriteProjectsLifecycleEffect
+import com.example.twdist_android.features.favorite.presentation.components.FavoriteUndoSnackbarEffect
+import com.example.twdist_android.features.favorite.presentation.event.FavoriteProjectsEvent
+import com.example.twdist_android.features.favorite.presentation.viewmodel.FavoriteProjectsViewModel
 
 @Composable
 fun FavoriteProjectScreen(
-    favoriteProjects: List<FavoriteProjectState>
+    onNavigateToProjectDetails: (Long) -> Unit = {},
+    viewModel: FavoriteProjectsViewModel = hiltViewModel()
 ) {
-    Column {
-        Row(modifier = Modifier.padding(vertical = 5.dp)) {
-            Text(text = "Name", modifier = Modifier.padding(start = 39.dp), fontSize = 15.sp)
-            Spacer(Modifier.weight(1f))
-            Text(text = "Pending Tasks", modifier = Modifier.padding(end = 15.dp), fontSize = 15.sp)
-        }
-        FavoriteProjectList(favoriteProjects)
-    }
-}
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
-@Preview(showBackground = true)
-@Composable
-fun FavoriteProjectScreenPreview() {
-    val sampleProjects = listOf(
-        FavoriteProjectState("Web App Development", 5),
-        FavoriteProjectState("Mobile App Development", 2),
-        FavoriteProjectState("Final Course Project", 8)
+    FavoriteProjectsLifecycleEffect(
+        lifecycleOwner = lifecycleOwner,
+        onLoadProjects = { viewModel.handleEvent(FavoriteProjectsEvent.LoadProjects) }
     )
-    FavoriteProjectScreen(favoriteProjects = sampleProjects)
+    FavoriteUndoSnackbarEffect(
+        pendingUndo = uiState.pendingUndo,
+        snackbarHostState = snackbarHostState,
+        onUndo = { token -> viewModel.handleEvent(FavoriteProjectsEvent.UndoUnfavorite(token)) },
+        onUndoHandled = { token ->
+            viewModel.handleEvent(FavoriteProjectsEvent.UndoMessageHandled(token))
+        }
+    )
+
+    FavoriteProjectScreenContent(
+        uiState = uiState,
+        snackbarHostState = snackbarHostState,
+        onProjectClick = onNavigateToProjectDetails,
+        onRetry = { viewModel.handleEvent(FavoriteProjectsEvent.LoadProjects) },
+        onUnfavoriteClick = { projectId ->
+            viewModel.handleEvent(FavoriteProjectsEvent.UnfavoriteProject(projectId))
+        }
+    )
 }
