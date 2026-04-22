@@ -1,7 +1,10 @@
 package com.example.twdist_android.features.today.presentation.model
 
 data class TaskState(
-    val id: Int,
+    val id: Long,
+    val projectId: Long,
+    val sectionId: Long,
     val title: String,
-    val isCompleted: Boolean
+    val projectName: String,
+    val isCompleted: Boolean = false
 )
