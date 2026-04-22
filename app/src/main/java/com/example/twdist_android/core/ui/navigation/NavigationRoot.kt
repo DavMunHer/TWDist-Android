@@ -16,7 +16,7 @@ import com.example.twdist_android.features.auth.presentation.screens.RegisterScr
 import com.example.twdist_android.features.explore.presentation.screens.ExploreScreen
 import com.example.twdist_android.features.favorite.presentation.screens.FavoriteProjectScreen
 import com.example.twdist_android.features.projectdetails.presentation.screens.ProjectDetailsScreen
-import com.example.twdist_android.features.today.presentation.screens.TodayScreenPreview
+import com.example.twdist_android.features.today.presentation.screens.TodayScreen
 import com.example.twdist_android.features.upcoming.presentation.screens.UpcomingScreenPreview
 import kotlinx.serialization.Serializable
 
@@ -53,7 +53,7 @@ fun NavigationRoot() {
         entryProvider = entryProvider {
             entry<TodayScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    TodayScreenPreview()
+                    TodayScreen()
                 }
             }
             entry<UpcomingScreenKey> {
