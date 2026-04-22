@@ -89,6 +89,7 @@ fun TodayScreenContent(
             fontWeight = FontWeight.W500,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = uiState.formattedDate,
             style = MaterialTheme.typography.bodyMedium,
