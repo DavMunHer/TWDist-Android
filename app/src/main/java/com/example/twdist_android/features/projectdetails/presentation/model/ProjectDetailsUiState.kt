@@ -52,7 +52,10 @@ data class SectionUi(
 data class TaskUi(
     val id: Long,
     val name: String,
-    val completed: Boolean
+    val completed: Boolean,
+    val description: String? = null,
+    val startDate: String? = null,
+    val endDate: String? = null
 )
 
 data class TaskCompletionUndo(

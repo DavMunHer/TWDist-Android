@@ -31,14 +31,19 @@ import com.example.twdist_android.features.projectdetails.presentation.event.Tas
 import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 
 @Composable
-internal fun TaskCard(
+fun TaskCard(
     sectionId: Long,
     taskItem: TaskUi,
     isTaskMenuOpen: Boolean,
-    onTaskEvent: (TaskEvent) -> Unit
+    onTaskEvent: (TaskEvent) -> Unit,
+    onTaskClick: ((sectionId: Long, taskId: Long) -> Unit)? = null
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = onTaskClick != null) {
+                onTaskClick?.invoke(sectionId, taskItem.id)
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),

@@ -170,7 +170,14 @@ class ProjectDetailsViewModel @Inject constructor(
                     .onSuccess { tasks ->
                         _uiState.update { state ->
                             val mapped = tasks.map {
-                                TaskUi(id = it.id, name = it.name, completed = it.completed)
+                                TaskUi(
+                                    id = it.id,
+                                    name = it.name,
+                                    completed = it.completed,
+                                    description = it.description,
+                                    startDate = it.startDate,
+                                    endDate = it.endDate
+                                )
                             }
                             val visibleTasks = mapped.filterNot { it.completed }
                             val nextTasksById = state.tasksById.toMutableMap().apply {

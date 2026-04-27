@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 fun ProjectDetailsScreen(
     projectId: Long,
     onProjectDeleted: () -> Unit = {},
+    onTaskClicked: (projectId: Long, sectionId: Long, taskId: Long) -> Unit = { _, _, _ -> },
     viewModel: ProjectDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,7 +97,10 @@ fun ProjectDetailsScreen(
                 uiState = uiState,
                 onSectionEvent = viewModel::onSectionEvent,
                 onTaskEvent = viewModel::onTaskEvent,
-                onProjectEvent = viewModel::onProjectEvent
+                onProjectEvent = viewModel::onProjectEvent,
+                onTaskClick = { sectionId, taskId ->
+                    onTaskClicked(projectId, sectionId, taskId)
+                }
             )
             else -> MissingProjectDetails()
         }
@@ -150,7 +154,8 @@ private fun ProjectDetailsContent(
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit,
     onTaskEvent: (TaskEvent) -> Unit,
-    onProjectEvent: (ProjectEvent) -> Unit
+    onProjectEvent: (ProjectEvent) -> Unit,
+    onTaskClick: (sectionId: Long, taskId: Long) -> Unit
 ) {
     val project = uiState.project ?: return
     Column(
@@ -227,7 +232,8 @@ private fun ProjectDetailsContent(
             modifier = Modifier.weight(1f),
             uiState = uiState,
             onSectionEvent = onSectionEvent,
-            onTaskEvent = onTaskEvent
+            onTaskEvent = onTaskEvent,
+            onTaskClick = onTaskClick
         )
 
         ProjectDetailsDialogs(
