@@ -17,6 +17,7 @@ internal fun SectionCard(
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit,
     onTaskEvent: (TaskEvent) -> Unit,
+    onTaskClick: (sectionId: Long, taskId: Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -35,7 +36,8 @@ internal fun SectionCard(
                 sectionId = section.id,
                 taskItem = taskItem,
                 isTaskMenuOpen = uiState.openTaskMenuForId == taskItem.id,
-                onTaskEvent = onTaskEvent
+                onTaskEvent = onTaskEvent,
+                onTaskClick = onTaskClick
             )
         }
 

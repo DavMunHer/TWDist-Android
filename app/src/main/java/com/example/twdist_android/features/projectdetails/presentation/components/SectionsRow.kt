@@ -19,7 +19,8 @@ fun SectionsRow(
     modifier: Modifier = Modifier,
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit,
-    onTaskEvent: (TaskEvent) -> Unit
+    onTaskEvent: (TaskEvent) -> Unit,
+    onTaskClick: (sectionId: Long, taskId: Long) -> Unit
 ) {
     val listState = rememberLazyListState()
     LazyRow(
@@ -36,6 +37,7 @@ fun SectionsRow(
                 uiState = uiState,
                 onSectionEvent = onSectionEvent,
                 onTaskEvent = onTaskEvent,
+                onTaskClick = onTaskClick,
                 modifier = Modifier.fillParentMaxWidth()
             )
         }

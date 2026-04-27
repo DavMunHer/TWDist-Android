@@ -12,9 +12,20 @@ class UpdateTaskUseCase @Inject constructor(
         projectId: Long,
         sectionId: Long,
         taskId: Long,
-        name: TaskName
+        name: TaskName,
+        description: String? = null,
+        startDate: String? = null,
+        endDate: String? = null
     ): Result<Task> {
-        return repository.updateTask(projectId, sectionId, taskId, name)
+        return repository.updateTask(
+            projectId = projectId,
+            sectionId = sectionId,
+            taskId = taskId,
+            name = name,
+            description = description,
+            startDate = startDate,
+            endDate = endDate
+        )
     }
 }
 

@@ -1,4 +1,4 @@
-package com.example.twdist_android.features.projectdetails.presentation.components
+package com.example.twdist_android.features.taskdetails.presentation.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -27,23 +27,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
-import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
+import com.example.twdist_android.features.taskdetails.presentation.event.TaskDetailsEvent
+import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUi
 
 @Composable
-internal fun TaskCard(
+internal fun TaskDetailsHeaderCard(
     sectionId: Long,
-    taskItem: TaskUi,
+    task: TaskDetailsUi,
     isTaskMenuOpen: Boolean,
-    onTaskEvent: (TaskEvent) -> Unit,
-    onTaskClick: ((sectionId: Long, taskId: Long) -> Unit)? = null
+    onEvent: (TaskDetailsEvent) -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = onTaskClick != null) {
-                onTaskClick?.invoke(sectionId, taskItem.id)
-            },
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -58,36 +53,30 @@ internal fun TaskCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-            Icon(
-                imageVector = if (taskItem.completed) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
-                contentDescription = "Task completion",
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable {
-                        onTaskEvent(
-                            TaskEvent.TaskCompletionToggled(
-                                sectionId = sectionId,
-                                taskId = taskItem.id
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = if (task.completed) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = "Task completion",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            onEvent(
+                                TaskDetailsEvent.TaskCompletionToggled(
+                                    sectionId = sectionId,
+                                    taskId = task.id
+                                )
                             )
-                        )
-                    },
-                tint = if (taskItem.completed) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.outline
-                }
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = taskItem.name,
-                style = MaterialTheme.typography.bodyLarge
-            )
+                        },
+                    tint = if (task.completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = task.name,
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
             Box {
-                IconButton(onClick = { onTaskEvent(TaskEvent.TaskMenuOpened(taskItem.id)) }) {
+                IconButton(onClick = { onEvent(TaskDetailsEvent.TaskMenuOpened(task.id)) }) {
                     Icon(
                         imageVector = Icons.Default.MoreHoriz,
                         contentDescription = "Task options"
@@ -95,15 +84,15 @@ internal fun TaskCard(
                 }
                 DropdownMenu(
                     expanded = isTaskMenuOpen,
-                    onDismissRequest = { onTaskEvent(TaskEvent.TaskMenuDismissed) }
+                    onDismissRequest = { onEvent(TaskDetailsEvent.TaskMenuDismissed) }
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = "Edit") },
                         onClick = {
-                            onTaskEvent(
-                                TaskEvent.EditTaskClicked(
+                            onEvent(
+                                TaskDetailsEvent.TaskEditClicked(
                                     sectionId = sectionId,
-                                    taskId = taskItem.id
+                                    taskId = task.id
                                 )
                             )
                         }
@@ -111,10 +100,10 @@ internal fun TaskCard(
                     DropdownMenuItem(
                         text = { Text(text = "Delete") },
                         onClick = {
-                            onTaskEvent(
-                                TaskEvent.DeleteTaskClicked(
+                            onEvent(
+                                TaskDetailsEvent.TaskDeleteClicked(
                                     sectionId = sectionId,
-                                    taskId = taskItem.id
+                                    taskId = task.id
                                 )
                             )
                         }

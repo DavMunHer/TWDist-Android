@@ -51,7 +51,10 @@ class TaskRepositoryImpl @Inject constructor(
         projectId: Long,
         sectionId: Long,
         taskId: Long,
-        name: TaskName
+        name: TaskName,
+        description: String?,
+        startDate: String?,
+        endDate: String?
     ): Result<Task> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
@@ -59,7 +62,12 @@ class TaskRepositoryImpl @Inject constructor(
                     projectId,
                     sectionId,
                     taskId,
-                    UpdateTaskRequestDto(name = name.asString())
+                    UpdateTaskRequestDto(
+                        name = name.asString(),
+                        description = description,
+                        startDate = startDate,
+                        endDate = endDate
+                    )
                 )
                 if (!response.isSuccessful) {
                     error("Failed to update task (HTTP ${response.code()})")

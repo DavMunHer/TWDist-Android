@@ -75,7 +75,10 @@ class TaskEventDelegate(
                         val createdTaskUi = TaskUi(
                             id = createdTask.id,
                             name = createdTask.name,
-                            completed = createdTask.completed
+                            completed = createdTask.completed,
+                            description = createdTask.description,
+                            startDate = createdTask.startDate,
+                            endDate = createdTask.endDate
                         )
                         val nextTasksById = current.tasksById.toMutableMap().apply {
                             put(createdTaskUi.id.toString(), createdTaskUi)
@@ -168,7 +171,17 @@ class TaskEventDelegate(
                             project
                         }
                         val nextTasksById = current.tasksById.toMutableMap().apply {
-                            put(taskId.toString(), TaskUi(taskId, updatedTask.name, updatedTask.completed))
+                            put(
+                                taskId.toString(),
+                                TaskUi(
+                                    id = taskId,
+                                    name = updatedTask.name,
+                                    completed = updatedTask.completed,
+                                    description = updatedTask.description,
+                                    startDate = updatedTask.startDate,
+                                    endDate = updatedTask.endDate
+                                )
+                            )
                         }
                         current.copy(
                             project = updatedProject,
@@ -280,7 +293,17 @@ class TaskEventDelegate(
                 if (!updatedTask.completed) {
                     context.updateState { current ->
                         val nextTasksById = current.tasksById.toMutableMap().apply {
-                            put(taskKey, TaskUi(id = updatedTask.id, name = updatedTask.name, completed = updatedTask.completed))
+                            put(
+                                taskKey,
+                                TaskUi(
+                                    id = updatedTask.id,
+                                    name = updatedTask.name,
+                                    completed = updatedTask.completed,
+                                    description = updatedTask.description,
+                                    startDate = updatedTask.startDate,
+                                    endDate = updatedTask.endDate
+                                )
+                            )
                         }
                         val nextSections = current.sectionItems.map { section ->
                             if (section.id == sectionId && taskKey !in section.taskIds) {

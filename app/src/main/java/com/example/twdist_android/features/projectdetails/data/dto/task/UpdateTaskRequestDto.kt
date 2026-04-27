@@ -4,5 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateTaskRequestDto(
-    val name: String
+    val name: String,
+    val description: String? = null,
+    val startDate: String? = null,
+    val endDate: String? = null
 )

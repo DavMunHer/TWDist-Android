@@ -1,8 +1,7 @@
-package com.example.twdist_android.features.projectdetails.domain.model
+package com.example.twdist_android.features.taskdetails.presentation.model
 
-data class Task(
+data class TaskDetailsUi(
     val id: Long,
-    val sectionId: Long,
     val name: String,
     val completed: Boolean,
     val description: String? = null,

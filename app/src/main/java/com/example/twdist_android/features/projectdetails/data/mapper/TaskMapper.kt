@@ -17,7 +17,10 @@ fun TaskResponseDto.toDomainTask(
         id = id,
         sectionId = sectionId,
         name = name,
-        completed = isCompletedByDate(now = now)
+        completed = isCompletedByDate(now = now),
+        description = description,
+        startDate = startDate,
+        endDate = endDate
     )
 }
 
