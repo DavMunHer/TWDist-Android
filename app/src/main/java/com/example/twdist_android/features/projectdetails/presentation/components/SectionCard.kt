@@ -17,7 +17,7 @@ internal fun SectionCard(
     uiState: ProjectDetailsUiState,
     onSectionEvent: (SectionEvent) -> Unit,
     onTaskEvent: (TaskEvent) -> Unit,
-    onTaskClick: (sectionId: Long, taskId: Long) -> Unit = { _, _ -> },
+    onTaskClick: (sectionId: Long, taskId: Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(

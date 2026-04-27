@@ -48,7 +48,7 @@ import kotlinx.coroutines.launch
 fun ProjectDetailsScreen(
     projectId: Long,
     onProjectDeleted: () -> Unit = {},
-    onTaskClicked: (projectId: Long, sectionId: Long, taskId: Long) -> Unit = { _, _, _ -> },
+    onTaskClicked: (projectId: Long, sectionId: Long, taskId: Long) -> Unit,
     viewModel: ProjectDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
