@@ -9,14 +9,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.outlined.Circle
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -50,9 +58,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
 import android.content.res.Configuration
-import com.example.twdist_android.features.projectdetails.presentation.components.TaskCard
-import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
-import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import com.example.twdist_android.features.taskdetails.presentation.event.TaskDetailsEvent
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUi
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUiEvent
@@ -177,36 +182,11 @@ private fun TaskDetailsContent(
             thickness = 1.dp
         )
 
-        TaskCard(
+        TaskDetailsHeaderCard(
             sectionId = sectionId,
-            taskItem = task.toProjectDetailsTaskUi(),
+            task = task,
             isTaskMenuOpen = openTaskMenuForId == task.id,
-            onTaskEvent = { taskEvent ->
-                when (taskEvent) {
-                    TaskEvent.TaskMenuDismissed -> onEvent(TaskDetailsEvent.TaskMenuDismissed)
-                    is TaskEvent.TaskMenuOpened -> onEvent(TaskDetailsEvent.TaskMenuOpened(taskEvent.taskId))
-                    is TaskEvent.TaskCompletionToggled -> onEvent(
-                        TaskDetailsEvent.TaskCompletionToggled(
-                            sectionId = taskEvent.sectionId,
-                            taskId = taskEvent.taskId
-                        )
-                    )
-                    is TaskEvent.EditTaskClicked -> onEvent(
-                        TaskDetailsEvent.TaskEditClicked(
-                            sectionId = taskEvent.sectionId,
-                            taskId = taskEvent.taskId
-                        )
-                    )
-                    is TaskEvent.DeleteTaskClicked -> onEvent(
-                        TaskDetailsEvent.TaskDeleteClicked(
-                            sectionId = taskEvent.sectionId,
-                            taskId = taskEvent.taskId
-                        )
-                    )
-                    else -> Unit
-                }
-            },
-            onTaskClick = null
+            onEvent = onEvent
         )
 
         OutlinedTextField(
@@ -312,15 +292,88 @@ private fun TaskDetailsContent(
     }
 }
 
-private fun TaskDetailsUi.toProjectDetailsTaskUi(): TaskUi {
-    return TaskUi(
-        id = id,
-        name = name,
-        completed = completed,
-        description = description,
-        startDate = startDate,
-        endDate = endDate
-    )
+@Composable
+private fun TaskDetailsHeaderCard(
+    sectionId: Long,
+    task: TaskDetailsUi,
+    isTaskMenuOpen: Boolean,
+    onEvent: (TaskDetailsEvent) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = if (task.completed) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = "Task completion",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            onEvent(
+                                TaskDetailsEvent.TaskCompletionToggled(
+                                    sectionId = sectionId,
+                                    taskId = task.id
+                                )
+                            )
+                        },
+                    tint = if (task.completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = task.name,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Box {
+                IconButton(onClick = { onEvent(TaskDetailsEvent.TaskMenuOpened(task.id)) }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreHoriz,
+                        contentDescription = "Task options"
+                    )
+                }
+                DropdownMenu(
+                    expanded = isTaskMenuOpen,
+                    onDismissRequest = { onEvent(TaskDetailsEvent.TaskMenuDismissed) }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Edit") },
+                        onClick = {
+                            onEvent(
+                                TaskDetailsEvent.TaskEditClicked(
+                                    sectionId = sectionId,
+                                    taskId = task.id
+                                )
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Delete") },
+                        onClick = {
+                            onEvent(
+                                TaskDetailsEvent.TaskDeleteClicked(
+                                    sectionId = sectionId,
+                                    taskId = task.id
+                                )
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

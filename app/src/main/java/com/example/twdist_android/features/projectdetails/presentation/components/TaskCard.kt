@@ -31,7 +31,7 @@ import com.example.twdist_android.features.projectdetails.presentation.event.Tas
 import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 
 @Composable
-fun TaskCard(
+internal fun TaskCard(
     sectionId: Long,
     taskItem: TaskUi,
     isTaskMenuOpen: Boolean,
