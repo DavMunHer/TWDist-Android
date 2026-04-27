@@ -3,33 +3,17 @@ package com.example.twdist_android.features.taskdetails.presentation.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.outlined.Circle
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,39 +21,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.platform.LocalContext
-import android.content.res.Configuration
+import com.example.twdist_android.features.taskdetails.presentation.components.DateInputField
+import com.example.twdist_android.features.taskdetails.presentation.components.ErrorState
+import com.example.twdist_android.features.taskdetails.presentation.components.LoadingState
+import com.example.twdist_android.features.taskdetails.presentation.components.TaskDetailsHeaderCard
 import com.example.twdist_android.features.taskdetails.presentation.event.TaskDetailsEvent
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUi
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUiEvent
 import com.example.twdist_android.features.taskdetails.presentation.viewmodel.TaskDetailsViewModel
-import java.time.Instant
-import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.Locale
 
 @Composable
 fun TaskDetailsScreen(
@@ -292,263 +260,3 @@ private fun TaskDetailsContent(
     }
 }
 
-@Composable
-private fun TaskDetailsHeaderCard(
-    sectionId: Long,
-    task: TaskDetailsUi,
-    isTaskMenuOpen: Boolean,
-    onEvent: (TaskDetailsEvent) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = if (task.completed) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
-                    contentDescription = "Task completion",
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable {
-                            onEvent(
-                                TaskDetailsEvent.TaskCompletionToggled(
-                                    sectionId = sectionId,
-                                    taskId = task.id
-                                )
-                            )
-                        },
-                    tint = if (task.completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = task.name,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-            Box {
-                IconButton(onClick = { onEvent(TaskDetailsEvent.TaskMenuOpened(task.id)) }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreHoriz,
-                        contentDescription = "Task options"
-                    )
-                }
-                DropdownMenu(
-                    expanded = isTaskMenuOpen,
-                    onDismissRequest = { onEvent(TaskDetailsEvent.TaskMenuDismissed) }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(text = "Edit") },
-                        onClick = {
-                            onEvent(
-                                TaskDetailsEvent.TaskEditClicked(
-                                    sectionId = sectionId,
-                                    taskId = task.id
-                                )
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Delete") },
-                        onClick = {
-                            onEvent(
-                                TaskDetailsEvent.TaskDeleteClicked(
-                                    sectionId = sectionId,
-                                    taskId = task.id
-                                )
-                            )
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DateInputField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
-    var showCalendar by remember { mutableStateOf(false) }
-    val normalizedValue = normalizeDateForInput(value)
-    val digits = normalizedValue.filter(Char::isDigit).take(8)
-
-    OutlinedTextField(
-        value = digits,
-        onValueChange = { input ->
-            val clean = input.filter(Char::isDigit).take(8)
-            onValueChange(formatDateDigits(clean))
-        },
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text(label) },
-        placeholder = { Text("DD/MM/YYYY") },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        visualTransformation = DateDigitsVisualTransformation,
-        trailingIcon = {
-            IconButton(onClick = { showCalendar = true }) {
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = "Open $label calendar"
-                )
-            }
-        }
-    )
-
-    if (showCalendar) {
-        val englishContext = remember(context, configuration) {
-            val config = Configuration(configuration).apply {
-                setLocale(Locale.ENGLISH)
-            }
-            context.createConfigurationContext(config)
-        }
-        val initialDate = parseDisplayDate(normalizedValue)
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialDate
-                ?.atStartOfDay(ZoneOffset.UTC)
-                ?.toInstant()
-                ?.toEpochMilli()
-        )
-        DatePickerDialog(
-            onDismissRequest = { showCalendar = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    val selectedMillis = datePickerState.selectedDateMillis
-                    if (selectedMillis != null) {
-                        val selectedDate = Instant.ofEpochMilli(selectedMillis)
-                            .atZone(ZoneOffset.UTC)
-                            .toLocalDate()
-                        onValueChange(selectedDate.format(DISPLAY_DATE_FORMATTER))
-                    }
-                    showCalendar = false
-                }) {
-                    Text("Select")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCalendar = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            androidx.compose.runtime.CompositionLocalProvider(LocalContext provides englishContext) {
-                DatePicker(
-                    state = datePickerState,
-                    showModeToggle = false
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LoadingState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun ErrorState(message: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Something went wrong",
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-private val DISPLAY_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
-private fun formatDateDigits(digits: String): String {
-    val clean = digits.filter(Char::isDigit).take(8)
-    return buildString {
-        clean.forEachIndexed { index, c ->
-            append(c)
-            if (index == 1 || index == 3) append('/')
-        }
-    }
-}
-
-private fun parseDisplayDate(value: String): LocalDate? {
-    if (value.isBlank()) return null
-    return parseAnyDateToLocalDate(value)
-}
-
-private fun normalizeDateForInput(value: String): String {
-    val raw = value.trim()
-    if (raw.isBlank()) return ""
-    val parsed = parseAnyDateToLocalDate(raw) ?: return raw
-    return parsed.format(DISPLAY_DATE_FORMATTER)
-}
-
-private fun parseAnyDateToLocalDate(raw: String): LocalDate? {
-    return runCatching { LocalDate.parse(raw, DISPLAY_DATE_FORMATTER) }.getOrNull()
-        ?: runCatching { LocalDate.parse(raw) }.getOrNull()
-        ?: runCatching { OffsetDateTime.parse(raw).toLocalDate() }.getOrNull()
-        ?: runCatching { Instant.parse(raw).atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull()
-}
-
-private object DateDigitsVisualTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val input = text.text.filter(Char::isDigit).take(8)
-        val day = input.take(2).padEnd(2, '_')
-        val month = input.drop(2).take(2).padEnd(2, '_')
-        val year = input.drop(4).take(4).padEnd(4, '_')
-        val transformed = "$day/$month/$year"
-        return TransformedText(
-            text = AnnotatedString(transformed),
-            offsetMapping = object : OffsetMapping {
-                override fun originalToTransformed(offset: Int): Int {
-                    val o = offset.coerceIn(0, input.length)
-                    return when {
-                        o <= 1 -> o
-                        o <= 3 -> o + 1
-                        else -> o + 2
-                    }
-                }
-
-                override fun transformedToOriginal(offset: Int): Int {
-                    val t = offset.coerceIn(0, 10)
-                    val raw = when {
-                        t <= 2 -> t
-                        t <= 5 -> t - 1
-                        else -> t - 2
-                    }
-                    return raw.coerceIn(0, input.length)
-                }
-            }
-        )
-    }
-}
