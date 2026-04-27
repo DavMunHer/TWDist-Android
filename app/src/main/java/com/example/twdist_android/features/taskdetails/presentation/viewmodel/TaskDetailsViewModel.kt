@@ -8,8 +8,8 @@ import com.example.twdist_android.features.projectdetails.application.usecases.p
 import com.example.twdist_android.features.projectdetails.application.usecases.task.GetTasksBySectionUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.task.UpdateTaskUseCase
 import com.example.twdist_android.features.projectdetails.domain.model.TaskName
-import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import com.example.twdist_android.features.taskdetails.presentation.event.TaskDetailsEvent
+import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUi
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUiEvent
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -77,7 +77,7 @@ class TaskDetailsViewModel @Inject constructor(
                 return@launch
             }
 
-            val taskUi = TaskUi(
+            val taskUi = TaskDetailsUi(
                 id = task.id,
                 name = task.name,
                 completed = task.completed,

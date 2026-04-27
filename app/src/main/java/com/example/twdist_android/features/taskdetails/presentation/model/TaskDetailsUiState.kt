@@ -1,7 +1,5 @@
 package com.example.twdist_android.features.taskdetails.presentation.model
 
-import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
-
 data class TaskDetailsUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
@@ -9,7 +7,7 @@ data class TaskDetailsUiState(
     val projectName: String = "",
     val sectionId: Long? = null,
     val taskId: Long? = null,
-    val task: TaskUi? = null,
+    val task: TaskDetailsUi? = null,
     val openProjectMenu: Boolean = false,
     val openTaskMenuForId: Long? = null,
     val editingTaskId: Long? = null,

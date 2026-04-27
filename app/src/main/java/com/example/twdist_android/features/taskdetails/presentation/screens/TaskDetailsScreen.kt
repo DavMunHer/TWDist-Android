@@ -54,6 +54,7 @@ import com.example.twdist_android.features.projectdetails.presentation.component
 import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
 import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import com.example.twdist_android.features.taskdetails.presentation.event.TaskDetailsEvent
+import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUi
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUiEvent
 import com.example.twdist_android.features.taskdetails.presentation.viewmodel.TaskDetailsViewModel
 import java.time.Instant
@@ -116,7 +117,7 @@ fun TaskDetailsScreen(
 private fun TaskDetailsContent(
     projectName: String,
     sectionId: Long,
-    task: TaskUi,
+    task: TaskDetailsUi,
     isMenuOpen: Boolean,
     startDate: String,
     endDate: String,
@@ -178,7 +179,7 @@ private fun TaskDetailsContent(
 
         TaskCard(
             sectionId = sectionId,
-            taskItem = task,
+            taskItem = task.toProjectDetailsTaskUi(),
             isTaskMenuOpen = openTaskMenuForId == task.id,
             onTaskEvent = { taskEvent ->
                 when (taskEvent) {
@@ -309,6 +310,17 @@ private fun TaskDetailsContent(
             )
         }
     }
+}
+
+private fun TaskDetailsUi.toProjectDetailsTaskUi(): TaskUi {
+    return TaskUi(
+        id = id,
+        name = name,
+        completed = completed,
+        description = description,
+        startDate = startDate,
+        endDate = endDate
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
