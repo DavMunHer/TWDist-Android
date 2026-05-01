@@ -4,10 +4,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    id("org.jetbrains.kotlin.kapt")
+    alias(libs.plugins.ksp)
     alias(libs.plugins.dagger.hilt)
 }
 
@@ -61,10 +60,6 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
-kapt {
-    correctErrorTypes = true
-}
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.recyclerview)
@@ -85,7 +80,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    add("kapt", libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
     // SavedStateHandle support
