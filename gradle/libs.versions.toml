@@ -13,7 +13,8 @@ kotlinxSerializationJson = "1.7.3"
 mockk = "1.14.9"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
-hilt = "2.54"
+hilt = "2.59.2"
+ksp = "2.3.7"
 hiltNavigationCompose = "1.2.0"
 robolectric = "4.16.1"
 recyclerview = "1.4.0"
@@ -59,3 +60,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
