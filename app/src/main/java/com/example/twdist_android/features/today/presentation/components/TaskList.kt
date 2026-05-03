@@ -9,12 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.twdist_android.features.today.presentation.model.TaskState
+import com.example.twdist_android.core.ui.components.task.TaskRow
+import com.example.twdist_android.core.ui.components.task.TaskRowState
 
 @Composable
 fun TodayTaskList(
-    tasks: List<TaskState>,
-    onTaskCompleted: (TaskState) -> Unit,
+    tasks: List<TaskRowState>,
+    onTaskCompleted: (TaskRowState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -23,7 +24,7 @@ fun TodayTaskList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(tasks) { task ->
-            TodayTaskRow(
+            TaskRow(
                 task = task,
                 onCompleted = onTaskCompleted
             )
@@ -35,21 +36,21 @@ fun TodayTaskList(
 @Composable
 private fun TaskListPreview() {
     val sampleTasks = listOf(
-        TaskState(
+        TaskRowState(
             id = 1L,
             projectId = 1L,
             sectionId = 1L,
             title = "Tema 1 y 2",
             projectName = "School"
         ),
-        TaskState(
+        TaskRowState(
             id = 2L,
             projectId = 1L,
             sectionId = 1L,
             title = "Tareas de navidad",
             projectName = "Personal"
         ),
-        TaskState(
+        TaskRowState(
             id = 3L,
             projectId = 1L,
             sectionId = 1L,

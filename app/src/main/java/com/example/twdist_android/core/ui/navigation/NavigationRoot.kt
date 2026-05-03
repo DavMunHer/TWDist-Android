@@ -18,7 +18,7 @@ import com.example.twdist_android.features.favorite.presentation.screens.Favorit
 import com.example.twdist_android.features.projectdetails.presentation.screens.ProjectDetailsScreen
 import com.example.twdist_android.features.taskdetails.presentation.screens.TaskDetailsScreen
 import com.example.twdist_android.features.today.presentation.screens.TodayScreen
-import com.example.twdist_android.features.upcoming.presentation.screens.UpcomingScreenPreview
+import com.example.twdist_android.features.upcoming.presentation.screens.UpcomingScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -66,7 +66,7 @@ fun NavigationRoot() {
             }
             entry<UpcomingScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    UpcomingScreenPreview()
+                    UpcomingScreen()
                 }
             }
             entry<FavoriteScreenKey> {
