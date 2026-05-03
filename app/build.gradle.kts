@@ -111,7 +111,6 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
     implementation("androidx.navigation3:navigation3-runtime:1.0.0")
     implementation("androidx.navigation3:navigation3-ui:1.0.0")
-    implementation("com.kizitonwose.calendar:compose:2.5.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
 }
