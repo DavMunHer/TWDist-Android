@@ -8,7 +8,7 @@ data class UpcomingTaskResponseDto(
     val name: String,
     val description: String? = null,
     val startDate: String? = null,
-    val endDate: String? = null,
+    val endDate: String,
     val sectionId: Long,
     val projectId: Long,
     val projectName: String
