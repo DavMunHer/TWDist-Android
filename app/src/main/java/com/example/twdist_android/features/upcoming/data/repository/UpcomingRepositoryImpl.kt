@@ -47,6 +47,8 @@ class UpcomingRepositoryImpl @Inject constructor(
         }
     }
 
+    // Undo reuses the same PATCH endpoint as complete, but sends completedDate = null,
+    // which clears the completion date on the backend.
     override suspend fun undoCompleteTask(projectId: Long, sectionId: Long, taskId: Long): Result<Unit> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
