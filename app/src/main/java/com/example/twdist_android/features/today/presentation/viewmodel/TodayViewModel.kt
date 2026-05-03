@@ -2,10 +2,10 @@ package com.example.twdist_android.features.today.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.twdist_android.core.ui.components.task.TaskRowState
 import com.example.twdist_android.features.today.application.usecases.CompleteTodayTaskUseCase
 import com.example.twdist_android.features.today.application.usecases.GetTodayTasksUseCase
 import com.example.twdist_android.features.today.application.usecases.UndoCompleteTodayTaskUseCase
-import com.example.twdist_android.features.today.presentation.model.TaskState
 import com.example.twdist_android.features.today.presentation.model.TodayUiEvent
 import com.example.twdist_android.features.today.presentation.model.TodayUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,7 +48,7 @@ class TodayViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             tasks = tasks.map { task ->
-                                TaskState(
+                                TaskRowState(
                                     id = task.id,
                                     projectId = task.projectId,
                                     sectionId = task.sectionId,
@@ -68,7 +68,7 @@ class TodayViewModel @Inject constructor(
         }
     }
 
-    fun onTaskCompleted(task: TaskState) {
+    fun onTaskCompleted(task: TaskRowState) {
         if (task.isCompleted) return
 
         viewModelScope.launch {
@@ -89,7 +89,7 @@ class TodayViewModel @Inject constructor(
         }
     }
 
-    fun undoTaskCompleted(task: TaskState) {
+    fun undoTaskCompleted(task: TaskRowState) {
         viewModelScope.launch {
             undoCompleteTodayTaskUseCase(
                 projectId = task.projectId,

@@ -31,8 +31,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.twdist_android.core.ui.components.task.TaskRowState
 import com.example.twdist_android.features.today.presentation.components.TodayTaskList
-import com.example.twdist_android.features.today.presentation.model.TaskState
 import com.example.twdist_android.features.today.presentation.model.TodayUiEvent
 import com.example.twdist_android.features.today.presentation.model.TodayUiState
 import com.example.twdist_android.features.today.presentation.viewmodel.TodayViewModel
@@ -92,7 +92,7 @@ fun TodayScreen(
 @Composable
 fun TodayScreenContent(
     uiState: TodayUiState,
-    onTaskCompleted: (TaskState) -> Unit,
+    onTaskCompleted: (TaskRowState) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -157,14 +157,14 @@ fun TodayScreenContentPreview() {
         uiState = TodayUiState(
             formattedDate = "Monday, 22 Jan",
             tasks = listOf(
-                TaskState(
+                TaskRowState(
                     id = 1L,
                     projectId = 1L,
                     sectionId = 1L,
                     title = "Estudiar tema 1",
                     projectName = "Ingles"
                 ),
-                TaskState(
+                TaskRowState(
                     id = 2L,
                     projectId = 1L,
                     sectionId = 1L,

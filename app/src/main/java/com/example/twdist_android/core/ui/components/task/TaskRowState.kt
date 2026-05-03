@@ -1,6 +1,6 @@
-package com.example.twdist_android.features.today.presentation.model
+package com.example.twdist_android.core.ui.components.task
 
-data class TaskState(
+data class TaskRowState(
     val id: Long,
     val projectId: Long,
     val sectionId: Long,
