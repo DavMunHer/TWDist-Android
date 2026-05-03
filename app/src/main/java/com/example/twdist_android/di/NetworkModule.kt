@@ -6,6 +6,7 @@ import com.example.twdist_android.features.auth.data.remote.AuthApi
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.today.data.remote.TodayApi
+import com.example.twdist_android.features.upcoming.data.remote.UpcomingApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -76,4 +77,9 @@ object NetworkModule {
     @Singleton
     fun provideTodayApi(retrofit: Retrofit): TodayApi =
         retrofit.create(TodayApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUpcomingApi(retrofit: Retrofit): UpcomingApi =
+        retrofit.create(UpcomingApi::class.java)
 }
