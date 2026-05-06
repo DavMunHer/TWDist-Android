@@ -10,5 +10,5 @@ fun UpcomingTaskResponseDto.toDomainUpcomingTask(): UpcomingTask = UpcomingTask(
     projectId = projectId,
     name = name,
     projectName = projectName,
-    endDate = LocalDate.parse(endDate)
+    startDate = LocalDate.parse(startDate)
 )

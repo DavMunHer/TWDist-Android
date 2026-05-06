@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.SharedFlow
 
 @Singleton
 class TaskEventBus @Inject constructor() {
-    private val _taskEndDateUpdated = MutableSharedFlow<TaskEndDateUpdatedEvent>()
-    val taskEndDateUpdated: SharedFlow<TaskEndDateUpdatedEvent> = _taskEndDateUpdated
+    private val _taskStartDateUpdated = MutableSharedFlow<TaskStartDateUpdatedEvent>()
+    val taskStartDateUpdated: SharedFlow<TaskStartDateUpdatedEvent> = _taskStartDateUpdated
 
-    suspend fun emitEndDateUpdated(taskId: Long, newEndDate: LocalDate?) {
-        _taskEndDateUpdated.emit(TaskEndDateUpdatedEvent(taskId, newEndDate))
+    suspend fun emitStartDateUpdated(taskId: Long, newStartDate: LocalDate?) {
+        _taskStartDateUpdated.emit(TaskStartDateUpdatedEvent(taskId, newStartDate))
     }
 }

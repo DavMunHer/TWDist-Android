@@ -41,8 +41,8 @@ class UpcomingViewModel @Inject constructor(
     init {
         loadUpcomingTasks()
         viewModelScope.launch {
-            taskEventBus.taskEndDateUpdated.collect { event ->
-                applyEndDateUpdate(event.taskId, event.newEndDate)
+            taskEventBus.taskStartDateUpdated.collect { event ->
+                applyStartDateUpdate(event.taskId, event.newStartDate)
             }
         }
     }
@@ -65,6 +65,21 @@ class UpcomingViewModel @Inject constructor(
                 }
                 .onFailure { throwable ->
                     _uiState.update { it.copy(isLoading = false, error = throwable.message) }
+                }
+        }
+    }
+
+    // Silent background refresh — no loading spinner, errors are swallowed so stale
+    // data keeps showing rather than flashing an error on every screen resume.
+    fun refreshTasks() {
+        viewModelScope.launch {
+            val today = LocalDate.now()
+            val endOfMonth = today.with(TemporalAdjusters.lastDayOfMonth())
+            getUpcomingTasksUseCase(from = today, to = endOfMonth)
+                .onSuccess { tasks ->
+                    _uiState.update { state ->
+                        state.copy(items = buildListItems(today, endOfMonth, tasks))
+                    }
                 }
         }
     }
@@ -129,7 +144,7 @@ class UpcomingViewModel @Inject constructor(
         }
     }
 
-    private fun applyEndDateUpdate(taskId: Long, newEndDate: LocalDate?) {
+    private fun applyStartDateUpdate(taskId: Long, newStartDate: LocalDate?) {
         val today = LocalDate.now()
         val endOfMonth = today.with(TemporalAdjusters.lastDayOfMonth())
 
@@ -143,11 +158,11 @@ class UpcomingViewModel @Inject constructor(
                 it is UpcomingListItem.Task && it.state.id == taskId
             }
 
-            if (newEndDate == null || newEndDate.isBefore(today) || newEndDate.isAfter(endOfMonth)) {
+            if (newStartDate == null || newStartDate.isBefore(today) || newStartDate.isAfter(endOfMonth)) {
                 return@update state.copy(items = withoutTask)
             }
 
-            val movedTask = existingTask.copy(date = newEndDate)
+            val movedTask = existingTask.copy(date = newStartDate)
             state.copy(items = reinsertTask(withoutTask, movedTask))
         }
     }
@@ -157,7 +172,7 @@ class UpcomingViewModel @Inject constructor(
         to: LocalDate,
         tasks: List<UpcomingTask>
     ): List<UpcomingListItem> {
-        val byDate = tasks.groupBy { it.endDate }
+        val byDate = tasks.groupBy { it.startDate }
         val result = mutableListOf<UpcomingListItem>()
         var current = from
         while (!current.isAfter(to)) {
