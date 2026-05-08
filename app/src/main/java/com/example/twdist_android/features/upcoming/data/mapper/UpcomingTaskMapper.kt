@@ -14,6 +14,6 @@ fun UpcomingTaskResponseDto.toDomainUpcomingTaskOrNull(): UpcomingTask? {
         projectId = projectId,
         name = name,
         projectName = projectName,
-        endDate = parsedDate
+        startDate = parsedDate
     )
 }
