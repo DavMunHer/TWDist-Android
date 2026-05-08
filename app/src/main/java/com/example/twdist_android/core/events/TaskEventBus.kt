@@ -14,4 +14,11 @@ class TaskEventBus @Inject constructor() {
     suspend fun emitEndDateUpdated(taskId: Long, newEndDate: LocalDate?) {
         _taskEndDateUpdated.emit(TaskEndDateUpdatedEvent(taskId, newEndDate))
     }
+
+    private val _taskStartDateUpdated = MutableSharedFlow<TaskStartDateUpdatedEvent>()
+    val taskStartDateUpdated: SharedFlow<TaskStartDateUpdatedEvent> = _taskStartDateUpdated
+
+    suspend fun emitStartDateUpdated(event: TaskStartDateUpdatedEvent) {
+        _taskStartDateUpdated.emit(event)
+    }
 }
