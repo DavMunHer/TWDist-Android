@@ -177,12 +177,6 @@ class TaskDetailsViewModel @Inject constructor(
                     )
                 }
                 taskEventBus.emitStartDateUpdated(
-                    taskId = taskId,
-                    newStartDate = updatedTask.startDate?.let {
-                        runCatching { LocalDate.parse(it) }.getOrNull()
-                    }
-                )
-                taskEventBus.emitStartDateUpdated(
                     TaskStartDateUpdatedEvent(
                         taskId = taskId,
                         projectId = projectId,
