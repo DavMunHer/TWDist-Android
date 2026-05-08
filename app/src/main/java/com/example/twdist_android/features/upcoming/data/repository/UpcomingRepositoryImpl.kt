@@ -3,7 +3,7 @@ package com.example.twdist_android.features.upcoming.data.repository
 import com.example.twdist_android.core.coroutines.runSuspendCatching
 import com.example.twdist_android.features.projectdetails.data.dto.task.CompleteTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toCompleteTaskRequestDto
-import com.example.twdist_android.features.upcoming.data.mapper.toDomainUpcomingTask
+import com.example.twdist_android.features.upcoming.data.mapper.toDomainUpcomingTaskOrNull
 import com.example.twdist_android.features.upcoming.data.remote.UpcomingApi
 import com.example.twdist_android.features.upcoming.domain.model.UpcomingTask
 import com.example.twdist_android.features.upcoming.domain.repository.UpcomingRepository
@@ -26,7 +26,7 @@ class UpcomingRepositoryImpl @Inject constructor(
                 if (!response.isSuccessful) {
                     error("Failed to fetch upcoming tasks (HTTP ${response.code()})")
                 }
-                response.body().orEmpty().map { it.toDomainUpcomingTask() }
+                response.body().orEmpty().mapNotNull { it.toDomainUpcomingTaskOrNull() }
             }
         }
     }
