@@ -9,8 +9,18 @@ import com.example.twdist_android.features.today.domain.model.TodayTask
 import com.example.twdist_android.features.today.domain.repository.TodayRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import javax.inject.Inject
+
+private fun parseAnyDate(raw: String?): LocalDate? {
+    if (raw.isNullOrBlank()) return null
+    return runCatching { LocalDate.parse(raw) }.getOrNull()
+        ?: runCatching { OffsetDateTime.parse(raw).toLocalDate() }.getOrNull()
+        ?: runCatching { Instant.parse(raw).atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull()
+}
 
 class TodayRepositoryImpl @Inject constructor(
     private val api: TodayApi
@@ -23,7 +33,13 @@ class TodayRepositoryImpl @Inject constructor(
                 if (!response.isSuccessful) {
                     error("Failed to fetch today tasks (HTTP ${response.code()})")
                 }
-                response.body().orEmpty().map { it.toDomainTodayTask() }
+                val today = LocalDate.now()
+                response.body().orEmpty()
+                    .filter { dto ->
+                        val taskStartDate = parseAnyDate(dto.startDate)
+                        taskStartDate == today
+                    }
+                    .map { it.toDomainTodayTask() }
             }
         }
     }
