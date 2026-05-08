@@ -176,9 +176,9 @@ class TaskDetailsViewModel @Inject constructor(
                         saveMessage = "Task details saved"
                     )
                 }
-                taskEventBus.emitEndDateUpdated(
+                taskEventBus.emitStartDateUpdated(
                     taskId = taskId,
-                    newEndDate = updatedTask.endDate?.let {
+                    newStartDate = updatedTask.startDate?.let {
                         runCatching { LocalDate.parse(it) }.getOrNull()
                     }
                 )
