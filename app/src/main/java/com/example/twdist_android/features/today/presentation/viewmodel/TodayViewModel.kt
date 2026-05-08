@@ -2,6 +2,8 @@ package com.example.twdist_android.features.today.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.twdist_android.core.events.TaskEventBus
+import com.example.twdist_android.core.events.TaskStartDateUpdatedEvent
 import com.example.twdist_android.core.ui.components.task.TaskRowState
 import com.example.twdist_android.features.today.application.usecases.CompleteTodayTaskUseCase
 import com.example.twdist_android.features.today.application.usecases.GetTodayTasksUseCase
@@ -24,7 +26,8 @@ import javax.inject.Inject
 class TodayViewModel @Inject constructor(
     private val getTodayTasksUseCase: GetTodayTasksUseCase,
     private val completeTodayTaskUseCase: CompleteTodayTaskUseCase,
-    private val undoCompleteTodayTaskUseCase: UndoCompleteTodayTaskUseCase
+    private val undoCompleteTodayTaskUseCase: UndoCompleteTodayTaskUseCase,
+    private val taskEventBus: TaskEventBus
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -36,6 +39,11 @@ class TodayViewModel @Inject constructor(
 
     init {
         loadTodayTasks()
+        viewModelScope.launch {
+            taskEventBus.taskStartDateUpdated.collect { event ->
+                applyStartDateUpdate(event)
+            }
+        }
     }
 
     fun loadTodayTasks() {
@@ -107,6 +115,30 @@ class TodayViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(error = throwable.message)
                 }
+            }
+        }
+    }
+
+    private fun applyStartDateUpdate(event: TaskStartDateUpdatedEvent) {
+        val today = LocalDate.now()
+        _uiState.update { state ->
+            val existingIndex = state.tasks.indexOfFirst { it.id == event.taskId }
+            if (event.newStartDate == today) {
+                val updatedRow = TaskRowState(
+                    id = event.taskId,
+                    projectId = event.projectId,
+                    sectionId = event.sectionId,
+                    title = event.taskName,
+                    projectName = event.projectName,
+                    isCompleted = false
+                )
+                if (existingIndex >= 0) {
+                    state.copy(tasks = state.tasks.toMutableList().also { it[existingIndex] = updatedRow })
+                } else {
+                    state.copy(tasks = listOf(updatedRow) + state.tasks)
+                }
+            } else {
+                state.copy(tasks = state.tasks.filterNot { it.id == event.taskId })
             }
         }
     }

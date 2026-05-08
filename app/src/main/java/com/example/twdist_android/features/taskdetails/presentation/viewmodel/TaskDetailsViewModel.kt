@@ -3,6 +3,7 @@ package com.example.twdist_android.features.taskdetails.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.twdist_android.core.events.TaskEventBus
+import com.example.twdist_android.core.events.TaskStartDateUpdatedEvent
 import com.example.twdist_android.features.projectdetails.application.usecases.task.CompleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.task.DeleteTaskUseCase
 import com.example.twdist_android.features.projectdetails.application.usecases.project.GetProjectByIdUseCase
@@ -176,10 +177,16 @@ class TaskDetailsViewModel @Inject constructor(
                     )
                 }
                 taskEventBus.emitStartDateUpdated(
-                    taskId = taskId,
-                    newStartDate = updatedTask.startDate?.let {
-                        runCatching { LocalDate.parse(it) }.getOrNull()
-                    }
+                    TaskStartDateUpdatedEvent(
+                        taskId = taskId,
+                        projectId = projectId,
+                        sectionId = sectionId,
+                        taskName = updatedTask.name,
+                        projectName = state.projectName,
+                        newStartDate = updatedTask.startDate?.let {
+                            runCatching { LocalDate.parse(it) }.getOrNull()
+                        }
+                    )
                 )
                 _events.emit(TaskDetailsUiEvent.NavigateBackToProjectDetails)
             }.onFailure { error ->

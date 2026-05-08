@@ -201,13 +201,6 @@ private fun TaskDetailsContent(
             )
         }
 
-        Button(
-            onClick = {},
-            enabled = false
-        ) {
-            Text(text = "Add Subtask")
-        }
-
         if (editingTaskId != null) {
             AlertDialog(
                 onDismissRequest = { onEvent(TaskDetailsEvent.TaskEditDismissed) },
