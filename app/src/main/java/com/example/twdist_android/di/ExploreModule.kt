@@ -1,6 +1,6 @@
 package com.example.twdist_android.di
 
-import com.example.twdist_android.core.data.local.dao.ProjectDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
 import com.example.twdist_android.features.explore.data.repository.ProjectRepositoryImpl
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
@@ -22,8 +22,8 @@ object ExploreModule {
     @Singleton
     fun provideProjectRepository(
         api: ExploreApi,
-        projectDao: ProjectDao
-    ): ProjectRepository = ProjectRepositoryImpl(api, projectDao)
+        db: TWDistDatabase
+    ): ProjectRepository = ProjectRepositoryImpl(api, db)
 
     @Provides
     @Singleton

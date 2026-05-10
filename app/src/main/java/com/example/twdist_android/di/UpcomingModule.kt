@@ -1,8 +1,6 @@
 package com.example.twdist_android.di
 
-import com.example.twdist_android.core.data.local.dao.ProjectDao
-import com.example.twdist_android.core.data.local.dao.SectionDao
-import com.example.twdist_android.core.data.local.dao.TaskDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.upcoming.application.usecases.CompleteUpcomingTaskUseCase
 import com.example.twdist_android.features.upcoming.application.usecases.GetUpcomingTasksUseCase
 import com.example.twdist_android.features.upcoming.application.usecases.RefreshUpcomingTasksUseCase
@@ -24,10 +22,8 @@ object UpcomingModule {
     @Singleton
     fun provideUpcomingRepository(
         api: UpcomingApi,
-        taskDao: TaskDao,
-        sectionDao: SectionDao,
-        projectDao: ProjectDao
-    ): UpcomingRepository = UpcomingRepositoryImpl(api, taskDao, sectionDao, projectDao)
+        db: TWDistDatabase
+    ): UpcomingRepository = UpcomingRepositoryImpl(api, db)
 
     @Provides
     @Singleton

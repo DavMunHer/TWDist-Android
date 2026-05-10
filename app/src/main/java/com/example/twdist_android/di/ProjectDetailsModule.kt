@@ -1,8 +1,6 @@
 package com.example.twdist_android.di
 
-import com.example.twdist_android.core.data.local.dao.ProjectDao
-import com.example.twdist_android.core.data.local.dao.SectionDao
-import com.example.twdist_android.core.data.local.dao.TaskDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.projectdetails.data.repository.ProjectDetailsRepositoryImpl
 import com.example.twdist_android.features.projectdetails.data.repository.SectionRepositoryImpl
@@ -27,24 +25,22 @@ object ProjectDetailsModule {
     @Singleton
     fun provideProjectDetailsRepository(
         api: ProjectDetailsApi,
-        projectDao: ProjectDao,
-        sectionDao: SectionDao
-    ): ProjectDetailsRepository = ProjectDetailsRepositoryImpl(api, projectDao, sectionDao)
+        db: TWDistDatabase
+    ): ProjectDetailsRepository = ProjectDetailsRepositoryImpl(api, db)
 
     @Provides
     @Singleton
     fun provideSectionRepository(
         api: ProjectDetailsApi,
-        sectionDao: SectionDao,
-        taskDao: TaskDao
-    ): SectionRepository = SectionRepositoryImpl(api, sectionDao, taskDao)
+        db: TWDistDatabase
+    ): SectionRepository = SectionRepositoryImpl(api, db)
 
     @Provides
     @Singleton
     fun provideTaskRepository(
         api: ProjectDetailsApi,
-        taskDao: TaskDao
-    ): TaskRepository = TaskRepositoryImpl(api, taskDao)
+        db: TWDistDatabase
+    ): TaskRepository = TaskRepositoryImpl(api, db)
 
     @Provides
     @Singleton

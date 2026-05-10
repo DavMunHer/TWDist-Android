@@ -3,8 +3,7 @@ package com.example.twdist_android.features.projectdetails.data.repository
 import android.util.Log
 import com.example.twdist_android.BuildConfig
 import com.example.twdist_android.core.coroutines.runSuspendCatching
-import com.example.twdist_android.core.data.local.dao.ProjectDao
-import com.example.twdist_android.core.data.local.dao.SectionDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.projectdetails.data.dto.project.UpdateProjectRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
 import com.example.twdist_android.features.projectdetails.data.mapper.toEntity
@@ -18,9 +17,11 @@ import javax.inject.Inject
 
 class ProjectDetailsRepositoryImpl @Inject constructor(
     private val api: ProjectDetailsApi,
-    private val projectDao: ProjectDao,
-    private val sectionDao: SectionDao
+    private val db: TWDistDatabase
 ) : ProjectDetailsRepository {
+
+    private val projectDao get() = db.projectDao()
+    private val sectionDao get() = db.sectionDao()
     companion object {
         private const val TAG = "ProjectDetailsRepo"
     }

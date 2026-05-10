@@ -1,7 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
-import com.example.twdist_android.core.data.local.dao.TaskDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.projectdetails.data.dto.task.CreateTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.dto.task.UpdateTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toCompleteTaskRequestDto
@@ -18,8 +18,10 @@ import javax.inject.Inject
 
 class TaskRepositoryImpl @Inject constructor(
     private val api: ProjectDetailsApi,
-    private val taskDao: TaskDao
+    private val db: TWDistDatabase
 ) : TaskRepository {
+
+    private val taskDao get() = db.taskDao()
 
     override suspend fun getTasksBySection(projectId: Long, sectionId: Long): Result<List<Task>> {
         return runSuspendCatching {

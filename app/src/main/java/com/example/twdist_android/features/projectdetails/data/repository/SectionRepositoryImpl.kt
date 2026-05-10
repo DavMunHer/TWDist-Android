@@ -1,8 +1,7 @@
 package com.example.twdist_android.features.projectdetails.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
-import com.example.twdist_android.core.data.local.dao.SectionDao
-import com.example.twdist_android.core.data.local.dao.TaskDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.projectdetails.data.dto.section.UpdateSectionRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomain
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
@@ -17,9 +16,11 @@ import javax.inject.Inject
 
 class SectionRepositoryImpl @Inject constructor(
     private val api: ProjectDetailsApi,
-    private val sectionDao: SectionDao,
-    private val taskDao: TaskDao
+    private val db: TWDistDatabase
 ) : SectionRepository {
+
+    private val sectionDao get() = db.sectionDao()
+    private val taskDao get() = db.taskDao()
 
     override suspend fun getSectionsByProjectId(projectId: Long): Result<List<Section>> {
         return runSuspendCatching {

@@ -1,8 +1,6 @@
 package com.example.twdist_android.di
 
-import com.example.twdist_android.core.data.local.dao.ProjectDao
-import com.example.twdist_android.core.data.local.dao.SectionDao
-import com.example.twdist_android.core.data.local.dao.TaskDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.today.application.usecases.CompleteTodayTaskUseCase
 import com.example.twdist_android.features.today.application.usecases.GetTodayTasksUseCase
 import com.example.twdist_android.features.today.application.usecases.RefreshTodayTasksUseCase
@@ -24,10 +22,8 @@ object TodayModule {
     @Singleton
     fun provideTodayRepository(
         api: TodayApi,
-        taskDao: TaskDao,
-        sectionDao: SectionDao,
-        projectDao: ProjectDao
-    ): TodayRepository = TodayRepositoryImpl(api, taskDao, sectionDao, projectDao)
+        db: TWDistDatabase
+    ): TodayRepository = TodayRepositoryImpl(api, db)
 
     @Provides
     @Singleton

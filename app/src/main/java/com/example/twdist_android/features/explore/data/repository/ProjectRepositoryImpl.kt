@@ -1,7 +1,8 @@
 package com.example.twdist_android.features.explore.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
-import com.example.twdist_android.core.data.local.dao.ProjectDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
+import com.example.twdist_android.core.data.local.entity.ProjectEntity
 import com.example.twdist_android.features.explore.data.dto.ChangeFavoriteRequestDto
 import com.example.twdist_android.features.explore.data.dto.CreateProjectRequestDto
 import com.example.twdist_android.features.explore.data.mapper.toDomainResponse
@@ -19,8 +20,10 @@ import javax.inject.Inject
 
 class ProjectRepositoryImpl @Inject constructor(
     private val api: ExploreApi,
-    private val projectDao: ProjectDao
+    private val db: TWDistDatabase
 ) : ProjectRepository {
+
+    private val projectDao get() = db.projectDao()
 
     override suspend fun getAllProjects(): Result<List<ProjectSummary>> {
         return runSuspendCatching {
@@ -41,11 +44,10 @@ class ProjectRepositoryImpl @Inject constructor(
                 val request = CreateProjectRequestDto(name = projectName.asString())
                 val project = api.createProject(request).toDomainResponse().getOrThrow()
                 projectDao.upsert(
-                    com.example.twdist_android.core.data.local.entity.ProjectEntity(
+                    ProjectEntity(
                         id = project.id,
                         name = project.name.value,
-                        isFavorite = project.isFavorite,
-                        pendingTasks = 0
+                        isFavorite = project.isFavorite
                     )
                 )
                 project
