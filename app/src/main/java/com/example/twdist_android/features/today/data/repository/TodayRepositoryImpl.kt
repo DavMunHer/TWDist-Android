@@ -1,46 +1,46 @@
 package com.example.twdist_android.features.today.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
+import com.example.twdist_android.core.data.local.dao.ProjectDao
+import com.example.twdist_android.core.data.local.dao.SectionDao
+import com.example.twdist_android.core.data.local.dao.TaskDao
 import com.example.twdist_android.features.projectdetails.data.dto.task.CompleteTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toCompleteTaskRequestDto
 import com.example.twdist_android.features.today.data.mapper.toDomainTodayTask
+import com.example.twdist_android.features.today.data.mapper.toProjectEntity
+import com.example.twdist_android.features.today.data.mapper.toSectionEntity
+import com.example.twdist_android.features.today.data.mapper.toTaskEntity
 import com.example.twdist_android.features.today.data.remote.TodayApi
 import com.example.twdist_android.features.today.domain.model.TodayTask
 import com.example.twdist_android.features.today.domain.repository.TodayRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.time.Instant
 import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
-private fun parseAnyDate(raw: String?): LocalDate? {
-    if (raw.isNullOrBlank()) return null
-    return runCatching { LocalDate.parse(raw) }.getOrNull()
-        ?: runCatching { OffsetDateTime.parse(raw).toLocalDate() }.getOrNull()
-        ?: runCatching { Instant.parse(raw).atZone(ZoneId.systemDefault()).toLocalDate() }.getOrNull()
-}
-
 class TodayRepositoryImpl @Inject constructor(
-    private val api: TodayApi
+    private val api: TodayApi,
+    private val taskDao: TaskDao,
+    private val sectionDao: SectionDao,
+    private val projectDao: ProjectDao
 ) : TodayRepository {
 
-    override suspend fun getTodayTasks(): Result<List<TodayTask>> {
-        return runSuspendCatching {
-            withContext(Dispatchers.IO) {
-                val response = api.getTodayTasks()
-                if (!response.isSuccessful) {
-                    error("Failed to fetch today tasks (HTTP ${response.code()})")
-                }
-                val today = LocalDate.now()
-                response.body().orEmpty()
-                    .filter { dto ->
-                        val taskStartDate = parseAnyDate(dto.startDate)
-                        taskStartDate == today
-                    }
-                    .map { it.toDomainTodayTask() }
+    override fun observeTodayTasks(today: LocalDate): Flow<List<TodayTask>> =
+        taskDao.observeByStartDate(today.toString())
+            .map { rows -> rows.map { it.toDomainTodayTask() } }
+
+    override suspend fun refreshTodayTasks(): Result<Unit> = runSuspendCatching {
+        withContext(Dispatchers.IO) {
+            val response = api.getTodayTasks()
+            if (!response.isSuccessful) error("Failed to fetch today tasks (HTTP ${response.code()})")
+            val dtos = response.body().orEmpty()
+            dtos.forEach { dto ->
+                projectDao.insertIfMissing(dto.toProjectEntity())
+                sectionDao.insertIfMissing(dto.toSectionEntity())
             }
+            taskDao.upsertAll(dtos.map { it.toTaskEntity() })
         }
     }
 
@@ -53,9 +53,9 @@ class TodayRepositoryImpl @Inject constructor(
                     taskId = taskId,
                     request = LocalDate.now().toCompleteTaskRequestDto()
                 )
-                if (!response.isSuccessful) {
-                    error("Failed to complete task (HTTP ${response.code()})")
-                }
+                if (!response.isSuccessful) error("Failed to complete task (HTTP ${response.code()})")
+                val existing = taskDao.getById(taskId)
+                if (existing != null) taskDao.upsert(existing.copy(completed = true))
             }
         }
     }
@@ -69,9 +69,9 @@ class TodayRepositoryImpl @Inject constructor(
                     taskId = taskId,
                     request = CompleteTaskRequestDto(completedDate = null)
                 )
-                if (!response.isSuccessful) {
-                    error("Failed to undo task completion (HTTP ${response.code()})")
-                }
+                if (!response.isSuccessful) error("Failed to undo task completion (HTTP ${response.code()})")
+                val existing = taskDao.getById(taskId)
+                if (existing != null) taskDao.upsert(existing.copy(completed = false))
             }
         }
     }
