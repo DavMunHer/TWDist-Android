@@ -21,8 +21,6 @@ import com.example.twdist_android.features.projectdetails.domain.model.SectionNa
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
 import com.example.twdist_android.features.projectdetails.domain.repository.TaskRepository
-import com.example.twdist_android.features.projectdetails.domain.store.ProjectDetailsProjectStateStore
-import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
@@ -47,8 +45,6 @@ class ProjectDetailsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val projectDetailsRepository: ProjectDetailsRepository = mockk()
-    private val projectStateStore: ProjectDetailsProjectStateStore = mockk(relaxed = true)
-    private val sectionStateStore: SectionStateStore = mockk(relaxed = true)
     private val sectionRepository: SectionRepository = mockk()
     private val taskRepository: TaskRepository = mockk()
 
@@ -58,7 +54,7 @@ class ProjectDetailsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
 
-        val getProjectByIdUseCase = GetProjectByIdUseCase(projectDetailsRepository, projectStateStore, sectionStateStore)
+        val getProjectByIdUseCase = GetProjectByIdUseCase(projectDetailsRepository)
         val updateProjectNameUseCase = UpdateProjectNameUseCase(projectDetailsRepository)
         val deleteProjectUseCase = DeleteProjectUseCase(projectDetailsRepository)
         val updateSectionNameUseCase = UpdateSectionNameUseCase(sectionRepository)
