@@ -2,17 +2,16 @@ package com.example.twdist_android.features.today.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.twdist_android.core.events.TaskEventBus
-import com.example.twdist_android.core.events.TaskStartDateUpdatedEvent
 import com.example.twdist_android.core.ui.components.task.TaskRowState
 import com.example.twdist_android.features.today.application.usecases.CompleteTodayTaskUseCase
 import com.example.twdist_android.features.today.application.usecases.GetTodayTasksUseCase
+import com.example.twdist_android.features.today.application.usecases.RefreshTodayTasksUseCase
 import com.example.twdist_android.features.today.application.usecases.UndoCompleteTodayTaskUseCase
 import com.example.twdist_android.features.today.presentation.model.TodayUiEvent
 import com.example.twdist_android.features.today.presentation.model.TodayUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -25,9 +24,9 @@ import javax.inject.Inject
 @HiltViewModel
 class TodayViewModel @Inject constructor(
     private val getTodayTasksUseCase: GetTodayTasksUseCase,
+    private val refreshTodayTasksUseCase: RefreshTodayTasksUseCase,
     private val completeTodayTaskUseCase: CompleteTodayTaskUseCase,
-    private val undoCompleteTodayTaskUseCase: UndoCompleteTodayTaskUseCase,
-    private val taskEventBus: TaskEventBus
+    private val undoCompleteTodayTaskUseCase: UndoCompleteTodayTaskUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -38,61 +37,55 @@ class TodayViewModel @Inject constructor(
     val events: SharedFlow<TodayUiEvent> = _events
 
     init {
-        loadTodayTasks()
         viewModelScope.launch {
-            taskEventBus.taskStartDateUpdated.collect { event ->
-                applyStartDateUpdate(event)
+            getTodayTasksUseCase().collect { tasks ->
+                _uiState.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        tasks = tasks.map { task ->
+                            TaskRowState(
+                                id = task.id,
+                                projectId = task.projectId,
+                                sectionId = task.sectionId,
+                                title = task.name,
+                                projectName = task.projectName,
+                                isCompleted = false
+                            )
+                        }
+                    )
+                }
             }
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            refreshTodayTasksUseCase()
+                .onFailure { throwable ->
+                    _uiState.update { it.copy(isLoading = false, error = throwable.message) }
+                }
         }
     }
 
     fun loadTodayTasks() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-
-            getTodayTasksUseCase()
-                .onSuccess { tasks ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            tasks = tasks.map { task ->
-                                TaskRowState(
-                                    id = task.id,
-                                    projectId = task.projectId,
-                                    sectionId = task.sectionId,
-                                    title = task.name,
-                                    projectName = task.projectName,
-                                    isCompleted = false
-                                )
-                            }
-                        )
-                    }
-                }
+            refreshTodayTasksUseCase()
                 .onFailure { throwable ->
-                    _uiState.update {
-                        it.copy(isLoading = false, error = throwable.message)
-                    }
+                    _uiState.update { it.copy(isLoading = false, error = throwable.message) }
                 }
         }
     }
 
     fun onTaskCompleted(task: TaskRowState) {
         if (task.isCompleted) return
-
         viewModelScope.launch {
             completeTodayTaskUseCase(
                 projectId = task.projectId,
                 sectionId = task.sectionId,
                 taskId = task.id
             ).onSuccess {
-                _uiState.update { state ->
-                    state.copy(tasks = state.tasks.filterNot { it.id == task.id })
-                }
                 _events.emit(TodayUiEvent.TaskCompleted(task))
             }.onFailure { throwable ->
-                _uiState.update { state ->
-                    state.copy(error = throwable.message)
-                }
+                _uiState.update { state -> state.copy(error = throwable.message) }
             }
         }
     }
@@ -103,42 +96,8 @@ class TodayViewModel @Inject constructor(
                 projectId = task.projectId,
                 sectionId = task.sectionId,
                 taskId = task.id
-            ).onSuccess {
-                _uiState.update { state ->
-                    if (state.tasks.any { it.id == task.id }) {
-                        state
-                    } else {
-                        state.copy(tasks = listOf(task.copy(isCompleted = false)) + state.tasks)
-                    }
-                }
-            }.onFailure { throwable ->
-                _uiState.update { state ->
-                    state.copy(error = throwable.message)
-                }
-            }
-        }
-    }
-
-    private fun applyStartDateUpdate(event: TaskStartDateUpdatedEvent) {
-        val today = LocalDate.now()
-        _uiState.update { state ->
-            val existingIndex = state.tasks.indexOfFirst { it.id == event.taskId }
-            if (event.newStartDate == today) {
-                val updatedRow = TaskRowState(
-                    id = event.taskId,
-                    projectId = event.projectId,
-                    sectionId = event.sectionId,
-                    title = event.taskName,
-                    projectName = event.projectName,
-                    isCompleted = false
-                )
-                if (existingIndex >= 0) {
-                    state.copy(tasks = state.tasks.toMutableList().also { it[existingIndex] = updatedRow })
-                } else {
-                    state.copy(tasks = listOf(updatedRow) + state.tasks)
-                }
-            } else {
-                state.copy(tasks = state.tasks.filterNot { it.id == event.taskId })
+            ).onFailure { throwable ->
+                _uiState.update { state -> state.copy(error = throwable.message) }
             }
         }
     }
