@@ -1,10 +1,10 @@
 package com.example.twdist_android.di
 
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
 import com.example.twdist_android.features.explore.data.repository.ProjectRepositoryImpl
-import com.example.twdist_android.features.explore.data.store.inmemory.InMemoryProjectStore
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
-import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
+import com.example.twdist_android.features.explore.application.usecases.ChangeProjectFavoriteUseCase
 import com.example.twdist_android.features.explore.application.usecases.CreateProjectUseCase
 import com.example.twdist_android.features.explore.application.usecases.DeleteProjectUseCase
 import com.example.twdist_android.features.explore.application.usecases.GetProjectsUseCase
@@ -20,36 +20,28 @@ object ExploreModule {
 
     @Provides
     @Singleton
-    fun provideProjectStateStore(): ProjectStateStore = InMemoryProjectStore()
-
-    @Provides
-    @Singleton
     fun provideProjectRepository(
-        api: ExploreApi
-    ): ProjectRepository =
-        ProjectRepositoryImpl(api)
+        api: ExploreApi,
+        db: TWDistDatabase
+    ): ProjectRepository = ProjectRepositoryImpl(api, db)
 
     @Provides
     @Singleton
-    fun provideGetProjectsUseCase(
-        repository: ProjectRepository,
-        projectStateStore: ProjectStateStore
-    ): GetProjectsUseCase =
-        GetProjectsUseCase(repository, projectStateStore)
+    fun provideGetProjectsUseCase(repository: ProjectRepository): GetProjectsUseCase =
+        GetProjectsUseCase(repository)
 
     @Provides
     @Singleton
-    fun provideCreateProjectUseCase(
-        repository: ProjectRepository,
-        projectStateStore: ProjectStateStore
-    ): CreateProjectUseCase =
-        CreateProjectUseCase(repository, projectStateStore)
+    fun provideCreateProjectUseCase(repository: ProjectRepository): CreateProjectUseCase =
+        CreateProjectUseCase(repository)
 
     @Provides
     @Singleton
-    fun provideDeleteProjectUseCase(
-        repository: ProjectRepository,
-        projectStateStore: ProjectStateStore
-    ): DeleteProjectUseCase =
-        DeleteProjectUseCase(repository, projectStateStore)
+    fun provideDeleteProjectUseCase(repository: ProjectRepository): DeleteProjectUseCase =
+        DeleteProjectUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideChangeProjectFavoriteUseCase(repository: ProjectRepository): ChangeProjectFavoriteUseCase =
+        ChangeProjectFavoriteUseCase(repository)
 }

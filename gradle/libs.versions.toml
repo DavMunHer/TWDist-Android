@@ -18,6 +18,7 @@ ksp = "2.3.7"
 hiltNavigationCompose = "1.2.0"
 robolectric = "4.16.1"
 recyclerview = "1.4.0"
+room = "2.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +54,11 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 # Lifecycle SavedState support for ViewModel (SavedStateHandle)
 androidx-lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "lifecycleRuntimeKtx" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+
+# Room
+androidx-room-runtime  = { group = "androidx.room", name = "room-runtime",  version.ref = "room" }
+androidx-room-ktx      = { group = "androidx.room", name = "room-ktx",      version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

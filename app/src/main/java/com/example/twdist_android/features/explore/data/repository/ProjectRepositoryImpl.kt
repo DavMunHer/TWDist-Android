@@ -1,33 +1,39 @@
 package com.example.twdist_android.features.explore.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
+import com.example.twdist_android.core.data.local.TWDistDatabase
+import com.example.twdist_android.core.data.local.entity.ProjectEntity
 import com.example.twdist_android.features.explore.data.dto.ChangeFavoriteRequestDto
 import com.example.twdist_android.features.explore.data.dto.CreateProjectRequestDto
 import com.example.twdist_android.features.explore.data.mapper.toDomainResponse
 import com.example.twdist_android.features.explore.data.mapper.toDomainSummary
+import com.example.twdist_android.features.explore.data.mapper.toEntity
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
-import com.example.twdist_android.features.projectdetails.domain.model.Project
-import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import com.example.twdist_android.features.explore.domain.model.ProjectSummary
 import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
+import com.example.twdist_android.features.projectdetails.domain.model.Project
+import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import javax.inject.Inject
 
 class ProjectRepositoryImpl @Inject constructor(
-    private val api: ExploreApi
+    private val api: ExploreApi,
+    private val db: TWDistDatabase
 ) : ProjectRepository {
+
+    private val projectDao get() = db.projectDao()
 
     override suspend fun getAllProjects(): Result<List<ProjectSummary>> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
                 val mappedProjects = api.getProjects().map { it.toDomainSummary() }
                 val failure = mappedProjects.firstOrNull { it.isFailure }?.exceptionOrNull()
-                if (failure != null) {
-                    throw failure
-                }
-                mappedProjects.map { it.getOrThrow() }
+                if (failure != null) throw failure
+                val projects = mappedProjects.map { it.getOrThrow() }
+                projectDao.upsertAll(projects.map { it.toEntity() })
+                projects
             }
         }
     }
@@ -36,7 +42,15 @@ class ProjectRepositoryImpl @Inject constructor(
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
                 val request = CreateProjectRequestDto(name = projectName.asString())
-                api.createProject(request).toDomainResponse().getOrThrow()
+                val project = api.createProject(request).toDomainResponse().getOrThrow()
+                projectDao.upsert(
+                    ProjectEntity(
+                        id = project.id,
+                        name = project.name.value,
+                        isFavorite = project.isFavorite
+                    )
+                )
+                project
             }
         }
     }
@@ -45,9 +59,8 @@ class ProjectRepositoryImpl @Inject constructor(
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
                 val response = api.deleteProject(projectId)
-                if (!response.isSuccessful) {
-                    throw HttpException(response)
-                }
+                if (!response.isSuccessful) throw HttpException(response)
+                projectDao.deleteById(projectId)
             }
         }
     }
@@ -59,8 +72,10 @@ class ProjectRepositoryImpl @Inject constructor(
                     projectId = projectId,
                     request = ChangeFavoriteRequestDto(favorite = isFavorite)
                 )
-                if (!response.isSuccessful) {
-                    throw HttpException(response)
+                if (!response.isSuccessful) throw HttpException(response)
+                val existing = projectDao.getById(projectId)
+                if (existing != null) {
+                    projectDao.upsert(existing.copy(isFavorite = isFavorite))
                 }
             }
         }

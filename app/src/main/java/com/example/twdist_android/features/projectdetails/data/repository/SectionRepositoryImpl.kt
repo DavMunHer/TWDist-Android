@@ -1,32 +1,36 @@
 package com.example.twdist_android.features.projectdetails.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
+import com.example.twdist_android.core.data.local.TWDistDatabase
+import com.example.twdist_android.features.projectdetails.data.dto.section.UpdateSectionRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomain
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
-import com.example.twdist_android.features.projectdetails.data.dto.section.UpdateSectionRequestDto
+import com.example.twdist_android.features.projectdetails.data.mapper.toEntity
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
 import com.example.twdist_android.features.projectdetails.domain.repository.SectionRepository
-import com.example.twdist_android.features.projectdetails.domain.store.SectionStateStore
-import com.example.twdist_android.features.projectdetails.domain.store.TaskStateStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SectionRepositoryImpl @Inject constructor(
     private val api: ProjectDetailsApi,
-    private val sectionStateStore: SectionStateStore,
-    private val taskStateStore: TaskStateStore
+    private val db: TWDistDatabase
 ) : SectionRepository {
+
+    private val sectionDao get() = db.sectionDao()
+    private val taskDao get() = db.taskDao()
 
     override suspend fun getSectionsByProjectId(projectId: Long): Result<List<Section>> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                api.getProjectById(projectId)
+                val sections = api.getProjectById(projectId)
                     .toDomainAggregate()
                     .getOrThrow()
                     .sections
+                sectionDao.upsertAll(sections.map { it.toEntity() })
+                sections
             }
         }
     }
@@ -39,7 +43,7 @@ class SectionRepositoryImpl @Inject constructor(
                     request = UpdateSectionRequestDto(name = sectionName.asString())
                 )
                 val createdSection = dto.toDomain(projectId).getOrThrow()
-                sectionStateStore.upsert(createdSection)
+                sectionDao.upsert(createdSection.toEntity())
                 createdSection
             }
         }
@@ -48,16 +52,16 @@ class SectionRepositoryImpl @Inject constructor(
     override suspend fun updateSectionName(sectionId: Long, sectionName: SectionName): Result<Section> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                val currentSection = sectionStateStore.getById(sectionId)
-                    ?: error("Section not found")
+                val currentEntity = sectionDao.getById(sectionId)
+                    ?: error("Section not found in local cache")
 
                 val dto = api.updateSection(
-                    projectId = currentSection.projectId,
+                    projectId = currentEntity.projectId,
                     sectionId = sectionId,
                     request = UpdateSectionRequestDto(name = sectionName.asString())
                 )
-                val updatedSection = dto.toDomain(currentSection.projectId).getOrThrow()
-                sectionStateStore.upsert(updatedSection)
+                val updatedSection = dto.toDomain(currentEntity.projectId).getOrThrow()
+                sectionDao.upsert(updatedSection.toEntity())
                 updatedSection
             }
         }
@@ -66,17 +70,17 @@ class SectionRepositoryImpl @Inject constructor(
     override suspend fun deleteSection(sectionId: Long): Result<Unit> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                val currentSection = sectionStateStore.getById(sectionId)
-                    ?: error("Section not found")
+                val currentEntity = sectionDao.getById(sectionId)
+                    ?: error("Section not found in local cache")
                 val response = api.deleteSection(
-                    projectId = currentSection.projectId,
+                    projectId = currentEntity.projectId,
                     sectionId = sectionId
                 )
                 if (!response.isSuccessful) {
                     error("Failed to delete section (HTTP ${response.code()})")
                 }
-                sectionStateStore.remove(sectionId)
-                taskStateStore.removeBySectionId(sectionId)
+                taskDao.deleteBySectionId(sectionId)
+                sectionDao.deleteById(sectionId)
             }
         }
     }

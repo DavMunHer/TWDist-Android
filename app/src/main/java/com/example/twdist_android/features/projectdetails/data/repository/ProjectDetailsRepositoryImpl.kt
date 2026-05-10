@@ -3,10 +3,10 @@ package com.example.twdist_android.features.projectdetails.data.repository
 import android.util.Log
 import com.example.twdist_android.BuildConfig
 import com.example.twdist_android.core.coroutines.runSuspendCatching
-import com.example.twdist_android.features.explore.domain.model.ProjectSummary
-import com.example.twdist_android.features.explore.domain.store.ProjectStateStore
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.projectdetails.data.dto.project.UpdateProjectRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toDomainAggregate
+import com.example.twdist_android.features.projectdetails.data.mapper.toEntity
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectAggregate
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
@@ -15,11 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-
 class ProjectDetailsRepositoryImpl @Inject constructor(
     private val api: ProjectDetailsApi,
-    private val projectStateStore: ProjectStateStore
+    private val db: TWDistDatabase
 ) : ProjectDetailsRepository {
+
+    private val projectDao get() = db.projectDao()
+    private val sectionDao get() = db.sectionDao()
     companion object {
         private const val TAG = "ProjectDetailsRepo"
     }
@@ -27,7 +29,10 @@ class ProjectDetailsRepositoryImpl @Inject constructor(
     override suspend fun getProjectById(projectId: Long): Result<ProjectAggregate> {
         return runSuspendCatching {
             withContext(Dispatchers.IO) {
-                api.getProjectById(projectId).toDomainAggregate().getOrThrow()
+                val aggregate = api.getProjectById(projectId).toDomainAggregate().getOrThrow()
+                projectDao.upsert(aggregate.project.toEntity())
+                sectionDao.upsertAll(aggregate.sections.map { it.toEntity() })
+                aggregate
             }
         }
     }
@@ -37,29 +42,20 @@ class ProjectDetailsRepositoryImpl @Inject constructor(
             withContext(Dispatchers.IO) {
                 val response = api.updateProject(projectId, UpdateProjectRequestDto(name = name))
                 if (!response.isSuccessful) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "updateProject failed. code=${response.code()}")
-                    }
+                    if (BuildConfig.DEBUG) Log.e(TAG, "updateProject failed. code=${response.code()}")
                     throw IllegalStateException("Could not update project")
                 }
                 val updatedName = ProjectName.create(name).getOrNull()
                 if (updatedName != null) {
-                    val cachedProject = projectStateStore.getById(projectId)
-                    projectStateStore.upsert(
-                        ProjectSummary(
-                            id = projectId,
-                            name = updatedName,
-                            isFavorite = cachedProject?.isFavorite ?: response.body()?.favorite ?: false,
-                            pendingTasks = cachedProject?.pendingTasks ?: 0
-                        )
-                    )
+                    val existing = projectDao.getById(projectId)
+                    if (existing != null) {
+                        projectDao.upsert(existing.copy(name = updatedName.value))
+                    }
                 }
                 Unit
             }
         }.onFailure { throwable ->
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "updateProjectName threw exception", throwable)
-            }
+            if (BuildConfig.DEBUG) Log.e(TAG, "updateProjectName threw exception", throwable)
         }
     }
 
@@ -68,12 +64,10 @@ class ProjectDetailsRepositoryImpl @Inject constructor(
             withContext(Dispatchers.IO) {
                 val response = api.deleteProject(projectId)
                 if (!response.isSuccessful) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "deleteProject failed. code=${response.code()}")
-                    }
+                    if (BuildConfig.DEBUG) Log.e(TAG, "deleteProject failed. code=${response.code()}")
                     throw IllegalStateException("Could not delete project")
                 }
-                projectStateStore.remove(projectId)
+                projectDao.deleteById(projectId)
                 Unit
             }
         }

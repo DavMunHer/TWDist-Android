@@ -29,9 +29,12 @@ The project is split into three layers. **Dependencies only point inward** — t
 
 ### Data Layer
 - **Implements** the repository interfaces defined in the domain.
-- Contains **DTOs** (Data Transfer Objects) — raw representations of API/DB responses with serialization annotations.
-- Contains **mappers** to convert DTOs ↔ domain models.
-- Owns all network (Retrofit), database (Room), and external service logic.
+- Contains **DTOs** (Data Transfer Objects) — raw representations of API responses with serialization annotations.
+- Contains **Room entities** (`*Entity`) for the local SQLite database, **DAOs** (`*Dao`) for database access, and `TWDistDatabase` as the Room entry point.
+- Contains **mappers** to convert DTOs ↔ domain models and Entities ↔ domain models.
+- Owns all network (Retrofit), local persistence (Room/SQLite), and external service logic.
+- Repository implementations act as **write-through caches**: call the API, upsert the result into the DAO, then return the domain model.
+- `TodayRepositoryImpl` and `UpcomingRepositoryImpl` additionally expose reactive `Flow<List<...>>` queries backed by Room, enabling Offline First reads.
 
 ### Presentation Layer
 - Contains **ViewModels**, **UI state models**, and **UI mappers**.
@@ -293,10 +296,27 @@ object AuthModule {
 }
 ```
 
+A dedicated `DatabaseModule` provides the Room database and the three DAOs (`ProjectDao`, `SectionDao`, `TaskDao`):
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+    @Provides @Singleton
+    fun provideTWDistDatabase(@ApplicationContext context: Context): TWDistDatabase =
+        Room.databaseBuilder(context, TWDistDatabase::class.java, "twdist.db").build()
+
+    @Provides fun provideProjectDao(db: TWDistDatabase) = db.projectDao()
+    @Provides fun provideSectionDao(db: TWDistDatabase) = db.sectionDao()
+    @Provides fun provideTaskDao(db: TWDistDatabase)    = db.taskDao()
+}
+```
+
 **Key points:**
 - Provide **interface types**, not implementations.
 - ViewModels receive use cases via `@Inject constructor`.
 - Use cases receive repositories via constructor — not the other way around.
+- Repository implementations receive their DAOs via constructor injection from `DatabaseModule`.
 
 ---
 
