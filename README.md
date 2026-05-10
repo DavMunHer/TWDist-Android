@@ -65,85 +65,69 @@ Useful commands:
 
 ---
 
-## State handling — normalized model and separated stores
+## Data layer — Room SQLite cache (Offline First)
 
-### Why normalized?
+### Overview
 
-The product model is naturally a tree: **projects → sections → tasks**. Deeply nesting everything (for example `project.sections[].tasks[]`) makes updates expensive and encourages duplicated task data when the same logical task could appear in more than one screen.
+All persistent local state is stored in a **Room SQLite database** (`TWDistDatabase`). The database acts as the **single source of truth** for the UI. There are no in-memory stores or cross-screen event buses.
 
-This app keeps **relationships as ID lists** on the domain entities and uses **separate in-memory stores** keyed by id so each layer can update independently and stay testable.
+### Entities and relationships
 
-### Architecture overview
+| Entity          | Table     | Key relationships                                    |
+|-----------------|-----------|------------------------------------------------------|
+| `ProjectEntity` | `project` | Primary key `id`; shared across Explore and Project Details |
+| `SectionEntity` | `section` | FK → `project.id` (CASCADE delete), indexed          |
+| `TaskEntity`    | `task`    | FK → `section.id` (CASCADE delete), indexed          |
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Explore — ProjectStateStore                                 │
-│  Caches project summaries for lists (explore, favorites, …)  │
-├──────────────────────────────────────────────────────────────┤
-│  Project details — ProjectDetailsProjectStateStore           │
-│  Owns: current Project entities for the details feature      │
-├──────────────────────────────────────────────────────────────┤
-│  SectionStateStore                                           │
-│  Owns: Section entities (section CRUD, task id ordering)     │
-├──────────────────────────────────────────────────────────────┤
-│  TaskStateStore                                              │
-│  Owns: Task entities (task CRUD, per-section indexes)        │
-└──────────────────────────────────────────────────────────────┘
-```
+`Section.taskIds` and `Project.sectionIds` are derived from the FK relationships at query time rather than being stored as columns.
 
-**Why separate stores?**
+### How repositories work (write-through cache)
 
-- **Single responsibility** — each store mutates one kind of entity.
-- **Easier testing** — stores and use cases can be tested in isolation.
-- **Clear boundaries** — repositories merge remote results into the right store; use cases orchestrate reads and writes without turning the UI into a god object.
+Every repository implementation (`ProjectRepositoryImpl`, `SectionRepositoryImpl`, etc.) follows the same pattern:
 
-### Entity relationships (IDs)
+1. Call the remote API (Retrofit).
+2. On success, **upsert** the result into the relevant DAO.
+3. Return the domain model to the caller.
 
-| Entity    | Field        | Points to                         |
-|-----------|--------------|-----------------------------------|
-| `Project` | `sectionIds` | ordered sections in the project   |
-| `Section` | `taskIds`    | tasks belonging to that section   |
+The database is always up to date after a successful network call.
 
-Tasks are stored in `TaskStateStore` and loaded or updated through the task repository; sections keep **references** to tasks via `taskIds`, similar in spirit to the desktop app’s normalized shape.
+### Reactive Today and Upcoming (Offline First)
 
-### How loading a project works
-
-When a project is fetched, the aggregate is split and written into the right stores — for example `GetProjectByIdUseCase` persists the project and its sections after a successful repository call:
+`TodayRepository` and `UpcomingRepository` expose a **`Flow<List<...>>`** backed by Room reactive queries, plus a **`suspend refreshXxx()`** method that fetches from the API and writes through to Room.
 
 ```kotlin
-repository.getProjectById(projectId)
-    .onSuccess { aggregate ->
-        projectStateStore.upsert(aggregate.project)
-        sectionStateStore.upsertAll(aggregate.sections)
-    }
+// Observe changes from SQLite (reactive, emits on every DB change)
+getTodayTasksUseCase()       // returns Flow<List<TodayTask>>
+
+// Pull fresh data from the API and persist it
+refreshTodayTasksUseCase()   // suspend -> Result<Unit>
 ```
 
-Task lists for sections are loaded and merged via the task repository into `TaskStateStore`, while the **Compose UI** consumes a `ProjectDetailsUiState` that includes things like `sectionItems` and a `tasksById` map so the screen can render sections and resolve tasks without holding one giant nested graph in memory.
+ViewModels collect the `Flow` in `init` and call `refresh` immediately — the screen shows cached data instantly, then updates when the network response arrives.
 
-### Data flow (simplified)
+### Data flow
 
 ```
 API (JSON DTOs)
-      │
-      ▼
-Mappers → domain models (Project, Section, Task, …)
-      │
-      ▼
-Repositories + use cases → ProjectStateStore / ProjectDetailsProjectStateStore /
-                          SectionStateStore / TaskStateStore
-      │
-      ▼
-ViewModels (StateFlow) → Compose UI
+      |
+      v  (Mappers: DTO -> Entity + Domain)
+Repository Impl -> DAO.upsert(entity)          <- write side
+                         |
+                   TWDistDatabase (SQLite)
+                         |
+                   DAO.observeXxx() Flow        <- read side (Today / Upcoming)
+                         |
+                   Repository.observeXxx()
+                         |
+                   Use Case (observe / refresh)
+                         |
+                   ViewModel (StateFlow) -> Compose UI
 ```
 
 ### Rules of thumb
 
-1. **Domain models in the domain layer** — keep DTOs and API types in the data layer; map before business logic runs.
-2. **UI models are derived** — presentation types (for example `ProjectDetailsUiState`) are built for the screen, not stored as the source of truth in repositories.
-3. **Prefer use cases from ViewModels** — screens call ViewModel APIs that delegate to use cases rather than calling Retrofit or stores directly.
+1. **Domain models in the domain layer** — keep DTOs and Room entities in the data layer; map before business logic runs.
+2. **UI models are derived** — presentation types (e.g., `ProjectDetailsUiState`) are built for the screen, not stored as the source of truth.
+3. **Prefer use cases from ViewModels** — screens call ViewModel APIs that delegate to use cases rather than calling Retrofit or DAOs directly.
 4. **Immutable updates** — prefer `copy` on data classes and clear state transitions in the ViewModel.
-5. **One store per entity family** — avoid mixing section payloads into the task store or vice versa; link them with ids.
-
-### Subtasks and the API
-
-The backend DTOs can include nested **subtasks** for forward compatibility; the Android domain model for the main project details flow currently centers on **project / section / task**. Deeper subtask trees can follow the same normalized pattern (flat task store + parent/child ids) when fully wired through the UI.
+5. **DAOs are the local persistence boundary** — repositories own the DAO calls; use cases and ViewModels never call DAOs directly.
