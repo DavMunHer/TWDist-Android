@@ -27,4 +27,16 @@ interface ProjectDao {
 
     @Query("DELETE FROM project WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    /**
+     * Open (incomplete) tasks for the project — suitable for deriving pending counts instead of caching them on [ProjectEntity].
+     */
+    @Query(
+        """
+        SELECT COUNT(*) FROM task AS t
+        INNER JOIN section AS s ON s.id = t.section_id
+        WHERE s.project_id = :projectId AND t.completed = 0
+        """
+    )
+    suspend fun countIncompleteTasks(projectId: Long): Int
 }

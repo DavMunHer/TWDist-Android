@@ -7,8 +7,7 @@ import com.example.twdist_android.features.projectdetails.domain.model.ProjectNa
 fun Project.toEntity(): ProjectEntity = ProjectEntity(
     id = id,
     name = name.value,
-    isFavorite = isFavorite,
-    pendingTasks = 0
+    isFavorite = isFavorite
 )
 
 fun ProjectEntity.toProject(sectionIds: List<Long>): Result<Project> {
