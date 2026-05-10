@@ -59,7 +59,7 @@ fun UpcomingScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refreshTasks()
+                viewModel.refreshTasks(showLoading = false)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

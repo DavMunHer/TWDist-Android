@@ -51,13 +51,25 @@ class UpcomingViewModel @Inject constructor(
                 }
             }
         }
-        refreshTasks()
+        refreshTasks(showLoading = true)
     }
 
-    fun refreshTasks() {
+    /**
+     * @param showLoading When true (initial load / pull equivalent), clears the list behind a fullscreen spinner.
+     *   When false (e.g. screen resume), keep showing cached rows — Room Flow will refresh when persist completes.
+     */
+    fun refreshTasks(showLoading: Boolean = true) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            if (showLoading) {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+            }
             refreshUpcomingTasksUseCase(from = today, to = endOfMonth)
+                .onSuccess {
+                    // Room Flow does not always re-emit (e.g. empty API body -> no DAO write): clear spinner anyway.
+                    if (showLoading) {
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
+                }
                 .onFailure { throwable ->
                     _uiState.update { it.copy(isLoading = false, error = throwable.message) }
                 }
