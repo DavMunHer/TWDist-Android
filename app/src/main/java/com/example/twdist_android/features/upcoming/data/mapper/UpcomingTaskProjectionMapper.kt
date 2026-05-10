@@ -1,5 +1,6 @@
 package com.example.twdist_android.features.upcoming.data.mapper
 
+import com.example.twdist_android.core.data.local.date.parseFlexibleToLocalDateOrNull
 import com.example.twdist_android.core.data.local.entity.ProjectEntity
 import com.example.twdist_android.core.data.local.entity.SectionEntity
 import com.example.twdist_android.core.data.local.entity.TaskEntity
@@ -9,7 +10,7 @@ import com.example.twdist_android.features.upcoming.domain.model.UpcomingTask
 import java.time.LocalDate
 
 fun TaskWithProjectProjection.toDomainUpcomingTask(): UpcomingTask? {
-    val date = startDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: return null
+    val date = startEpochDay?.let { LocalDate.ofEpochDay(it) } ?: return null
     return UpcomingTask(
         id = taskId,
         sectionId = sectionId,
@@ -23,8 +24,7 @@ fun TaskWithProjectProjection.toDomainUpcomingTask(): UpcomingTask? {
 fun UpcomingTaskResponseDto.toProjectEntity(): ProjectEntity = ProjectEntity(
     id = projectId,
     name = projectName,
-    isFavorite = false,
-    pendingTasks = 0
+    isFavorite = false
 )
 
 fun UpcomingTaskResponseDto.toSectionEntity(): SectionEntity = SectionEntity(
@@ -38,7 +38,8 @@ fun UpcomingTaskResponseDto.toTaskEntity(): TaskEntity = TaskEntity(
     sectionId = sectionId,
     name = name,
     completed = false,
+    completedDate = null,
     description = description,
-    startDate = startDate?.let { runCatching { LocalDate.parse(it).toString() }.getOrNull() },
-    endDate = endDate
+    startDate = (startDate ?: endDate).parseFlexibleToLocalDateOrNull(),
+    endDate = endDate?.parseFlexibleToLocalDateOrNull()
 )

@@ -30,27 +30,27 @@ interface TaskDao {
 
     @Query("""
         SELECT t.id AS taskId, t.name AS taskName, t.completed,
-               t.start_date AS startDate, t.section_id AS sectionId,
+               t.start_date AS startEpochDay, t.section_id AS sectionId,
                s.project_id AS projectId, p.name AS projectName
         FROM task t
         INNER JOIN section s ON s.id = t.section_id
         INNER JOIN project p ON p.id = s.project_id
-        WHERE t.start_date = :date AND t.completed = 0
+        WHERE t.start_date = :startEpochDay AND t.completed = 0
         ORDER BY p.name, t.id
     """)
-    fun observeByStartDate(date: String): Flow<List<TaskWithProjectProjection>>
+    fun observeByStartDate(startEpochDay: Long): Flow<List<TaskWithProjectProjection>>
 
     @Query("""
         SELECT t.id AS taskId, t.name AS taskName, t.completed,
-               t.start_date AS startDate, t.section_id AS sectionId,
+               t.start_date AS startEpochDay, t.section_id AS sectionId,
                s.project_id AS projectId, p.name AS projectName
         FROM task t
         INNER JOIN section s ON s.id = t.section_id
         INNER JOIN project p ON p.id = s.project_id
         WHERE t.start_date IS NOT NULL
-          AND t.start_date BETWEEN :from AND :to
+          AND t.start_date BETWEEN :fromEpochDay AND :toEpochDay
           AND t.completed = 0
         ORDER BY t.start_date, t.id
     """)
-    fun observeByStartDateRange(from: String, to: String): Flow<List<TaskWithProjectProjection>>
+    fun observeByStartDateRange(fromEpochDay: Long, toEpochDay: Long): Flow<List<TaskWithProjectProjection>>
 }

@@ -2,6 +2,7 @@ package com.example.twdist_android.core.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.example.twdist_android.core.data.local.dao.ProjectDao
 import com.example.twdist_android.core.data.local.dao.SectionDao
 import com.example.twdist_android.core.data.local.dao.TaskDao
@@ -15,9 +16,10 @@ import com.example.twdist_android.core.data.local.entity.TaskEntity
         SectionEntity::class,
         TaskEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
+@TypeConverters(TwDistRoomConverters::class)
 abstract class TWDistDatabase : RoomDatabase() {
     abstract fun projectDao(): ProjectDao
     abstract fun sectionDao(): SectionDao

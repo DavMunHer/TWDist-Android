@@ -1,9 +1,7 @@
 package com.example.twdist_android.features.today.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
-import com.example.twdist_android.core.data.local.dao.ProjectDao
-import com.example.twdist_android.core.data.local.dao.SectionDao
-import com.example.twdist_android.core.data.local.dao.TaskDao
+import com.example.twdist_android.core.data.local.TWDistDatabase
 import com.example.twdist_android.features.projectdetails.data.dto.task.CompleteTaskRequestDto
 import com.example.twdist_android.features.projectdetails.data.mapper.toCompleteTaskRequestDto
 import com.example.twdist_android.features.today.data.mapper.toDomainTodayTask
@@ -22,13 +20,15 @@ import javax.inject.Inject
 
 class TodayRepositoryImpl @Inject constructor(
     private val api: TodayApi,
-    private val taskDao: TaskDao,
-    private val sectionDao: SectionDao,
-    private val projectDao: ProjectDao
+    private val db: TWDistDatabase
 ) : TodayRepository {
 
+    private val taskDao get() = db.taskDao()
+    private val sectionDao get() = db.sectionDao()
+    private val projectDao get() = db.projectDao()
+
     override fun observeTodayTasks(today: LocalDate): Flow<List<TodayTask>> =
-        taskDao.observeByStartDate(today.toString())
+        taskDao.observeByStartDate(today.toEpochDay())
             .map { rows -> rows.map { it.toDomainTodayTask() } }
 
     override suspend fun refreshTodayTasks(): Result<Unit> = runSuspendCatching {
@@ -55,7 +55,12 @@ class TodayRepositoryImpl @Inject constructor(
                 )
                 if (!response.isSuccessful) error("Failed to complete task (HTTP ${response.code()})")
                 val existing = taskDao.getById(taskId)
-                if (existing != null) taskDao.upsert(existing.copy(completed = true))
+                if (existing != null) {
+                    val completedDay = LocalDate.now()
+                    taskDao.upsert(
+                        existing.copy(completed = true, completedDate = completedDay)
+                    )
+                }
             }
         }
     }
@@ -71,7 +76,11 @@ class TodayRepositoryImpl @Inject constructor(
                 )
                 if (!response.isSuccessful) error("Failed to undo task completion (HTTP ${response.code()})")
                 val existing = taskDao.getById(taskId)
-                if (existing != null) taskDao.upsert(existing.copy(completed = false))
+                if (existing != null) {
+                    taskDao.upsert(
+                        existing.copy(completed = false, completedDate = null)
+                    )
+                }
             }
         }
     }

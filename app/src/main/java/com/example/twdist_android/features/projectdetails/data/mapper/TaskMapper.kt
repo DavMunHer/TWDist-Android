@@ -1,5 +1,6 @@
 package com.example.twdist_android.features.projectdetails.data.mapper
 
+import com.example.twdist_android.core.data.local.date.parseCompletedInstantToUtcLocalDateOrNull
 import com.example.twdist_android.features.projectdetails.data.dto.task.TaskResponseDto
 import com.example.twdist_android.features.projectdetails.domain.model.Task
 import java.time.Instant
@@ -11,13 +12,16 @@ fun TaskResponseDto.toDomainTask(
     sectionId: Long,
     now: Instant = Instant.now()
 ): Task {
-    // Intentionally mapping only fields currently used by Project Details UI.
-    // Keep DTO fields (description/dates/subtasks) for forward compatibility with future task screens.
+    val completedComputed = isCompletedByDate(now = now)
+    val completedAtUtc = completedDate?.parseCompletedInstantToUtcLocalDateOrNull()
+    val completedAt = if (completedComputed) completedAtUtc else null
+
     return Task(
         id = id,
         sectionId = sectionId,
         name = name,
-        completed = isCompletedByDate(now = now),
+        completed = completedComputed,
+        completedAt = completedAt,
         description = description,
         startDate = startDate,
         endDate = endDate
