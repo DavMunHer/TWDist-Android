@@ -1,6 +1,5 @@
-package com.example.twdist_android.usecase.today
+package com.example.twdist_android.features.today.application.usecases
 
-import com.example.twdist_android.features.today.application.usecases.RefreshTodayTasksUseCase
 import com.example.twdist_android.features.today.domain.repository.TodayRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
