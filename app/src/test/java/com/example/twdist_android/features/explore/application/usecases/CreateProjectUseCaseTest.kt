@@ -1,9 +1,8 @@
-package com.example.twdist_android.usecase.explore
+package com.example.twdist_android.features.explore.application.usecases
 
+import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
 import com.example.twdist_android.features.projectdetails.domain.model.Project
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
-import com.example.twdist_android.features.explore.domain.repository.ProjectRepository
-import com.example.twdist_android.features.explore.application.usecases.CreateProjectUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
