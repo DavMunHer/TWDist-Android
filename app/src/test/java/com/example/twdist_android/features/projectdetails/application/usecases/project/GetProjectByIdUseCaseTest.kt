@@ -1,11 +1,10 @@
-package com.example.twdist_android.features.projectdetails.application.usecases
+package com.example.twdist_android.features.projectdetails.application.usecases.project
 
 import com.example.twdist_android.features.projectdetails.domain.model.Project
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectAggregate
 import com.example.twdist_android.features.projectdetails.domain.model.ProjectName
 import com.example.twdist_android.features.projectdetails.domain.model.Section
 import com.example.twdist_android.features.projectdetails.domain.model.SectionName
-import com.example.twdist_android.features.projectdetails.application.usecases.project.GetProjectByIdUseCase
 import com.example.twdist_android.features.projectdetails.domain.repository.ProjectDetailsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
