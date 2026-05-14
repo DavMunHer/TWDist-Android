@@ -1,6 +1,5 @@
-package com.example.twdist_android.usecase.upcoming
+package com.example.twdist_android.features.upcoming.application.usecases
 
-import com.example.twdist_android.features.upcoming.application.usecases.GetUpcomingTasksUseCase
 import com.example.twdist_android.features.upcoming.domain.model.UpcomingTask
 import com.example.twdist_android.features.upcoming.domain.repository.UpcomingRepository
 import io.mockk.every
