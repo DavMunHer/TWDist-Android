@@ -106,6 +106,7 @@ dependencies {
 
     // Unit testing
     testImplementation(libs.mockk)
+    androidTestImplementation(libs.mockk.android)
 
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.ui.test.junit4)
