@@ -6,6 +6,8 @@ import com.example.twdist_android.features.auth.domain.model.LoginCredentials
 import com.example.twdist_android.features.auth.domain.model.shared.Email
 import com.example.twdist_android.features.auth.domain.model.shared.Password
 import com.example.twdist_android.features.auth.application.usecases.LoginUseCase
+import com.example.twdist_android.features.auth.domain.repository.AuthRepository
+import com.example.twdist_android.features.auth.domain.session.AuthSessionManager
 import com.example.twdist_android.features.auth.presentation.mapper.toUiError
 import com.example.twdist_android.features.auth.presentation.model.LoginFormState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +21,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val authRepository: AuthRepository,
+    private val authSessionManager: AuthSessionManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginFormState())
 
@@ -74,7 +78,8 @@ class LoginViewModel @Inject constructor(
             }
             try {
                 loginUseCase(credentials)
-                // Handle success (e.g., navigation)
+                val user = authRepository.getCurrentUser().getOrNull()
+                authSessionManager.setAuthenticated(user)
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: IOException) {
                 _uiState.update { it.copy(errorMessage = "Server is down or unreachable. Please check your connection.") }

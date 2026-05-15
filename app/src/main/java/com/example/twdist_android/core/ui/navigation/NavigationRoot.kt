@@ -53,8 +53,10 @@ data class TaskDetailsScreenKey(
 ) : AppScreen
 
 @Composable
-fun NavigationRoot() {
-    val backStack = rememberNavBackStack(LoginScreenKey)
+fun NavigationRoot(
+    startDestination: AppScreen = LoginScreenKey
+) {
+    val backStack = rememberNavBackStack(startDestination)
 
     NavDisplay(
         backStack = backStack,
