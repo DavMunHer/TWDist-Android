@@ -13,7 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 
 @Composable
 internal fun LoadingState() {
@@ -44,5 +46,21 @@ internal fun ErrorState(message: String) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaskDetailsLoadingPreview() {
+    TWDistAndroidTheme {
+        LoadingState()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaskDetailsErrorPreview() {
+    TWDistAndroidTheme {
+        ErrorState(message = "Task not found")
     }
 }

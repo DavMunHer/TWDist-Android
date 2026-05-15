@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -30,13 +31,17 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.twdist_android.core.ui.components.task.TaskRowState
+import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.twdist_android.features.upcoming.presentation.components.UpcomingTaskList
 import com.example.twdist_android.features.upcoming.presentation.components.WeeklyCalendar
 import com.example.twdist_android.features.upcoming.presentation.model.UpcomingListItem
+import com.example.twdist_android.features.upcoming.presentation.model.UpcomingUiState
 import com.example.twdist_android.features.upcoming.presentation.model.UpcomingUiEvent
 import com.example.twdist_android.features.upcoming.presentation.viewmodel.UpcomingViewModel
 import kotlinx.coroutines.launch
@@ -112,7 +117,29 @@ fun UpcomingScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    UpcomingScreenContent(
+        uiState = uiState,
+        listState = listState,
+        calendarExpanded = calendarExpanded,
+        onToggleCalendarExpanded = { calendarExpanded = !calendarExpanded },
+        onDayClick = onDayClick,
+        onTaskCompleted = viewModel::onTaskCompleted,
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@Composable
+fun UpcomingScreenContent(
+    uiState: UpcomingUiState,
+    listState: LazyListState,
+    calendarExpanded: Boolean,
+    onToggleCalendarExpanded: () -> Unit,
+    onDayClick: (LocalDate) -> Unit,
+    onTaskCompleted: (TaskRowState) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().padding(top = 16.dp)) {
             Text(
                 text = "Upcoming",
@@ -125,7 +152,7 @@ fun UpcomingScreen(
                 weekStart = uiState.weekStart,
                 visibleDate = uiState.visibleDate,
                 isExpanded = calendarExpanded,
-                onToggleExpanded = { calendarExpanded = !calendarExpanded },
+                onToggleExpanded = onToggleCalendarExpanded,
                 onDayClick = onDayClick
             )
             HorizontalDivider()
@@ -141,7 +168,7 @@ fun UpcomingScreen(
                 UpcomingTaskList(
                     items = uiState.items,
                     listState = listState,
-                    onTaskCompleted = viewModel::onTaskCompleted
+                    onTaskCompleted = onTaskCompleted
                 )
             }
 
@@ -159,6 +186,55 @@ fun UpcomingScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 8.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UpcomingScreenContentPreview() {
+    val today = LocalDate.now()
+    TWDistAndroidTheme {
+        UpcomingScreenContent(
+            uiState = UpcomingUiState(
+                items = listOf(
+                    UpcomingListItem.Header(today),
+                    UpcomingListItem.Task(
+                        state = TaskRowState(
+                            id = 1L,
+                            projectId = 1L,
+                            sectionId = 1L,
+                            title = "Review notes",
+                            projectName = "University"
+                        ),
+                        date = today
+                    )
+                ),
+                visibleDate = today,
+                weekStart = today
+            ),
+            listState = rememberLazyListState(),
+            calendarExpanded = false,
+            onToggleCalendarExpanded = {},
+            onDayClick = {},
+            onTaskCompleted = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UpcomingScreenLoadingPreview() {
+    TWDistAndroidTheme {
+        UpcomingScreenContent(
+            uiState = UpcomingUiState(isLoading = true),
+            listState = rememberLazyListState(),
+            calendarExpanded = false,
+            onToggleCalendarExpanded = {},
+            onDayClick = {},
+            onTaskCompleted = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }
