@@ -53,9 +53,14 @@ class CookieJarImpl(context: Context) : CookieJar {
             prefs.edit().putStringSet(host, cookieStrings).apply()
         }
         
-        return validCookies
+        return validCookies.filter { it.matches(url) }
     }
-    
+
+    fun clearAll() {
+        cookieStore.clear()
+        prefs.edit().clear().apply()
+    }
+
     private fun loadFromPrefs(url: HttpUrl): List<Cookie> {
         val host = url.host
         val cookieStrings = prefs.getStringSet(host, emptySet()) ?: emptySet()
