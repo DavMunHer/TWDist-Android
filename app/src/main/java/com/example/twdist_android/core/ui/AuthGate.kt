@@ -9,8 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.twdist_android.core.ui.navigation.ExplorerScreenKey
-import com.example.twdist_android.core.ui.navigation.LoginScreenKey
 import com.example.twdist_android.core.ui.navigation.NavigationRoot
 import com.example.twdist_android.features.auth.domain.model.SessionStatus
 import com.example.twdist_android.features.auth.presentation.viewmodel.SessionViewModel
@@ -21,22 +19,16 @@ fun AuthGate(
 ) {
     val sessionStatus by sessionViewModel.sessionStatus.collectAsState()
 
-    when (sessionStatus) {
-        SessionStatus.Checking -> {
+    Box(modifier = Modifier.fillMaxSize()) {
+        NavigationRoot(sessionStatus = sessionStatus)
+
+        if (sessionStatus is SessionStatus.Checking) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
             }
-        }
-
-        is SessionStatus.Authenticated -> {
-            NavigationRoot(startDestination = ExplorerScreenKey)
-        }
-
-        SessionStatus.Unauthenticated -> {
-            NavigationRoot(startDestination = LoginScreenKey)
         }
     }
 }

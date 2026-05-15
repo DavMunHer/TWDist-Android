@@ -4,7 +4,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.twdist_android.features.auth.domain.model.SessionStatus
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -54,9 +60,36 @@ data class TaskDetailsScreenKey(
 
 @Composable
 fun NavigationRoot(
-    startDestination: AppScreen = LoginScreenKey
+    sessionStatus: SessionStatus = SessionStatus.Unauthenticated
 ) {
-    val backStack = rememberNavBackStack(startDestination)
+    val backStack = rememberNavBackStack(LoginScreenKey)
+    var previousSessionStatus by remember { mutableStateOf<SessionStatus?>(null) }
+
+    LaunchedEffect(sessionStatus) {
+        val stack = backStack as? MutableList<NavKey> ?: return@LaunchedEffect
+        when (sessionStatus) {
+            SessionStatus.Checking -> Unit
+
+            is SessionStatus.Authenticated -> {
+                val cameFromRestore = previousSessionStatus is SessionStatus.Checking ||
+                    previousSessionStatus is SessionStatus.Unauthenticated
+                if (cameFromRestore && stack.size == 1 && stack[0] == LoginScreenKey) {
+                    stack.clear()
+                    stack.add(ExplorerScreenKey)
+                }
+            }
+
+            SessionStatus.Unauthenticated -> {
+                val wasSignedIn = previousSessionStatus is SessionStatus.Authenticated ||
+                    previousSessionStatus is SessionStatus.Checking
+                if (wasSignedIn) {
+                    stack.clear()
+                    stack.add(LoginScreenKey)
+                }
+            }
+        }
+        previousSessionStatus = sessionStatus
+    }
 
     NavDisplay(
         backStack = backStack,
