@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import com.example.twdist_android.core.ui.navigation.NavigationRoot
+import com.example.twdist_android.core.ui.AuthGate
 import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 import com.example.twdist_android.ui.MainViewModel
 
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TWDistAndroidTheme {
-                NavigationRoot()
+                AuthGate()
             }
         }
 

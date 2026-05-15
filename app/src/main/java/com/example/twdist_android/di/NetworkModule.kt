@@ -2,6 +2,8 @@ package com.example.twdist_android.di
 
 import com.example.twdist_android.BuildConfig
 import com.example.twdist_android.core.network.CookieJarImpl
+import com.example.twdist_android.core.network.TokenRefreshAuthenticator
+import com.example.twdist_android.di.RefreshHttpClient
 import com.example.twdist_android.features.auth.data.remote.AuthApi
 import com.example.twdist_android.features.explore.data.remote.ExploreApi
 import com.example.twdist_android.features.projectdetails.data.remote.ProjectDetailsApi
@@ -34,14 +36,30 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideCookieJar(@dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context): okhttp3.CookieJar {
-        return CookieJarImpl(context)
-    }
+    fun provideCookieJarImpl(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context
+    ): CookieJarImpl = CookieJarImpl(context)
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(cookieJar: okhttp3.CookieJar): OkHttpClient = OkHttpClient.Builder()
+    fun provideCookieJar(cookieJarImpl: CookieJarImpl): okhttp3.CookieJar = cookieJarImpl
+
+    @Provides
+    @Singleton
+    @RefreshHttpClient
+    fun provideRefreshOkHttpClient(cookieJar: okhttp3.CookieJar): OkHttpClient =
+        OkHttpClient.Builder()
+            .cookieJar(cookieJar)
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        cookieJar: okhttp3.CookieJar,
+        authenticator: TokenRefreshAuthenticator
+    ): OkHttpClient = OkHttpClient.Builder()
         .cookieJar(cookieJar)
+        .authenticator(authenticator)
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
