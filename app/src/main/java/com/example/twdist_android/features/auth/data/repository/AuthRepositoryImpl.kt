@@ -1,6 +1,7 @@
 package com.example.twdist_android.features.auth.data.repository
 
 import com.example.twdist_android.core.coroutines.runSuspendCatching
+import com.example.twdist_android.core.network.CookieJarImpl
 import com.example.twdist_android.core.network.ErrorResponse
 import com.example.twdist_android.features.auth.data.dto.LoginRequestDto
 import com.example.twdist_android.features.auth.data.dto.RegisterRequestDto
@@ -17,7 +18,8 @@ import retrofit2.HttpException
 
 class AuthRepositoryImpl(
     private val api: AuthApi,
-    private val json: Json
+    private val json: Json,
+    private val cookieJar: CookieJarImpl
 ) : AuthRepository {
 
     override suspend fun register(credentials: RegisterCredentials): Result<RegisteredUser> {
@@ -51,6 +53,36 @@ class AuthRepositoryImpl(
             if (!response.isSuccessful) {
                 throw handleHttpError(response)
             }
+        }
+    }
+
+    override suspend fun getCurrentUser(): Result<RegisteredUser> {
+        return runSuspendCatching {
+            withContext(Dispatchers.IO) {
+                val response = api.getCurrentUser()
+                if (response.isSuccessful) {
+                    response.body()!!.toDomain()
+                } else {
+                    throw handleHttpError(response)
+                }
+            }
+        }
+    }
+
+    override suspend fun refreshSession(): Result<Unit> {
+        return runSuspendCatching {
+            withContext(Dispatchers.IO) {
+                val response = api.refresh()
+                if (!response.isSuccessful) {
+                    throw handleHttpError(response)
+                }
+            }
+        }
+    }
+
+    override suspend fun clearLocalSession() {
+        withContext(Dispatchers.IO) {
+            cookieJar.clearAll()
         }
     }
 
