@@ -1,12 +1,13 @@
 package com.example.twdist_android.core.network
 
-import com.example.twdist_android.features.auth.application.usecases.RefreshSessionUseCase
-import com.example.twdist_android.features.auth.domain.repository.AuthRepository
+import com.example.twdist_android.BuildConfig
+import com.example.twdist_android.di.RefreshHttpClient
 import com.example.twdist_android.features.auth.domain.session.AuthSessionManager
-import dagger.Lazy
-import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.Route
 import javax.inject.Inject
@@ -14,10 +15,12 @@ import javax.inject.Singleton
 
 @Singleton
 class TokenRefreshAuthenticator @Inject constructor(
-    private val refreshSessionUseCase: Lazy<RefreshSessionUseCase>,
-    private val authRepository: Lazy<AuthRepository>,
-    private val authSessionManager: Lazy<AuthSessionManager>
+    @param:RefreshHttpClient private val refreshClient: OkHttpClient,
+    private val cookieJar: CookieJarImpl,
+    private val authSessionManager: AuthSessionManager
 ) : Authenticator {
+
+    private val refreshUrl = BuildConfig.BASE_URL.toHttpUrl().resolve("auth/refresh")!!
 
     override fun authenticate(route: Route?, response: Response): Request? {
         if (response.code != 401) return null
@@ -25,25 +28,31 @@ class TokenRefreshAuthenticator @Inject constructor(
 
         val request = response.request
         if (request.header(RETRY_HEADER) != null) {
-            runBlocking {
-                authRepository.get().clearLocalSession()
-                authSessionManager.get().setUnauthenticated()
-            }
+            clearSession()
             return null
         }
 
-        val refreshResult = runBlocking { refreshSessionUseCase.get().invoke() }
-        if (refreshResult.isFailure) {
-            runBlocking {
-                authRepository.get().clearLocalSession()
-                authSessionManager.get().setUnauthenticated()
-            }
+        if (!refreshSync()) {
+            clearSession()
             return null
         }
 
         return request.newBuilder()
             .header(RETRY_HEADER, "true")
             .build()
+    }
+
+    private fun refreshSync(): Boolean {
+        val request = Request.Builder()
+            .url(refreshUrl)
+            .post(ByteArray(0).toRequestBody(null))
+            .build()
+        return refreshClient.newCall(request).execute().use { it.isSuccessful }
+    }
+
+    private fun clearSession() {
+        cookieJar.clearAll()
+        authSessionManager.setUnauthenticated()
     }
 
     private fun isAuthEndpoint(request: Request): Boolean {
