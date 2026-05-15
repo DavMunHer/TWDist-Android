@@ -27,14 +27,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
+import com.example.twdist_android.features.taskdetails.presentation.event.TaskDetailsEvent
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.twdist_android.features.taskdetails.presentation.components.DateInputField
 import com.example.twdist_android.features.taskdetails.presentation.components.ErrorState
 import com.example.twdist_android.features.taskdetails.presentation.components.LoadingState
 import com.example.twdist_android.features.taskdetails.presentation.components.TaskDetailsHeaderCard
-import com.example.twdist_android.features.taskdetails.presentation.event.TaskDetailsEvent
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUi
 import com.example.twdist_android.features.taskdetails.presentation.model.TaskDetailsUiEvent
 import com.example.twdist_android.features.taskdetails.presentation.viewmodel.TaskDetailsViewModel
@@ -250,6 +252,39 @@ private fun TaskDetailsContent(
                 }
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaskDetailsContentPreview() {
+    TWDistAndroidTheme {
+        TaskDetailsContent(
+            projectName = "University",
+            sectionId = 1L,
+            task = TaskDetailsUi(
+                id = 1L,
+                name = "Read chapter 3",
+                completed = false,
+                description = "Focus on exercises 1–5",
+                startDate = "2026-05-15",
+                endDate = "2026-05-20"
+            ),
+            isMenuOpen = false,
+            startDate = "2026-05-15",
+            endDate = "2026-05-20",
+            description = "Focus on exercises 1–5",
+            isSaving = false,
+            saveMessage = null,
+            openTaskMenuForId = null,
+            editingTaskId = null,
+            editingTaskName = "",
+            deleteConfirmTaskId = null,
+            taskActionError = null,
+            isTaskEditLoading = false,
+            isTaskDeleteLoading = false,
+            onEvent = {}
+        )
     }
 }
 
