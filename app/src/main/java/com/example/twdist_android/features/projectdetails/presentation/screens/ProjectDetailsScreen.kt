@@ -31,7 +31,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.twdist_android.features.projectdetails.presentation.components.SectionsRow
@@ -39,7 +41,10 @@ import com.example.twdist_android.features.projectdetails.presentation.component
 import com.example.twdist_android.features.projectdetails.presentation.event.ProjectEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.SectionEvent
 import com.example.twdist_android.features.projectdetails.presentation.event.TaskEvent
+import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUi
 import com.example.twdist_android.features.projectdetails.presentation.model.ProjectDetailsUiState
+import com.example.twdist_android.features.projectdetails.presentation.model.SectionUi
+import com.example.twdist_android.features.projectdetails.presentation.model.TaskUi
 import com.example.twdist_android.features.projectdetails.presentation.viewmodel.ProjectDetailsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -262,5 +267,59 @@ private fun MissingProjectDetails() {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+private fun sampleProjectDetailsUiState(): ProjectDetailsUiState {
+    val task = TaskUi(id = 1L, name = "Read chapter 3", completed = false)
+    val section = SectionUi(id = 1L, name = "To do", taskIds = listOf("1"))
+    return ProjectDetailsUiState(
+        isLoading = false,
+        project = ProjectDetailsUi(
+            id = 1L,
+            name = "University",
+            isFavorite = true,
+            sections = listOf("1")
+        ),
+        sectionItems = listOf(section),
+        tasksById = mapOf("1" to task)
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProjectDetailsContentPreview() {
+    TWDistAndroidTheme {
+        ProjectDetailsContent(
+            uiState = sampleProjectDetailsUiState(),
+            onSectionEvent = {},
+            onTaskEvent = {},
+            onProjectEvent = {},
+            onTaskClick = { _, _ -> }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProjectDetailsLoadingPreview() {
+    TWDistAndroidTheme {
+        LoadingState()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProjectDetailsErrorPreview() {
+    TWDistAndroidTheme {
+        ErrorState(message = "Could not load project", onRetry = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProjectDetailsMissingPreview() {
+    TWDistAndroidTheme {
+        MissingProjectDetails()
     }
 }
