@@ -11,14 +11,13 @@ import com.example.twdist_android.features.favorite.presentation.components.Favo
 import com.example.twdist_android.features.favorite.presentation.components.FavoriteProjectsLifecycleEffect
 import com.example.twdist_android.features.favorite.presentation.components.FavoriteUndoSnackbarEffect
 import com.example.twdist_android.features.favorite.presentation.event.FavoriteProjectsEvent
-import com.example.twdist_android.features.auth.presentation.viewmodel.SessionViewModel
 import com.example.twdist_android.features.favorite.presentation.viewmodel.FavoriteProjectsViewModel
 
 @Composable
 fun FavoriteProjectScreen(
+    onLogout: () -> Unit,
     onNavigateToProjectDetails: (Long) -> Unit = {},
-    viewModel: FavoriteProjectsViewModel = hiltViewModel(),
-    sessionViewModel: SessionViewModel = hiltViewModel()
+    viewModel: FavoriteProjectsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -45,6 +44,6 @@ fun FavoriteProjectScreen(
         onUnfavoriteClick = { projectId ->
             viewModel.handleEvent(FavoriteProjectsEvent.UnfavoriteProject(projectId))
         },
-        onLogout = { sessionViewModel.logout() }
+        onLogout = onLogout
     )
 }

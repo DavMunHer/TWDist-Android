@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.twdist_android.core.ui.components.ScreenHeader
 import com.example.twdist_android.core.ui.components.task.TaskRowState
-import com.example.twdist_android.features.auth.presentation.viewmodel.SessionViewModel
 import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,8 +50,8 @@ import java.time.LocalDate
 
 @Composable
 fun UpcomingScreen(
-    viewModel: UpcomingViewModel = hiltViewModel(),
-    sessionViewModel: SessionViewModel = hiltViewModel()
+    onLogout: () -> Unit,
+    viewModel: UpcomingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
@@ -127,7 +126,7 @@ fun UpcomingScreen(
         onToggleCalendarExpanded = { calendarExpanded = !calendarExpanded },
         onDayClick = onDayClick,
         onTaskCompleted = viewModel::onTaskCompleted,
-        onLogout = { sessionViewModel.logout() },
+        onLogout = onLogout,
         snackbarHostState = snackbarHostState
     )
 }

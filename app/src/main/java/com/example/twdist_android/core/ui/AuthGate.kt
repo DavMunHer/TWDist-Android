@@ -20,7 +20,10 @@ fun AuthGate(
     val sessionStatus by sessionViewModel.sessionStatus.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        NavigationRoot(sessionStatus = sessionStatus)
+        NavigationRoot(
+            sessionStatus = sessionStatus,
+            onLogout = { sessionViewModel.logout() }
+        )
 
         if (sessionStatus is SessionStatus.Checking) {
             Box(

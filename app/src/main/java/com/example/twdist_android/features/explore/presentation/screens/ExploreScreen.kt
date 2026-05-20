@@ -28,7 +28,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.twdist_android.core.ui.components.ScreenHeader
-import com.example.twdist_android.features.auth.presentation.viewmodel.SessionViewModel
 import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 import com.example.twdist_android.features.explore.presentation.components.CreateProjectDialog
 import com.example.twdist_android.features.explore.presentation.components.DeleteProjectDialog
@@ -41,9 +40,9 @@ import com.example.twdist_android.features.explore.presentation.viewmodel.Explor
 
 @Composable
 fun ExploreScreen(
+    onLogout: () -> Unit,
     onNavigateToProjectDetails: (Long) -> Unit = {},
-    viewModel: ExploreViewModel = hiltViewModel(),
-    sessionViewModel: SessionViewModel = hiltViewModel()
+    viewModel: ExploreViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -79,7 +78,7 @@ fun ExploreScreen(
         onSwipeDelete = { projectId ->
             viewModel.handleEvent(ExploreEvent.ShowDeleteProjectConfirmation(projectId))
         },
-        onLogout = { sessionViewModel.logout() }
+        onLogout = onLogout
     )
 
     if (showCreateDialog) {
