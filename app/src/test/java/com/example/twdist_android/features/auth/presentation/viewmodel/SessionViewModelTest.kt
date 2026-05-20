@@ -1,5 +1,6 @@
 package com.example.twdist_android.features.auth.presentation.viewmodel
 
+import com.example.twdist_android.features.auth.application.usecases.LogoutUseCase
 import com.example.twdist_android.features.auth.application.usecases.RestoreSessionUseCase
 import com.example.twdist_android.features.auth.domain.model.RegisteredUser
 import com.example.twdist_android.features.auth.domain.model.SessionStatus
@@ -22,6 +23,7 @@ import org.junit.Test
 class SessionViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val restoreSessionUseCase: RestoreSessionUseCase = mockk(relaxed = true)
+    private val logoutUseCase: LogoutUseCase = mockk(relaxed = true)
     private val authSessionManager = AuthSessionManager()
 
     @Before
@@ -41,7 +43,7 @@ class SessionViewModelTest {
             authSessionManager.setAuthenticated(user)
         }
 
-        val viewModel = SessionViewModel(restoreSessionUseCase, authSessionManager)
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
         advanceUntilIdle()
 
         assertEquals(SessionStatus.Authenticated(user), viewModel.sessionStatus.value)
@@ -53,7 +55,7 @@ class SessionViewModelTest {
             authSessionManager.setUnauthenticated()
         }
 
-        val viewModel = SessionViewModel(restoreSessionUseCase, authSessionManager)
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
         advanceUntilIdle()
 
         assertEquals(SessionStatus.Unauthenticated, viewModel.sessionStatus.value)

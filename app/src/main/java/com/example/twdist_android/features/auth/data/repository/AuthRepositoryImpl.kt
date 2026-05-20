@@ -80,6 +80,18 @@ class AuthRepositoryImpl(
         }
     }
 
+    override suspend fun logout() {
+        withContext(Dispatchers.IO) {
+            try {
+                api.logout()
+            } catch (_: Exception) {
+                // Still clear local session if the server is unreachable.
+            } finally {
+                cookieJar.clearAll()
+            }
+        }
+    }
+
     override suspend fun clearLocalSession() {
         withContext(Dispatchers.IO) {
             cookieJar.clearAll()

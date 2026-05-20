@@ -2,6 +2,7 @@ package com.example.twdist_android.di
 
 import com.example.twdist_android.core.network.CookieJarImpl
 import com.example.twdist_android.features.auth.application.usecases.LoginUseCase
+import com.example.twdist_android.features.auth.application.usecases.LogoutUseCase
 import com.example.twdist_android.features.auth.application.usecases.RefreshSessionUseCase
 import com.example.twdist_android.features.auth.application.usecases.RegisterUseCase
 import com.example.twdist_android.features.auth.application.usecases.RestoreSessionUseCase
@@ -50,4 +51,11 @@ object AuthModule {
     @Singleton
     fun provideRefreshSessionUseCase(authRepository: AuthRepository): RefreshSessionUseCase =
         RefreshSessionUseCase(authRepository)
+
+    @Provides
+    @Singleton
+    fun provideLogoutUseCase(
+        authRepository: AuthRepository,
+        authSessionManager: com.example.twdist_android.features.auth.domain.session.AuthSessionManager
+    ): LogoutUseCase = LogoutUseCase(authRepository, authSessionManager)
 }

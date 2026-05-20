@@ -2,6 +2,7 @@ package com.example.twdist_android.features.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.twdist_android.features.auth.application.usecases.LogoutUseCase
 import com.example.twdist_android.features.auth.application.usecases.RestoreSessionUseCase
 import com.example.twdist_android.features.auth.domain.model.SessionStatus
 import com.example.twdist_android.features.auth.domain.session.AuthSessionManager
@@ -13,6 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val restoreSessionUseCase: RestoreSessionUseCase,
+    private val logoutUseCase: LogoutUseCase,
     authSessionManager: AuthSessionManager
 ) : ViewModel() {
 
@@ -21,6 +23,12 @@ class SessionViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             restoreSessionUseCase()
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            logoutUseCase()
         }
     }
 }
