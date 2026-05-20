@@ -41,6 +41,7 @@ import com.example.twdist_android.features.explore.presentation.viewmodel.Explor
 @Composable
 fun ExploreScreen(
     onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     onNavigateToProjectDetails: (Long) -> Unit = {},
     viewModel: ExploreViewModel = hiltViewModel()
 ) {
@@ -78,7 +79,8 @@ fun ExploreScreen(
         onSwipeDelete = { projectId ->
             viewModel.handleEvent(ExploreEvent.ShowDeleteProjectConfirmation(projectId))
         },
-        onLogout = onLogout
+        onLogout = onLogout,
+        isLoggingOut = isLoggingOut
     )
 
     if (showCreateDialog) {
@@ -110,6 +112,7 @@ fun ExploreScreenContent(
     onToggleFavorite: (Long) -> Unit,
     onSwipeDelete: (Long) -> Unit,
     onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -121,7 +124,8 @@ fun ExploreScreenContent(
         ) {
             ScreenHeader(
                 title = "Explore",
-                onLogout = onLogout
+                onLogout = onLogout,
+                isLoggingOut = isLoggingOut
             )
             Spacer(modifier = Modifier.height(8.dp))
             SectionHeader(

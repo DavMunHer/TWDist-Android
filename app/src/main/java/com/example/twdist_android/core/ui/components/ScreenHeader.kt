@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,9 +25,16 @@ import androidx.compose.ui.unit.dp
 fun ScreenHeader(
     title: String,
     onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoggingOut) {
+        if (isLoggingOut) {
+            menuExpanded = false
+        }
+    }
 
     Row(
         modifier = modifier
@@ -39,18 +47,22 @@ fun ScreenHeader(
             modifier = Modifier.weight(1f)
         )
         Box {
-            IconButton(onClick = { menuExpanded = true }) {
+            IconButton(
+                onClick = { menuExpanded = true },
+                enabled = !isLoggingOut
+            ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "More options"
                 )
             }
             DropdownMenu(
-                expanded = menuExpanded,
+                expanded = menuExpanded && !isLoggingOut,
                 onDismissRequest = { menuExpanded = false }
             ) {
                 DropdownMenuItem(
                     text = { Text("Log out") },
+                    enabled = !isLoggingOut,
                     onClick = {
                         menuExpanded = false
                         onLogout()

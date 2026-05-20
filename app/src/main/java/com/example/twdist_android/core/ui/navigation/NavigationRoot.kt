@@ -61,7 +61,8 @@ data class TaskDetailsScreenKey(
 @Composable
 fun NavigationRoot(
     sessionStatus: SessionStatus = SessionStatus.Unauthenticated,
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    isLoggingOut: Boolean = false
 ) {
     val backStack = rememberNavBackStack(LoginScreenKey)
     var previousSessionStatus by remember { mutableStateOf<SessionStatus?>(null) }
@@ -97,12 +98,12 @@ fun NavigationRoot(
         entryProvider = entryProvider {
             entry<TodayScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    TodayScreen(onLogout = onLogout)
+                    TodayScreen(onLogout = onLogout, isLoggingOut = isLoggingOut)
                 }
             }
             entry<UpcomingScreenKey> {
                 AppScaffold(onNavItemClick = { (backStack as MutableList<NavKey>).add(it) }) {
-                    UpcomingScreen(onLogout = onLogout)
+                    UpcomingScreen(onLogout = onLogout, isLoggingOut = isLoggingOut)
                 }
             }
             entry<FavoriteScreenKey> {
@@ -111,7 +112,8 @@ fun NavigationRoot(
                         onNavigateToProjectDetails = { projectId ->
                             backStack.add(ProjectDetailsScreenKey(projectId))
                         },
-                        onLogout = onLogout
+                        onLogout = onLogout,
+                        isLoggingOut = isLoggingOut
                     )
                 }
             }
@@ -121,7 +123,8 @@ fun NavigationRoot(
                         onNavigateToProjectDetails = { projectId ->
                             backStack.add(ProjectDetailsScreenKey(projectId))
                         },
-                        onLogout = onLogout
+                        onLogout = onLogout,
+                        isLoggingOut = isLoggingOut
                     )
                 }
             }

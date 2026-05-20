@@ -51,6 +51,7 @@ import java.time.LocalDate
 @Composable
 fun UpcomingScreen(
     onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     viewModel: UpcomingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -127,6 +128,7 @@ fun UpcomingScreen(
         onDayClick = onDayClick,
         onTaskCompleted = viewModel::onTaskCompleted,
         onLogout = onLogout,
+        isLoggingOut = isLoggingOut,
         snackbarHostState = snackbarHostState
     )
 }
@@ -140,6 +142,7 @@ fun UpcomingScreenContent(
     onDayClick: (LocalDate) -> Unit,
     onTaskCompleted: (TaskRowState) -> Unit,
     onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
@@ -147,7 +150,8 @@ fun UpcomingScreenContent(
         Column(modifier = Modifier.fillMaxSize().padding(top = 16.dp)) {
             ScreenHeader(
                 title = "Upcoming",
-                onLogout = onLogout
+                onLogout = onLogout,
+                isLoggingOut = isLoggingOut
             )
             Spacer(modifier = Modifier.height(16.dp))
             WeeklyCalendar(

@@ -6,6 +6,7 @@ import com.example.twdist_android.features.auth.domain.model.RegisteredUser
 import com.example.twdist_android.features.auth.domain.model.SessionStatus
 import com.example.twdist_android.features.auth.domain.session.AuthSessionManager
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,6 +17,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Test
 
@@ -59,5 +63,38 @@ class SessionViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SessionStatus.Unauthenticated, viewModel.sessionStatus.value)
+    }
+
+    @Test
+    fun `logout sets isLoggingOut while use case runs`() = runTest {
+        coEvery { logoutUseCase() } coAnswers {
+            delay(100)
+        }
+
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
+        advanceUntilIdle()
+        assertFalse(viewModel.isLoggingOut.value)
+
+        viewModel.logout()
+        assertTrue(viewModel.isLoggingOut.value)
+
+        advanceUntilIdle()
+        assertFalse(viewModel.isLoggingOut.value)
+    }
+
+    @Test
+    fun `logout ignores duplicate calls while in progress`() = runTest {
+        coEvery { logoutUseCase() } coAnswers {
+            delay(100)
+        }
+
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
+        advanceUntilIdle()
+
+        viewModel.logout()
+        viewModel.logout()
+
+        advanceUntilIdle()
+        coVerify(exactly = 1) { logoutUseCase() }
     }
 }

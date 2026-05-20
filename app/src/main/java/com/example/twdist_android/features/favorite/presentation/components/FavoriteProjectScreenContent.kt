@@ -22,7 +22,8 @@ internal fun FavoriteProjectScreenContent(
     onProjectClick: (Long) -> Unit,
     onRetry: () -> Unit,
     onUnfavoriteClick: (Long) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -32,7 +33,8 @@ internal fun FavoriteProjectScreenContent(
         ) {
             ScreenHeader(
                 title = "Favorites",
-                onLogout = onLogout
+                onLogout = onLogout,
+                isLoggingOut = isLoggingOut
             )
             Spacer(modifier = Modifier.height(8.dp))
             Box(modifier = Modifier.weight(1f)) {

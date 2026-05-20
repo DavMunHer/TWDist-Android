@@ -41,6 +41,7 @@ import com.example.twdist_android.features.today.presentation.viewmodel.TodayVie
 @Composable
 fun TodayScreen(
     onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     viewModel: TodayViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,6 +82,7 @@ fun TodayScreen(
             uiState = uiState,
             onTaskCompleted = viewModel::onTaskCompleted,
             onLogout = onLogout,
+            isLoggingOut = isLoggingOut,
             modifier = Modifier
         )
         SnackbarHost(
@@ -97,6 +99,7 @@ fun TodayScreenContent(
     uiState: TodayUiState,
     onTaskCompleted: (TaskRowState) -> Unit,
     onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -106,7 +109,8 @@ fun TodayScreenContent(
     ) {
         ScreenHeader(
             title = uiState.title,
-            onLogout = onLogout
+            onLogout = onLogout,
+            isLoggingOut = isLoggingOut
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
