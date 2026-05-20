@@ -31,7 +31,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.twdist_android.core.ui.components.ScreenHeader
 import com.example.twdist_android.core.ui.components.task.TaskRowState
+import com.example.twdist_android.features.auth.presentation.viewmodel.SessionViewModel
 import com.example.twdist_android.features.today.presentation.components.TodayTaskList
 import com.example.twdist_android.features.today.presentation.model.TodayUiEvent
 import com.example.twdist_android.features.today.presentation.model.TodayUiState
@@ -39,7 +41,8 @@ import com.example.twdist_android.features.today.presentation.viewmodel.TodayVie
 
 @Composable
 fun TodayScreen(
-    viewModel: TodayViewModel = hiltViewModel()
+    viewModel: TodayViewModel = hiltViewModel(),
+    sessionViewModel: SessionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -78,6 +81,7 @@ fun TodayScreen(
         TodayScreenContent(
             uiState = uiState,
             onTaskCompleted = viewModel::onTaskCompleted,
+            onLogout = { sessionViewModel.logout() },
             modifier = Modifier
         )
         SnackbarHost(
@@ -93,6 +97,7 @@ fun TodayScreen(
 fun TodayScreenContent(
     uiState: TodayUiState,
     onTaskCompleted: (TaskRowState) -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -100,11 +105,9 @@ fun TodayScreenContent(
             .fillMaxSize()
             .padding(top = 16.dp)
     ) {
-        Text(
-            text = uiState.title,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.W500,
-            modifier = Modifier.padding(horizontal = 16.dp)
+        ScreenHeader(
+            title = uiState.title,
+            onLogout = onLogout
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -173,6 +176,7 @@ fun TodayScreenContentPreview() {
                 )
             )
         ),
-        onTaskCompleted = {}
+        onTaskCompleted = {},
+        onLogout = {}
     )
 }
