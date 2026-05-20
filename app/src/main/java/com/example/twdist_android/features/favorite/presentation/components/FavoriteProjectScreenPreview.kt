@@ -22,7 +22,8 @@ internal fun FavoriteProjectScreenContentPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onProjectClick = {},
             onRetry = {},
-            onUnfavoriteClick = {}
+            onUnfavoriteClick = {},
+            onLogout = {}
         )
     }
 }
@@ -36,7 +37,8 @@ internal fun FavoriteProjectScreenLoadingPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onProjectClick = {},
             onRetry = {},
-            onUnfavoriteClick = {}
+            onUnfavoriteClick = {},
+            onLogout = {}
         )
     }
 }
@@ -53,7 +55,8 @@ internal fun FavoriteProjectScreenErrorPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onProjectClick = {},
             onRetry = {},
-            onUnfavoriteClick = {}
+            onUnfavoriteClick = {},
+            onLogout = {}
         )
     }
 }
@@ -67,7 +70,8 @@ internal fun FavoriteProjectScreenEmptyPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onProjectClick = {},
             onRetry = {},
-            onUnfavoriteClick = {}
+            onUnfavoriteClick = {},
+            onLogout = {}
         )
     }
 }

@@ -11,6 +11,7 @@ import com.example.twdist_android.features.auth.domain.model.LoginCredentials
 import com.example.twdist_android.features.auth.domain.model.RegisterCredentials
 import com.example.twdist_android.features.auth.domain.model.RegisteredUser
 import com.example.twdist_android.features.auth.domain.repository.AuthRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -76,6 +77,19 @@ class AuthRepositoryImpl(
                 if (!response.isSuccessful) {
                     throw handleHttpError(response)
                 }
+            }
+        }
+    }
+
+    override suspend fun logout() {
+        withContext(Dispatchers.IO) {
+            try {
+                api.logout()
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                // Still clear local session if the server is unreachable.
+            } finally {
+                cookieJar.clearAll()
             }
         }
     }

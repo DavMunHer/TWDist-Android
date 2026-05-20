@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.twdist_android.core.ui.components.ScreenHeader
 import com.example.twdist_android.core.ui.components.task.TaskRowState
 import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -49,6 +50,8 @@ import java.time.LocalDate
 
 @Composable
 fun UpcomingScreen(
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     viewModel: UpcomingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -124,6 +127,8 @@ fun UpcomingScreen(
         onToggleCalendarExpanded = { calendarExpanded = !calendarExpanded },
         onDayClick = onDayClick,
         onTaskCompleted = viewModel::onTaskCompleted,
+        onLogout = onLogout,
+        isLoggingOut = isLoggingOut,
         snackbarHostState = snackbarHostState
     )
 }
@@ -136,16 +141,17 @@ fun UpcomingScreenContent(
     onToggleCalendarExpanded: () -> Unit,
     onDayClick: (LocalDate) -> Unit,
     onTaskCompleted: (TaskRowState) -> Unit,
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().padding(top = 16.dp)) {
-            Text(
-                text = "Upcoming",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.W500,
-                modifier = Modifier.padding(horizontal = 16.dp)
+            ScreenHeader(
+                title = "Upcoming",
+                onLogout = onLogout,
+                isLoggingOut = isLoggingOut
             )
             Spacer(modifier = Modifier.height(16.dp))
             WeeklyCalendar(
@@ -218,6 +224,7 @@ private fun UpcomingScreenContentPreview() {
             onToggleCalendarExpanded = {},
             onDayClick = {},
             onTaskCompleted = {},
+            onLogout = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
     }
@@ -234,6 +241,7 @@ private fun UpcomingScreenLoadingPreview() {
             onToggleCalendarExpanded = {},
             onDayClick = {},
             onTaskCompleted = {},
+            onLogout = {},
             snackbarHostState = remember { SnackbarHostState() }
         )
     }

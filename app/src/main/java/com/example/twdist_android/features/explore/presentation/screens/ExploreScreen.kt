@@ -3,8 +3,10 @@ package com.example.twdist_android.features.explore.presentation.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +27,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.twdist_android.core.ui.components.ScreenHeader
 import com.example.twdist_android.core.ui.theme.TWDistAndroidTheme
 import com.example.twdist_android.features.explore.presentation.components.CreateProjectDialog
 import com.example.twdist_android.features.explore.presentation.components.DeleteProjectDialog
@@ -37,6 +40,8 @@ import com.example.twdist_android.features.explore.presentation.viewmodel.Explor
 
 @Composable
 fun ExploreScreen(
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     onNavigateToProjectDetails: (Long) -> Unit = {},
     viewModel: ExploreViewModel = hiltViewModel()
 ) {
@@ -73,7 +78,9 @@ fun ExploreScreen(
         },
         onSwipeDelete = { projectId ->
             viewModel.handleEvent(ExploreEvent.ShowDeleteProjectConfirmation(projectId))
-        }
+        },
+        onLogout = onLogout,
+        isLoggingOut = isLoggingOut
     )
 
     if (showCreateDialog) {
@@ -104,6 +111,8 @@ fun ExploreScreenContent(
     onAddClick: () -> Unit,
     onToggleFavorite: (Long) -> Unit,
     onSwipeDelete: (Long) -> Unit,
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -111,13 +120,20 @@ fun ExploreScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
+                .padding(top = 16.dp)
         ) {
+            ScreenHeader(
+                title = "Explore",
+                onLogout = onLogout,
+                isLoggingOut = isLoggingOut
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             SectionHeader(
                 title = "My projects",
                 isExpanded = state.isExpanded,
                 onExpandClick = onToggleExpanded,
-                onAddClick = onAddClick
+                onAddClick = onAddClick,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
 
             if (state.isExpanded) {
@@ -139,6 +155,7 @@ fun ExploreScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
+                            .padding(horizontal = 16.dp)
                     )
                 }
             }
@@ -169,7 +186,8 @@ private fun ExploreScreenContentPreview() {
             onToggleExpanded = {},
             onAddClick = {},
             onToggleFavorite = {},
-            onSwipeDelete = {}
+            onSwipeDelete = {},
+            onLogout = {}
         )
     }
 }
@@ -184,7 +202,8 @@ private fun ExploreScreenLoadingPreview() {
             onToggleExpanded = {},
             onAddClick = {},
             onToggleFavorite = {},
-            onSwipeDelete = {}
+            onSwipeDelete = {},
+            onLogout = {}
         )
     }
 }

@@ -7,7 +7,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
+import java.io.IOException
+import org.junit.Assert.fail
 import kotlinx.serialization.json.Json
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -64,6 +67,29 @@ class AuthRepositoryImplTest {
     @Test
     fun `clearLocalSession clears cookie jar`() = runTest {
         repository.clearLocalSession()
+
+        verify(exactly = 1) { cookieJar.clearAll() }
+    }
+
+    @Test
+    fun `logout clears cookies when api fails`() = runTest {
+        coEvery { api.logout() } throws IOException("network")
+
+        repository.logout()
+
+        verify(exactly = 1) { cookieJar.clearAll() }
+    }
+
+    @Test
+    fun `logout rethrows cancellation`() = runTest {
+        coEvery { api.logout() } throws CancellationException()
+
+        try {
+            repository.logout()
+            fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // expected
+        }
 
         verify(exactly = 1) { cookieJar.clearAll() }
     }

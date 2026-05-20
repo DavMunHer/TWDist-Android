@@ -9,5 +9,6 @@ interface AuthRepository {
     suspend fun sendLogin(credentials: LoginCredentials)
     suspend fun getCurrentUser(): Result<RegisteredUser>
     suspend fun refreshSession(): Result<Unit>
+    suspend fun logout()
     suspend fun clearLocalSession()
 }

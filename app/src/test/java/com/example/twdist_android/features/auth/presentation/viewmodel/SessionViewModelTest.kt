@@ -1,20 +1,26 @@
 package com.example.twdist_android.features.auth.presentation.viewmodel
 
+import com.example.twdist_android.features.auth.application.usecases.LogoutUseCase
 import com.example.twdist_android.features.auth.application.usecases.RestoreSessionUseCase
 import com.example.twdist_android.features.auth.domain.model.RegisteredUser
 import com.example.twdist_android.features.auth.domain.model.SessionStatus
 import com.example.twdist_android.features.auth.domain.session.AuthSessionManager
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Test
 
@@ -22,6 +28,7 @@ import org.junit.Test
 class SessionViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val restoreSessionUseCase: RestoreSessionUseCase = mockk(relaxed = true)
+    private val logoutUseCase: LogoutUseCase = mockk(relaxed = true)
     private val authSessionManager = AuthSessionManager()
 
     @Before
@@ -35,27 +42,62 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `init restores session and exposes authenticated status`() = runTest {
+    fun `init restores session and exposes authenticated status`() = runTest(testDispatcher) {
         val user = RegisteredUser(id = 1L, username = "test", email = "user@email.com")
         coEvery { restoreSessionUseCase() } coAnswers {
             authSessionManager.setAuthenticated(user)
         }
 
-        val viewModel = SessionViewModel(restoreSessionUseCase, authSessionManager)
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
         advanceUntilIdle()
 
         assertEquals(SessionStatus.Authenticated(user), viewModel.sessionStatus.value)
     }
 
     @Test
-    fun `init restores session and exposes unauthenticated status`() = runTest {
+    fun `init restores session and exposes unauthenticated status`() = runTest(testDispatcher) {
         coEvery { restoreSessionUseCase() } coAnswers {
             authSessionManager.setUnauthenticated()
         }
 
-        val viewModel = SessionViewModel(restoreSessionUseCase, authSessionManager)
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
         advanceUntilIdle()
 
         assertEquals(SessionStatus.Unauthenticated, viewModel.sessionStatus.value)
+    }
+
+    @Test
+    fun `logout sets isLoggingOut while use case runs`() = runTest(testDispatcher) {
+        coEvery { logoutUseCase() } coAnswers {
+            delay(100)
+        }
+
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
+        advanceUntilIdle()
+        assertFalse(viewModel.isLoggingOut.value)
+
+        viewModel.logout()
+        runCurrent()
+        assertTrue(viewModel.isLoggingOut.value)
+
+        advanceUntilIdle()
+        assertFalse(viewModel.isLoggingOut.value)
+    }
+
+    @Test
+    fun `logout ignores duplicate calls while in progress`() = runTest(testDispatcher) {
+        coEvery { logoutUseCase() } coAnswers {
+            delay(100)
+        }
+
+        val viewModel = SessionViewModel(restoreSessionUseCase, logoutUseCase, authSessionManager)
+        advanceUntilIdle()
+
+        viewModel.logout()
+        viewModel.logout()
+        runCurrent()
+
+        advanceUntilIdle()
+        coVerify(exactly = 1) { logoutUseCase() }
     }
 }

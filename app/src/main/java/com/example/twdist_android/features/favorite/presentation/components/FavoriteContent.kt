@@ -28,10 +28,10 @@ internal fun FavoriteContent(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
         SectionHeader(
-            title = "Favorite projects",
+            title = "My projects",
             isExpanded = isExpanded,
             onExpandClick = { isExpanded = !isExpanded },
             onAddClick = {},

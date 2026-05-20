@@ -31,6 +31,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.twdist_android.core.ui.components.ScreenHeader
 import com.example.twdist_android.core.ui.components.task.TaskRowState
 import com.example.twdist_android.features.today.presentation.components.TodayTaskList
 import com.example.twdist_android.features.today.presentation.model.TodayUiEvent
@@ -39,6 +40,8 @@ import com.example.twdist_android.features.today.presentation.viewmodel.TodayVie
 
 @Composable
 fun TodayScreen(
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     viewModel: TodayViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,6 +81,8 @@ fun TodayScreen(
         TodayScreenContent(
             uiState = uiState,
             onTaskCompleted = viewModel::onTaskCompleted,
+            onLogout = onLogout,
+            isLoggingOut = isLoggingOut,
             modifier = Modifier
         )
         SnackbarHost(
@@ -93,6 +98,8 @@ fun TodayScreen(
 fun TodayScreenContent(
     uiState: TodayUiState,
     onTaskCompleted: (TaskRowState) -> Unit,
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -100,11 +107,10 @@ fun TodayScreenContent(
             .fillMaxSize()
             .padding(top = 16.dp)
     ) {
-        Text(
-            text = uiState.title,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.W500,
-            modifier = Modifier.padding(horizontal = 16.dp)
+        ScreenHeader(
+            title = uiState.title,
+            onLogout = onLogout,
+            isLoggingOut = isLoggingOut
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -173,6 +179,7 @@ fun TodayScreenContentPreview() {
                 )
             )
         ),
-        onTaskCompleted = {}
+        onTaskCompleted = {},
+        onLogout = {}
     )
 }

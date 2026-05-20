@@ -15,6 +15,8 @@ import com.example.twdist_android.features.favorite.presentation.viewmodel.Favor
 
 @Composable
 fun FavoriteProjectScreen(
+    onLogout: () -> Unit,
+    isLoggingOut: Boolean = false,
     onNavigateToProjectDetails: (Long) -> Unit = {},
     viewModel: FavoriteProjectsViewModel = hiltViewModel()
 ) {
@@ -42,6 +44,8 @@ fun FavoriteProjectScreen(
         onRetry = { viewModel.handleEvent(FavoriteProjectsEvent.LoadProjects) },
         onUnfavoriteClick = { projectId ->
             viewModel.handleEvent(FavoriteProjectsEvent.UnfavoriteProject(projectId))
-        }
+        },
+        onLogout = onLogout,
+        isLoggingOut = isLoggingOut
     )
 }
