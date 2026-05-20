@@ -33,8 +33,8 @@ class SessionViewModel @Inject constructor(
 
     fun logout() {
         if (_isLoggingOut.value) return
+        _isLoggingOut.value = true
         viewModelScope.launch {
-            _isLoggingOut.value = true
             try {
                 logoutUseCase()
             } finally {
