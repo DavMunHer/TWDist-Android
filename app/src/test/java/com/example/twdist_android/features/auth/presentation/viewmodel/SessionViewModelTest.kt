@@ -13,6 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -41,7 +42,7 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `init restores session and exposes authenticated status`() = runTest {
+    fun `init restores session and exposes authenticated status`() = runTest(testDispatcher) {
         val user = RegisteredUser(id = 1L, username = "test", email = "user@email.com")
         coEvery { restoreSessionUseCase() } coAnswers {
             authSessionManager.setAuthenticated(user)
@@ -54,7 +55,7 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `init restores session and exposes unauthenticated status`() = runTest {
+    fun `init restores session and exposes unauthenticated status`() = runTest(testDispatcher) {
         coEvery { restoreSessionUseCase() } coAnswers {
             authSessionManager.setUnauthenticated()
         }
@@ -66,7 +67,7 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `logout sets isLoggingOut while use case runs`() = runTest {
+    fun `logout sets isLoggingOut while use case runs`() = runTest(testDispatcher) {
         coEvery { logoutUseCase() } coAnswers {
             delay(100)
         }
@@ -76,6 +77,7 @@ class SessionViewModelTest {
         assertFalse(viewModel.isLoggingOut.value)
 
         viewModel.logout()
+        runCurrent()
         assertTrue(viewModel.isLoggingOut.value)
 
         advanceUntilIdle()
@@ -83,7 +85,7 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `logout ignores duplicate calls while in progress`() = runTest {
+    fun `logout ignores duplicate calls while in progress`() = runTest(testDispatcher) {
         coEvery { logoutUseCase() } coAnswers {
             delay(100)
         }
@@ -93,6 +95,7 @@ class SessionViewModelTest {
 
         viewModel.logout()
         viewModel.logout()
+        runCurrent()
 
         advanceUntilIdle()
         coVerify(exactly = 1) { logoutUseCase() }
