@@ -18,8 +18,8 @@ android {
         applicationId = "com.example.twdist_android"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = (findProperty("versionCode") as String?)?.toInt() ?: 1
+        versionName = findProperty("versionName") as String? ?: "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -30,7 +30,10 @@ android {
             envFile.inputStream().use { properties.load(it) }
         }
         
-        val baseUrl = properties.getProperty("BASE_URL") ?: "http://10.0.2.2:8080/api/"
+        val baseUrlRaw = properties.getProperty("BASE_URL")?.trim()?.takeIf { it.isNotBlank() }
+        val baseUrl = (baseUrlRaw ?: "http://10.0.2.2:8080/api/").let { url ->
+            if (url.endsWith("/")) url else "$url/"
+        }
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
     }
 
@@ -38,8 +41,23 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (keystorePath != null) {
+                storeFile = rootProject.file(keystorePath)
+                storePassword = System.getenv("ANDROID_STORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (System.getenv("ANDROID_KEYSTORE_PATH") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

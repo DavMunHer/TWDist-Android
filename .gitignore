@@ -11,3 +11,6 @@
 local.properties
 
 **/.env
+*.jks
+release.keystore
+keystore_b64.txt

@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Inject production BASE_URL
+        run: |
+          if [ -z "${{ secrets.RELEASE_BASE_URL }}" ]; then
+            echo "::error::RELEASE_BASE_URL secret is not set"
+            exit 1
+          fi
+          printf 'BASE_URL=%s\n' "${{ secrets.RELEASE_BASE_URL }}" > .env
+
+      - name: Decode release keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ github.workspace }}/release.keystore"
+
+      - name: Compute release version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TODAY=$(date +"%-Y.%-m.%-d")
+          COUNT=$(gh release list --limit 100 --json tagName \
+            | jq "[.[] | select(.tagName | startswith(\"$TODAY.\"))] | length")
+          N=$((COUNT + 1))
+          VERSION="${TODAY}.${N}"
+          VERSION_CODE=$(date +"%Y%m%d")$(printf "%02d" $N)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "Release version: $VERSION (versionCode=$VERSION_CODE)"
+
+      - name: Build signed release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
+          ANDROID_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease \
+            -PversionCode=${{ steps.version.outputs.version_code }} \
+            -PversionName=${{ steps.version.outputs.version }}
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          files: app/build/outputs/apk/release/*.apk
+          prerelease: true
+          generate_release_notes: true
