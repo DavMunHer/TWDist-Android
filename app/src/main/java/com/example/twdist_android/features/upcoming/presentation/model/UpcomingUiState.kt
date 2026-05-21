@@ -8,5 +8,7 @@ data class UpcomingUiState(
     val error: String? = null,
     val items: List<UpcomingListItem> = emptyList(),
     val visibleDate: LocalDate = LocalDate.now(),
-    val weekStart: LocalDate = LocalDate.now().with(WeekFields.ISO.dayOfWeek(), 1)
+    val weekStart: LocalDate = LocalDate.now().with(WeekFields.ISO.dayOfWeek(), 1),
+    val windowStart: LocalDate = LocalDate.now(),
+    val windowEnd: LocalDate = LocalDate.now().plusMonths(1)
 )

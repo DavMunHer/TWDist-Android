@@ -8,6 +8,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -39,6 +40,25 @@ class UpcomingViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `refresh uses rolling one month window from today`() = runTest {
+        val fromSlot = slot<LocalDate>()
+        val toSlot = slot<LocalDate>()
+        coEvery { refreshUpcomingTasksUseCase(capture(fromSlot), capture(toSlot)) } returns Result.success(Unit)
+
+        UpcomingViewModel(
+            getUpcomingTasksUseCase,
+            refreshUpcomingTasksUseCase,
+            completeUpcomingTaskUseCase,
+            undoCompleteUpcomingTaskUseCase
+        )
+        advanceUntilIdle()
+
+        val today = LocalDate.now()
+        assertEquals(today, fromSlot.captured)
+        assertEquals(today.plusMonths(1), toSlot.captured)
     }
 
     @Test
