@@ -83,6 +83,7 @@ fun UpcomingScreen(
                 when (item) {
                     is UpcomingListItem.Header -> item.date
                     is UpcomingListItem.Task -> item.date
+                    is UpcomingListItem.PaddingDay -> null
                 }
             }
         }
@@ -157,6 +158,8 @@ fun UpcomingScreenContent(
             WeeklyCalendar(
                 weekStart = uiState.weekStart,
                 visibleDate = uiState.visibleDate,
+                windowStart = uiState.windowStart,
+                windowEnd = uiState.windowEnd,
                 isExpanded = calendarExpanded,
                 onToggleExpanded = onToggleCalendarExpanded,
                 onDayClick = onDayClick

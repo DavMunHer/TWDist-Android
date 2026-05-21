@@ -14,6 +14,12 @@ import androidx.compose.ui.unit.dp
 import com.example.twdist_android.core.ui.components.task.TaskRow
 import com.example.twdist_android.core.ui.components.task.TaskRowState
 import com.example.twdist_android.features.upcoming.presentation.model.UpcomingListItem
+import java.time.LocalDate
+
+private fun previousHeaderDate(items: List<UpcomingListItem>, beforeIndex: Int): LocalDate? =
+    items.take(beforeIndex)
+        .asReversed()
+        .firstNotNullOfOrNull { (it as? UpcomingListItem.Header)?.date }
 
 @Composable
 fun UpcomingTaskList(
@@ -32,6 +38,7 @@ fun UpcomingTaskList(
             when (item) {
                 is UpcomingListItem.Header -> "header_${item.date}"
                 is UpcomingListItem.Task -> "task_${item.state.id}"
+                is UpcomingListItem.PaddingDay -> "padding_${item.date}"
             }
         }) { idx, item ->
             when (item) {
@@ -39,7 +46,17 @@ fun UpcomingTaskList(
                     if (idx > 0) {
                         HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                     }
-                    DayHeader(date = item.date)
+                    val prevDate = previousHeaderDate(items, idx)
+                    DayHeader(
+                        date = item.date,
+                        showMonthSeparator = prevDate != null && prevDate.month != item.date.month
+                    )
+                }
+                is UpcomingListItem.PaddingDay -> {
+                    if (idx > 0) {
+                        HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                    }
+                    DayHeader(date = item.date, isPadding = true)
                 }
                 is UpcomingListItem.Task -> TaskRow(
                     task = item.state,

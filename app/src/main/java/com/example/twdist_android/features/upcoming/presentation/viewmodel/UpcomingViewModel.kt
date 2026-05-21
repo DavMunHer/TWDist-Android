@@ -8,6 +8,7 @@ import com.example.twdist_android.features.upcoming.application.usecases.GetUpco
 import com.example.twdist_android.features.upcoming.application.usecases.RefreshUpcomingTasksUseCase
 import com.example.twdist_android.features.upcoming.application.usecases.UndoCompleteUpcomingTaskUseCase
 import com.example.twdist_android.features.upcoming.domain.model.UpcomingTask
+import com.example.twdist_android.features.upcoming.presentation.model.UPCOMING_SCROLL_PADDING_DAYS
 import com.example.twdist_android.features.upcoming.presentation.model.UpcomingListItem
 import com.example.twdist_android.features.upcoming.presentation.model.UpcomingUiEvent
 import com.example.twdist_android.features.upcoming.presentation.model.UpcomingUiState
@@ -16,10 +17,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import javax.inject.Inject
 
@@ -37,21 +38,37 @@ class UpcomingViewModel @Inject constructor(
     private val _events = MutableSharedFlow<UpcomingUiEvent>()
     val events: SharedFlow<UpcomingUiEvent> = _events
 
-    private val today: LocalDate = LocalDate.now()
-    private val endOfMonth: LocalDate = today.with(TemporalAdjusters.lastDayOfMonth())
+    private var observationJob: Job? = null
+    private var observedRange: Pair<LocalDate, LocalDate>? = null
 
     init {
-        viewModelScope.launch {
-            getUpcomingTasksUseCase(from = today, to = endOfMonth).collect { tasks ->
+        observeUpcomingTasksIfNeeded()
+        refreshTasks(showLoading = true)
+    }
+
+    private fun rollingWindow(): Pair<LocalDate, LocalDate> {
+        val from = LocalDate.now()
+        return from to from.plusMonths(1)
+    }
+
+    private fun observeUpcomingTasksIfNeeded() {
+        val (from, to) = rollingWindow()
+        if (observedRange == from to to) return
+        observedRange = from to to
+        observationJob?.cancel()
+        observationJob = viewModelScope.launch {
+            getUpcomingTasksUseCase(from = from, to = to).collect { tasks ->
+                val (currentFrom, currentTo) = rollingWindow()
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
-                        items = buildListItems(today, endOfMonth, tasks)
+                        items = buildListItems(currentFrom, currentTo, tasks),
+                        windowStart = currentFrom,
+                        windowEnd = currentTo
                     )
                 }
             }
         }
-        refreshTasks(showLoading = true)
     }
 
     /**
@@ -60,10 +77,12 @@ class UpcomingViewModel @Inject constructor(
      */
     fun refreshTasks(showLoading: Boolean = true) {
         viewModelScope.launch {
+            observeUpcomingTasksIfNeeded()
+            val (from, to) = rollingWindow()
             if (showLoading) {
                 _uiState.update { it.copy(isLoading = true, error = null) }
             }
-            refreshUpcomingTasksUseCase(from = today, to = endOfMonth)
+            refreshUpcomingTasksUseCase(from = from, to = to)
                 .onSuccess {
                     // Room Flow does not always re-emit (e.g. empty API body -> no DAO write): clear spinner anyway.
                     if (showLoading) {
@@ -144,6 +163,9 @@ class UpcomingViewModel @Inject constructor(
                 )
             }
             current = current.plusDays(1)
+        }
+        for (offset in 1..UPCOMING_SCROLL_PADDING_DAYS) {
+            result.add(UpcomingListItem.PaddingDay(to.plusDays(offset.toLong())))
         }
         return result
     }
