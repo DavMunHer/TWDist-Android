@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [chore/auto-releases]
+    branches: [main]
 
 permissions:
   contents: write
