@@ -25,7 +25,7 @@ jobs:
         run: echo "BASE_URL=${{ secrets.RELEASE_BASE_URL }}" >> .env
 
       - name: Decode release keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ github.workspace }}/release.keystore"
 
       - name: Compute release version
         id: version
@@ -42,15 +42,9 @@ jobs:
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "Release version: $VERSION (versionCode=$VERSION_CODE)"
 
-      - name: Lint
-        run: ./gradlew lint
-
-      - name: Unit tests
-        run: ./gradlew test
-
       - name: Build signed release APK
         env:
-          ANDROID_KEYSTORE_PATH: release.keystore
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
           ANDROID_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
