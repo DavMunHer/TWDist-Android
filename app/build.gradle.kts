@@ -30,7 +30,10 @@ android {
             envFile.inputStream().use { properties.load(it) }
         }
         
-        val baseUrl = properties.getProperty("BASE_URL") ?: "http://10.0.2.2:8080/api/"
+        val baseUrlRaw = properties.getProperty("BASE_URL")?.trim()?.takeIf { it.isNotBlank() }
+        val baseUrl = (baseUrlRaw ?: "http://10.0.2.2:8080/api/").let { url ->
+            if (url.endsWith("/")) url else "$url/"
+        }
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
     }
 

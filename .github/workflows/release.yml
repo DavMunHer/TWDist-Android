@@ -22,7 +22,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
 
       - name: Inject production BASE_URL
-        run: echo "BASE_URL=${{ secrets.RELEASE_BASE_URL }}" >> .env
+        run: |
+          if [ -z "${{ secrets.RELEASE_BASE_URL }}" ]; then
+            echo "::error::RELEASE_BASE_URL secret is not set"
+            exit 1
+          fi
+          printf 'BASE_URL=%s\n' "${{ secrets.RELEASE_BASE_URL }}" > .env
 
       - name: Decode release keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ github.workspace }}/release.keystore"
@@ -59,4 +64,5 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           name: Release ${{ steps.version.outputs.version }}
           files: app/build/outputs/apk/release/*.apk
+          prerelease: true
           generate_release_notes: true

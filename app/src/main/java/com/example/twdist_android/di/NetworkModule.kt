@@ -57,13 +57,19 @@ object NetworkModule {
     fun provideOkHttpClient(
         cookieJar: okhttp3.CookieJar,
         authenticator: TokenRefreshAuthenticator
-    ): OkHttpClient = OkHttpClient.Builder()
-        .cookieJar(cookieJar)
-        .authenticator(authenticator)
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        })
-        .build()
+    ): OkHttpClient {
+        val builder = OkHttpClient.Builder()
+            .cookieJar(cookieJar)
+            .authenticator(authenticator)
+        if (BuildConfig.DEBUG) {
+            builder.addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                }
+            )
+        }
+        return builder.build()
+    }
 
     @Provides
     @Singleton
