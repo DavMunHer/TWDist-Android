@@ -39,6 +39,10 @@ On macOS or Linux:
 BASE_URL=https://your-api.example.com/api/
 ```
 
+## Releases
+
+Pushes to `main` trigger an automatic GitHub Release with a signed APK (tag format `YYYY.M.D.N`, e.g. `2026.5.21.1`). 
+
 ## Start developing
 
 - **Android Studio:** run the **app** configuration on an emulator or device.
